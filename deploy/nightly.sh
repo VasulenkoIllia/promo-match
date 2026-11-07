@@ -34,7 +34,7 @@ fi
 
 deploy_dir=$(cd "$(dirname "$0")" && pwd)
 env_dir=${deploy_dir%-deploy}
-[ "$env_dir" != "$deploy_dir" ] && [ -f "$env_dir/.env" ] || { echo "nightly: no environment next to $deploy_dir" >&2; exit 78; }
+if [ "$env_dir" = "$deploy_dir" ] || [ ! -f "$env_dir/.env" ]; then echo "nightly: no environment next to $deploy_dir" >&2; exit 78; fi
 
 say() { echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) nightly: $1"; }
 

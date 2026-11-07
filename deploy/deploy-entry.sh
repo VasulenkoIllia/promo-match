@@ -62,7 +62,7 @@ if ! docker cp "$container:/app/docker-compose.yml" "$release_new/docker-compose
   die "could not copy docker-compose.yml and deploy.sh out of $image"
 fi
 docker rm "$container" >/dev/null
-[ ! -L "$release_new/docker-compose.yml" ] && [ ! -L "$release_new/deploy/deploy.sh" ] || die "$image holds a symlink"
+if [ -L "$release_new/docker-compose.yml" ] || [ -L "$release_new/deploy/deploy.sh" ]; then die "$image holds a symlink"; fi
 
 infra_hash=$(cat "$release_new/docker-compose.yml" "$release_new/deploy/deploy.sh" | sha256sum | cut -d' ' -f1)
 grep -qx "$infra_hash" "$approved_infra" 2>/dev/null ||

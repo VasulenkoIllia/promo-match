@@ -51,7 +51,7 @@ fi
 
 deploy_dir=$(cd "$(dirname "$0")" && pwd)
 env_dir=${deploy_dir%-deploy}
-[ "$env_dir" != "$deploy_dir" ] && [ -d "$env_dir" ] || { echo "backup: no environment next to $deploy_dir" >&2; exit 78; }
+if [ "$env_dir" = "$deploy_dir" ] || [ ! -d "$env_dir" ]; then echo "backup: no environment next to $deploy_dir" >&2; exit 78; fi
 dump_dir=$env_dir/backups
 check_container=$PROJECT-restore-check
 check_lock=$env_dir/.restore-check.lock
@@ -108,7 +108,7 @@ find_db() {
     --filter "label=com.docker.compose.service=db" \
     --filter "health=healthy" \
     --format '{{.Names}}') || fail "docker did not answer"
-  [ -n "$db" ] && [[ "$db" != *$'\n'* ]] || fail "expected one healthy db container of $PROJECT, found: ${db:-none}"
+  if [ -z "$db" ] || [[ "$db" == *$'\n'* ]]; then fail "expected one healthy db container of $PROJECT, found: ${db:-none}"; fi
 }
 
 # Empty before the first dump. Scheduled dumps only: they appear whole, by mv, while deploy.sh writes its dump under the
