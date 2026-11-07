@@ -62,7 +62,7 @@ cd ~/WebstormProjects/promo_match && git grep -il '<CLIENT_DOMAIN>' HEAD; git ls
 ```bash
 cd ~/WebstormProjects/promo_match && gh repo create VasulenkoIllia/promo-match --public --source . --remote origin
 ```
-Push іде через HTTPS з токеном `gh`, а GitHub приймає `.github/workflows/` лише з правом `workflow`; 2026-11-07 токен мав `repo`, `read:org`, `gist`, `admin:public_key` без нього. Додати право (на Mac, відкриває браузер, вхід робить власник), очікується `workflow` у `Token scopes`:
+Remote `git@github.com:VasulenkoIllia/promo-match.git`, бо `gh` для github.com має протокол `ssh`: push іде SSH-ключем власника, право `workflow` токена не потрібне (перевірено 2026-11-07). Лише для remote HTTPS: GitHub приймає `.github/workflows/` з токеном, що має право `workflow`, а токен `gh` 2026-11-07 його не мав; додати (на Mac, відкриває браузер, вхід робить власник), очікується `workflow` у `Token scopes`:
 ```bash
 cd ~ && gh auth refresh -h github.com -s workflow && gh auth status
 ```
