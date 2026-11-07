@@ -97,9 +97,9 @@ cd ~/WebstormProjects/promo_match && ssh-keyscan -t ed25519 '<HOST>' > ~/.ssh/pr
 cd /var/www/projects && mkdir -p promo-match/backups promo-match-deploy && chmod 700 promo-match promo-match/backups promo-match-deploy && ls -ld promo-match promo-match-deploy && ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
 ```
 
-**5. На сервері після ssh: `.env` (пише).** Спершу значення без секретів і пароль БД, що генерується в команді й ніде не виводиться (лише літери й цифри, бо він стоїть у `DATABASE_URL`). `EMBED_BUDGET_USD` це ліміт одного запуску ембедінгів, тобто й однієї ночі (розділ «Розклад»). Очікується `-rw-------` і назви змінних.
+**5. На сервері після ssh: `.env` (пише).** Спершу значення без секретів і пароль БД, що генерується в команді й ніде не виводиться (лише літери й цифри, бо він стоїть у `DATABASE_URL`). `EMBED_BUDGET_USD` це ліміт одного запуску ембедінгів, тобто й однієї ночі (розділ «Розклад»); `SEARCH_BUDGET_USD` і `QUERY_PARSE_BUDGET_USD` це ліміти доби на ембедінг запиту й розбір його тексту Claude, значення власника 2026-11-07 у docs/decisions.md. Очікується `-rw-------` і назви змінних. Наявний `.env` команда не перезаписує: новий пароль розійшовся б з базою.
 ```bash
-cd /var/www/projects/promo-match && umask 077 && POSTGRES_PASSWORD=$(openssl rand -hex 24) && printf '%s\n' 'TZ=Europe/Kyiv' 'LOG_LEVEL=info' 'APP_NAME=promo-match' 'APP_DOMAIN=<APP_DOMAIN>' 'TRAEFIK_NETWORK=proxy' 'TRAEFIK_ENTRYPOINT=websecure' 'TRAEFIK_CERTRESOLVER=cf' 'POSTGRES_DB=promo_match' 'POSTGRES_USER=promo_match' "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" 'EMBED_PROVIDER=gemini' 'EMBED_BUDGET_USD=<EMBED_BUDGET_USD>' 'SEARCH_BUDGET_USD=<SEARCH_BUDGET_USD>' > .env && unset POSTGRES_PASSWORD && ls -l .env && cut -d= -f1 .env
+cd /var/www/projects/promo-match && { [ ! -e .env ] || { echo '.env already exists, nothing written'; false; }; } && umask 077 && POSTGRES_PASSWORD=$(openssl rand -hex 24) && printf '%s\n' 'TZ=Europe/Kyiv' 'LOG_LEVEL=info' 'APP_NAME=promo-match' 'APP_DOMAIN=<APP_DOMAIN>' 'TRAEFIK_NETWORK=proxy' 'TRAEFIK_ENTRYPOINT=websecure' 'TRAEFIK_CERTRESOLVER=cf' 'POSTGRES_DB=promo_match' 'POSTGRES_USER=promo_match' "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" 'EMBED_PROVIDER=gemini' 'EMBED_BUDGET_USD=<EMBED_BUDGET_USD>' 'SEARCH_BUDGET_USD=<SEARCH_BUDGET_USD>' 'QUERY_PARSE_BUDGET_USD=<QUERY_PARSE_BUDGET_USD>' > .env && unset POSTGRES_PASSWORD && ls -l .env && cut -d= -f1 .env
 ```
 Потім ключі й адреси фідів, кожне окремо й без показу на екрані: команда питає назву, значення вставляється й не відображається. Порожнє значення пропускається. Очікуються назви всіх змінних.
 ```bash
@@ -172,9 +172,9 @@ cd /var/www/projects/promo-match && docker run --rm --entrypoint cat ghcr.io/vas
 **Відкат переносу.** До першого деплою на сервері немає нічого нашого, крім цієї бази. Якщо відновлення впало чи лічильники не збіглися: `IMAGE_TAG=<TAG> docker compose --project-name promo-match --env-file .env -f release/docker-compose.yml stop db`, далі разом із Claude і лише з окремого «так» власника видалити том `promo-match_db-data` і повторити з кроку 4. Після першого деплою відкат бази лише з дампу (розділ «Відкат»).
 
 ## Перший деплой
-**1. На Mac: деплой руками (пише на сервер).** Очікується дамп щойно відновленої бази, `No pending migrations to apply`, план категорій без змін, `== Traefik` і в кінці `== Done: runs <TAG>`.
+**1. На Mac: деплой руками (пише на сервер).** Вивід лише з кроків: `new: <TAG>, running: none`, `== Database`, `dump:` щойно відновленої бази, `== Migrations`, `== Categories`, `== Starting <TAG>`, `== Traefik` і в кінці `== Done: runs <TAG>`. Подробиці (`No pending migrations to apply`, план категорій без змін) у `deploy.log` на сервері. `ServerAliveInterval` обов'язковий: дамп перед деплоєм кілька хвилин нічого не друкує, і 2026-11-07 NAT роутера розірвав тихе з'єднання без keepalive, клієнт висів на `== Database`, а деплой на сервері дійшов до кінця. Тоді стан видно в `deploy.log`.
 ```bash
-ssh -F /dev/null -i ~/.ssh/promo_match_deploy -o IdentitiesOnly=yes -o UserKnownHostsFile=~/.ssh/promo_match_known_hosts '<SSH_USER>@<HOST>' '<TAG>'
+ssh -F /dev/null -i ~/.ssh/promo_match_deploy -o IdentitiesOnly=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=6 -o UserKnownHostsFile=~/.ssh/promo_match_known_hosts '<SSH_USER>@<HOST>' '<TAG>'
 ```
 
 **2. На сервері після ssh: перший адмін (пише).** Самостійної реєстрації немає, а в копії бази користувачів немає. Пароль від 12 знаків питається двічі й не показується. Перед записом команда друкує назву БД.
@@ -268,7 +268,7 @@ crontab -l | sed '/# promo-match: begin/,/# promo-match: end/d' | crontab - && c
 - Стан і логи (лише читає): `pm ps`, `pm logs --tail 100 app`.
 
 ## Відкат
-- Код: на Mac `ssh -F /dev/null -i ~/.ssh/promo_match_deploy -o IdentitiesOnly=yes -o UserKnownHostsFile=~/.ssh/promo_match_known_hosts '<SSH_USER>@<HOST>' '<PREVIOUS_TAG> --skip-migrate'`, `<PREVIOUS_TAG>` з `previous_tag` на сервері. `--skip-migrate` пропускає й міграції, і категорії. Міграції назад не відкочуються, тому вони лише additive: нові таблиці й колонки, без видалень у тому ж релізі.
+- Код: на Mac `ssh -F /dev/null -i ~/.ssh/promo_match_deploy -o IdentitiesOnly=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=6 -o UserKnownHostsFile=~/.ssh/promo_match_known_hosts '<SSH_USER>@<HOST>' '<PREVIOUS_TAG> --skip-migrate'`, `<PREVIOUS_TAG>` з `previous_tag` на сервері. `--skip-migrate` пропускає й міграції, і категорії. Міграції назад не відкочуються, тому вони лише additive: нові таблиці й колонки, без видалень у тому ж релізі.
 - База: лише з дампу (`backups/predeploy-*` чи `scheduled-*`), разом із Claude: зупинити `app`, відновити дамп, звірити лічильники за `deploy/counts.sql`.
 
 ## Коли міграція впала
