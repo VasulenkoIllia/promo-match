@@ -159,6 +159,7 @@ describe("the pages of the links", () => {
     expect(response?.statusCode).toBe(201);
     expect(response?.json()).toEqual({ login: "new.one" });
     expect(response?.headers["set-cookie"]).toBeUndefined();
+    expect(response?.headers["cache-control"]).toBe("no-store");
     expect(calls).toEqual(["accept invite as new.one"]);
   });
 
@@ -167,6 +168,7 @@ describe("the pages of the links", () => {
     appWith(service);
     const response = await send("POST", "/api/auth/reset", undefined, { token: TOKEN, password: PASSWORD });
     expect(response?.json()).toEqual({ login: "worker" });
+    expect(response?.headers["cache-control"]).toBe("no-store");
     expect(calls).toEqual(["accept reset"]);
   });
 
@@ -188,7 +190,9 @@ describe("the pages of the links", () => {
       acceptReset: () => Promise.reject(new LinkNotUsable("this link is used, past its end or not valid")),
     }).service);
     expect((await invite(TOKEN))?.statusCode).toBe(409);
-    expect((await send("POST", "/api/auth/reset", undefined, { token: TOKEN, password: PASSWORD }))?.statusCode).toBe(410);
+    const refused = await send("POST", "/api/auth/reset", undefined, { token: TOKEN, password: PASSWORD });
+    expect(refused?.statusCode).toBe(410);
+    expect(refused?.headers["cache-control"]).toBe("no-store");
   });
 
   it("refuses a request from another site", async () => {
@@ -227,5 +231,18 @@ describe("the limit on the links' attempts", () => {
     }
     expect((await invite(TOKEN, "new.one", PASSWORD, "203.0.113.5"))?.statusCode).toBe(429);
     expect((await invite(TOKEN, "new.one", PASSWORD, "203.0.113.6"))?.statusCode).toBe(201);
+  });
+
+  it("counts the address behind a Cloudflare edge, not the edge", async () => {
+    appWith(fakeUsers().service);
+    const fromBehind = (token: string, password: string, address: string) => app?.inject({
+      method: "POST", url: "/api/auth/invite", remoteAddress: "162.158.10.20",
+      headers: { "cf-connecting-ip": address }, payload: { token, login: "new.one", password },
+    });
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      await fromBehind(attempt.toString().padStart(43, "c"), "short", "203.0.113.5");
+    }
+    expect((await fromBehind(TOKEN, PASSWORD, "203.0.113.5"))?.statusCode).toBe(429);
+    expect((await fromBehind(TOKEN, PASSWORD, "203.0.113.6"))?.statusCode).toBe(201);
   });
 });

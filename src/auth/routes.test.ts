@@ -141,6 +141,17 @@ describe("the limit on sign-in attempts", () => {
     expect(signIns).toHaveLength(30);
     expect((await signIn("tester", PASSWORD, {}, "203.0.113.6"))?.statusCode).toBe(200);
   });
+
+  it("counts the address behind a Cloudflare edge, not the edge, and not the header from anyone else", async () => {
+    appWith(fakeAuth().service);
+    const edge = "162.158.10.20";
+    const behind = { "cf-connecting-ip": "203.0.113.5" };
+    for (let attempt = 0; attempt < 30; attempt += 1) await signIn(`login${attempt}`, "wrong", behind, edge);
+    expect((await signIn("tester", PASSWORD, behind, edge))?.statusCode).toBe(429);
+    expect((await signIn("tester", PASSWORD, { "cf-connecting-ip": "203.0.113.6" }, edge))?.statusCode).toBe(200);
+    // Straight to the server with the header of the stopped address: counted by its own, which is free
+    expect((await signIn("tester", PASSWORD, behind, "198.51.100.7"))?.statusCode).toBe(200);
+  });
 });
 
 describe("the signed-in scope", () => {

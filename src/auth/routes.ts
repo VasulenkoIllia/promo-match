@@ -6,6 +6,7 @@
 // closed by being there, not by a path check, which a URL spelt another way (/%61pi/search) would pass. The users API
 // lives in a scope inside it, whose hook is requireAdmin. The pages of the one-time links are src/auth/admin-routes.ts.
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { attemptAddress } from "./client-ip.js";
 import { canManageUsers } from "./invite.js";
 import { longestWait, RateLimiter } from "./rate-limit.js";
 import { type LoginBody, loginBodySchema, tidiedLogin } from "./request.js";
@@ -80,7 +81,7 @@ export function registerSignInRoute(app: FastifyInstance, { service, isCookieSec
   }, async (request, reply) => {
     const login = tidiedLogin(request.body.login);
     // Both are counted, whichever refuses
-    const waitSeconds = longestWait([attemptsOfLogin.take(login), attemptsOfAddress.take(request.ip)]);
+    const waitSeconds = longestWait([attemptsOfLogin.take(login), attemptsOfAddress.take(attemptAddress(request))]);
     if (waitSeconds > 0) {
       request.log.warn({ waitSeconds }, "sign-in refused: too many attempts");
       return reply.code(429).header("retry-after", waitSeconds).send({ error: "too many attempts" });

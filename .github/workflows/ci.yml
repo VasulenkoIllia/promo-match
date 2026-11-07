@@ -127,14 +127,17 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
+      contents: read
       packages: write
     steps:
-      - name: Keep the last 30 versions
-        uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          package-name: promo-match
-          package-type: container
-          min-versions-to-keep: 30
+          persist-credentials: false
+      - name: Keep the last 30 versions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_TAG: sha-${{ github.sha }}
+        run: bash deploy/clean-images.sh promo-match 30 "$IMAGE_TAG"
 
   deploy:
     if: vars.DEPLOY_ENABLED == 'true'

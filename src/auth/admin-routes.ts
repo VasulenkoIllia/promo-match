@@ -11,6 +11,7 @@
 // a log or a proxy would keep; the page reads it from the address's #fragment, which the browser does not send.
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { UsersService } from "./admin.js";
+import { attemptAddress } from "./client-ip.js";
 import { LinkNotUsable, LoginTaken, OwnAccountChange, UserNotFound } from "./errors.js";
 import { longestWait, RateLimiter } from "./rate-limit.js";
 import {
@@ -85,14 +86,22 @@ export function registerLinkRoutes(app: FastifyInstance, service: UsersService):
   // Counted before anything is checked, so parallel attempts cannot slip past; true: refused with 429
   function isRefused(request: FastifyRequest, reply: FastifyReply, token: string): boolean {
     // The token's hash, so the memory of the process does not hold the token either
-    const waitSeconds = longestWait([attemptsOfLink.take(tokenHash(token)), attemptsOfAddress.take(request.ip)]);
+    const waitSeconds = longestWait([
+      attemptsOfLink.take(tokenHash(token)),
+      attemptsOfAddress.take(attemptAddress(request)),
+    ]);
     if (waitSeconds === 0) return false;
     request.log.warn({ waitSeconds }, "link refused: too many attempts");
     void reply.code(429).header("retry-after", waitSeconds).send({ error: "too many attempts" });
     return true;
   }
 
-  const options = { bodyLimit: LINK_BODY_LIMIT_BYTES, onRequest: refuseCrossSite };
+  // As the signed-in scope's: no browser or proxy cache keeps what a link's page was answered, a refusal included
+  const noStore = (_request: FastifyRequest, reply: FastifyReply, _payload: unknown, next: () => void) => {
+    void reply.header("cache-control", "no-store");
+    next();
+  };
+  const options = { bodyLimit: LINK_BODY_LIMIT_BYTES, onRequest: refuseCrossSite, onSend: noStore };
 
   app.post<{ Body: InviteBody }>("/api/auth/invite", {
     ...options, schema: { body: inviteBodySchema },

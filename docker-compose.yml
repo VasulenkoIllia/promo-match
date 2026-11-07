@@ -55,6 +55,10 @@ services:
       - traefik.http.middlewares.${APP_NAME:?}-headers.headers.contentTypeNosniff=true
       - traefik.http.middlewares.${APP_NAME:?}-headers.headers.frameDeny=true
       - traefik.http.middlewares.${APP_NAME:?}-headers.headers.referrerPolicy=strict-origin-when-cross-origin
+      # Scripts, styles and requests only from this site, so a supplier's text that slipped into the page as markup does
+      # not run; photos also straight from the suppliers' CDNs over https, blob: and data: for a photo pasted into the
+      # search. Quoted: the ": " inside would make a YAML mapping of the item.
+      - "traefik.http.middlewares.${APP_NAME:?}-headers.headers.contentSecurityPolicy=default-src 'self'; img-src 'self' https: data: blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
     # On readiness: Traefik routes only to a container that reaches its database
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/ready').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
