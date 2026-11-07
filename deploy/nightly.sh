@@ -53,8 +53,10 @@ run_job() {
   local job=$1 seconds=$2 container=$PROJECT-nightly-$1 code=0
   shift 2
   docker rm -f "$container" >/dev/null 2>&1 || true
-  IMAGE_TAG=$tag timeout --kill-after=60 "$seconds" "${compose[@]}" run --rm --no-deps --name "$container" \
-    -e "WORKER=$job" worker node dist/main.js "$@" || code=$?
+  # -T and stdin from /dev/null: timeout puts compose in a background process group, and a run that attaches the
+  # terminal is then stopped by SIGTTIN, holding .deploy.lock (a dry run by hand hung so on 2026-11-07). Cron has none.
+  IMAGE_TAG=$tag timeout --kill-after=60 "$seconds" "${compose[@]}" run --rm --no-deps -T --name "$container" \
+    -e "WORKER=$job" worker node dist/main.js "$@" </dev/null || code=$?
   if [ "$code" -eq 124 ] || [ "$code" -eq 137 ]; then
     say "$job ran out of $seconds s, stopping it" >&2
     docker stop -t "$STOP_GRACE_SECONDS" "$container" >/dev/null 2>&1 || true
