@@ -1,0 +1,333 @@
+{
+  "bags.backpacks": [
+    "BAGS > Backpacks",
+    "LEISURE > Backpacks"
+  ],
+  "bags.business": [
+    "BAGS > Laptop & document bags"
+  ],
+  "bags.shopping": [
+    "BAGS > Shopping & tote bags"
+  ],
+  "bags.drawstring": [
+    "BAGS > Drawstring bags"
+  ],
+  "bags.beach": [
+    "BAGS > Beach bags"
+  ],
+  "bags.cooler": [
+    "BAGS > Cooler bags",
+    "LEISURE > Cooler bags"
+  ],
+  "bags.travel": [
+    "BAGS > Travel & sports bags",
+    "SEASONAL > Travel & sports bags"
+  ],
+  "bags.trolleys": [
+    "BAGS > Trolleys",
+    "TRAVEL > Trolleys"
+  ],
+  "bags.waist": [
+    "BAGS > Waist & shoulder bags"
+  ],
+  "bags.gift": [
+    "BAGS > Gift & paper bags",
+    "OFFICE > Gift & paper bags",
+    "SEASONAL > Gift & paper bags"
+  ],
+  "bags.other": [
+    "BAGS > Other bags",
+    "LEISURE > Other bags"
+  ],
+  "drinkware.mugs": [
+    "HOME > Mugs & cups",
+    "SEASONAL > Mugs & cups",
+    "TO GO > Mugs & cups"
+  ],
+  "drinkware.tumblers": [
+    "HOME > Travel mugs & tumblers",
+    "TO GO > Travel mugs & tumblers"
+  ],
+  "drinkware.vacuum": [
+    "HOME > Vacuum bottles & flasks",
+    "TO GO > Vacuum bottles & flasks",
+    "TRAVEL > Vacuum bottles & flasks"
+  ],
+  "drinkware.bottles": [
+    "BAGS > Water & sports bottles",
+    "HOME > Water & sports bottles",
+    "LEISURE > Water & sports bottles",
+    "TO GO > Water & sports bottles"
+  ],
+  "drinkware.glasses": [
+    "HOME > Glasses & carafes"
+  ],
+  "drinkware.hip-flasks": [
+    "HOME > Hip flasks",
+    "TO GO > Hip flasks"
+  ],
+  "kitchen.lunch": [
+    "HOME > Lunch boxes & cutlery",
+    "TO GO > Lunch boxes & cutlery",
+    "TOOLS > Lunch boxes & cutlery"
+  ],
+  "kitchen.utensils": [
+    "HOME > Kitchen utensils",
+    "OFFICE > Kitchen utensils",
+    "SEASONAL > Kitchen utensils"
+  ],
+  "kitchen.knives": [
+    "HOME > Kitchen knives"
+  ],
+  "kitchen.serving": [
+    "HOME > Boards, coasters & cheese sets"
+  ],
+  "kitchen.wine": [
+    "BAGS > Wine & bar",
+    "HOME > Wine & bar",
+    "PREMIUMS > Wine & bar",
+    "SEASONAL > Wine & bar",
+    "TOOLS > Wine & bar"
+  ],
+  "kitchen.textiles": [
+    "HOME > Aprons & kitchen textiles",
+    "LEISURE > Aprons & kitchen textiles"
+  ],
+  "kitchen.tea-coffee": [
+    "HOME > Tea & coffee"
+  ],
+  "kitchen.sweets": [
+    "HOME > Sweets & mints"
+  ],
+  "electronics.power-banks": [
+    "MOBILE > Power banks"
+  ],
+  "electronics.chargers": [
+    "MOBILE > Chargers",
+    "OFFICE > Chargers",
+    "PREMIUMS > Chargers"
+  ],
+  "electronics.cables": [
+    "MOBILE > Cables & adapters",
+    "OFFICE > Cables & adapters",
+    "TRAVEL > Cables & adapters"
+  ],
+  "electronics.audio": [
+    "MOBILE > Speakers & headphones"
+  ],
+  "electronics.computer": [
+    "MOBILE > Computer accessories",
+    "OFFICE > Computer accessories"
+  ],
+  "electronics.phone": [
+    "LEISURE > Phone accessories",
+    "MOBILE > Phone accessories",
+    "OFFICE > Phone accessories"
+  ],
+  "electronics.clocks": [
+    "OFFICE > Clocks & weather stations"
+  ],
+  "electronics.other": [
+    "MOBILE > Other electronics",
+    "OFFICE > Other electronics",
+    "PREMIUMS > Other electronics"
+  ],
+  "office.notebooks": [
+    "OFFICE > Notebooks & diaries"
+  ],
+  "office.notes": [
+    "OFFICE > Sticky notes, memo pads & calendars",
+    "SEASONAL > Sticky notes, memo pads & calendars"
+  ],
+  "office.folders": [
+    "MOBILE > Folders & portfolios",
+    "OFFICE > Folders & portfolios",
+    "TRAVEL > Folders & portfolios"
+  ],
+  "office.desk": [
+    "OFFICE > Desk accessories",
+    "WRITING > Desk accessories"
+  ],
+  "office.lamps": [
+    "LEISURE > Desk lamps",
+    "OFFICE > Desk lamps"
+  ],
+  "office.lanyards": [
+    "PREMIUMS > Lanyards, badges & pins"
+  ],
+  "writing.ballpens": [
+    "OFFICE > Ball pens",
+    "WRITING > Ball pens"
+  ],
+  "writing.multifunction": [
+    "WRITING > Stylus & multifunction pens"
+  ],
+  "writing.premium": [
+    "WRITING > Rollerball & fountain pens"
+  ],
+  "writing.pencils": [
+    "SEASONAL > Pencils",
+    "WRITING > Pencils"
+  ],
+  "writing.highlighters": [
+    "WRITING > Highlighters"
+  ],
+  "writing.sets": [
+    "WRITING > Writing sets"
+  ],
+  "writing.cases": [
+    "OFFICE > Pen cases",
+    "TRAVEL > Pen cases",
+    "WRITING > Pen cases"
+  ],
+  "headwear.caps": [
+    "LEISURE > Caps"
+  ],
+  "headwear.hats": [
+    "LEISURE > Hats & bucket hats",
+    "SEASONAL > Hats & bucket hats"
+  ],
+  "headwear.winter": [
+    "LEISURE > Beanies, scarves & gloves",
+    "MOBILE > Beanies, scarves & gloves"
+  ],
+  "headwear.footwear": [
+    "HOME > Footwear & socks",
+    "SEASONAL > Footwear & socks",
+    "TRAVEL > Footwear & socks"
+  ],
+  "umbrellas.umbrellas": [
+    "TRAVEL > Umbrellas"
+  ],
+  "umbrellas.rainwear": [
+    "TRAVEL > Ponchos & raincoats"
+  ],
+  "keyrings.basic": [
+    "LEISURE > Keyrings",
+    "PREMIUMS > Keyrings"
+  ],
+  "keyrings.token": [
+    "PREMIUMS > Token keyrings"
+  ],
+  "keyrings.multi": [
+    "PREMIUMS > Multifunctional keyrings"
+  ],
+  "tools.multitools": [
+    "HOME > Multitools & knives",
+    "LEISURE > Multitools & knives",
+    "TOOLS > Multitools & knives"
+  ],
+  "tools.measuring": [
+    "PREMIUMS > Measuring tapes",
+    "TOOLS > Measuring tapes"
+  ],
+  "tools.torches": [
+    "HOME > Torches",
+    "PREMIUMS > Torches",
+    "TOOLS > Torches"
+  ],
+  "tools.sets": [
+    "HOME > Tool sets & other tools",
+    "LEISURE > Tool sets & other tools",
+    "TOOLS > Tool sets & other tools"
+  ],
+  "tools.car": [
+    "PREMIUMS > Car accessories"
+  ],
+  "tools.bicycle": [
+    "LEISURE > Bicycle accessories"
+  ],
+  "tools.safety": [
+    "LEISURE > Reflective & safety items",
+    "TOOLS > Reflective & safety items",
+    "TRAVEL > Reflective & safety items"
+  ],
+  "travel.wallets": [
+    "OFFICE > Wallets & card holders",
+    "PREMIUMS > Wallets & card holders"
+  ],
+  "travel.cosmetic": [
+    "BAGS > Cosmetic & toiletry bags",
+    "TRAVEL > Cosmetic & toiletry bags"
+  ],
+  "travel.accessories": [
+    "BAGS > Travel accessories",
+    "MOBILE > Travel accessories",
+    "PREMIUMS > Travel accessories",
+    "TRAVEL > Travel accessories"
+  ],
+  "care.essentials": [
+    "BAGS > First aid & hygiene",
+    "HOME > First aid & hygiene",
+    "TRAVEL > First aid & hygiene"
+  ],
+  "care.beauty": [
+    "TRAVEL > Mirrors, manicure & hairbrushes"
+  ],
+  "home.candles": [
+    "HOME > Candles & scents",
+    "PREMIUMS > Candles & scents",
+    "SEASONAL > Candles & scents"
+  ],
+  "home.blankets": [
+    "LEISURE > Blankets",
+    "SEASONAL > Blankets",
+    "TRAVEL > Blankets"
+  ],
+  "home.towels": [
+    "LEISURE > Towels"
+  ],
+  "home.decor": [
+    "OFFICE > Home decor & accessories",
+    "PREMIUMS > Home decor & accessories"
+  ],
+  "leisure.picnic": [
+    "LEISURE > Picnic, camping & barbecue"
+  ],
+  "leisure.beach": [
+    "LEISURE > Beach & summer",
+    "OFFICE > Beach & summer"
+  ],
+  "leisure.sport": [
+    "LEISURE > Sport & fitness",
+    "SEASONAL > Sport & fitness"
+  ],
+  "leisure.sunglasses": [
+    "LEISURE > Sunglasses"
+  ],
+  "leisure.outdoor": [
+    "LEISURE > Outdoor & walking",
+    "TRAVEL > Outdoor & walking"
+  ],
+  "leisure.garden": [
+    "LEISURE > Gardening & plants"
+  ],
+  "kids.plush": [
+    "LEISURE > Plush toys"
+  ],
+  "kids.games": [
+    "LEISURE > Games, toys & puzzles",
+    "PREMIUMS > Games, toys & puzzles",
+    "SEASONAL > Games, toys & puzzles"
+  ],
+  "kids.anti-stress": [
+    "LEISURE > Anti-stress toys",
+    "TRAVEL > Anti-stress toys"
+  ],
+  "kids.colouring": [
+    "LEISURE > Colouring & art",
+    "OFFICE > Colouring & art",
+    "SEASONAL > Colouring & art",
+    "WRITING > Colouring & art"
+  ],
+  "kids.baby": [
+    "SEASONAL > Baby & toddlers"
+  ],
+  "seasonal.decor": [
+    "SEASONAL > Christmas decorations"
+  ],
+  "other.gift-sets": [
+    "HOME > Gift sets",
+    "WRITING > Gift sets"
+  ]
+}

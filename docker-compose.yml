@@ -1,0 +1,128 @@
+# Production on the shared server: deploy/deploy.sh runs it from <env dir>/release/ with --project-name and --env-file
+# (docs/deployment.md). Do not rename the project: the database volume name derives from it.
+name: promo-match
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+# The image CI published for one commit (sha-<full commit>); nothing is built on the server
+x-image-base: &image-base
+  image: ghcr.io/vasulenkoillia/promo-match:${IMAGE_TAG:?}
+  init: true
+  # The app needs no Linux capabilities: it runs as the node user
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  logging: *logging
+  depends_on:
+    db:
+      condition: service_healthy
+
+# The app sits on the shared proxy network too, so the database is reached by a name no other project uses: a bare `db`
+# could resolve to a container of another project there.
+x-database-url: &database-url postgresql://${POSTGRES_USER:?}:${POSTGRES_PASSWORD:?}@promo-match-db:5432/${POSTGRES_DB:?}
+
+services:
+  app:
+    <<: *image-base
+    restart: unless-stopped
+    # Longer than the app's own shutdown timeout, so a stop finishes the work instead of a SIGKILL
+    stop_grace_period: 15s
+    mem_limit: ${APP_MEM_LIMIT:-1g}
+    # Next to this file in release/, so ../.env is the one of the environment
+    env_file: ../.env
+    environment:
+      # Set here, so a stray HOST= in .env cannot make the app listen on loopback only
+      HOST: 0.0.0.0
+      DATABASE_URL: *database-url
+    # No published port: Traefik reaches the app over its network
+    networks: [app-net, proxy]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:?}
+      - traefik.http.routers.${APP_NAME:?}.rule=Host(`${APP_DOMAIN:?}`)
+      - traefik.http.routers.${APP_NAME:?}.entrypoints=${TRAEFIK_ENTRYPOINT:?}
+      - traefik.http.routers.${APP_NAME:?}.tls=true
+      - traefik.http.routers.${APP_NAME:?}.tls.certresolver=${TRAEFIK_CERTRESOLVER:?}
+      - traefik.http.routers.${APP_NAME:?}.middlewares=${APP_NAME:?}-headers
+      - traefik.http.services.${APP_NAME:?}.loadbalancer.server.port=${PORT:-3000}
+      # Security headers; frameDeny blocks embedding in an iframe (drop it for a Telegram Mini App)
+      - traefik.http.middlewares.${APP_NAME:?}-headers.headers.stsSeconds=31536000
+      - traefik.http.middlewares.${APP_NAME:?}-headers.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.${APP_NAME:?}-headers.headers.frameDeny=true
+      - traefik.http.middlewares.${APP_NAME:?}-headers.headers.referrerPolicy=strict-origin-when-cross-origin
+    # On readiness: Traefik routes only to a container that reaches its database
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/ready').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+      start_interval: 2s
+
+  # One-off: deploy.sh runs it from the new image before `up`. No labels and no proxy network, so Traefik never sees it.
+  # Profile: a plain `up` must not start it. The database URL only: the keys of .env stay out of it.
+  migrate:
+    <<: *image-base
+    profiles: [ops]
+    restart: "no"
+    command: ["./node_modules/.bin/prisma", "migrate", "deploy"]
+    environment:
+      DATABASE_URL: *database-url
+    networks: [app-net]
+
+  # The jobs of the image (WORKER=import, embed, categories, users): `run --rm -e WORKER=<job> worker node dist/main.js`.
+  # Off the proxy network, so Traefik never routes to a job; out to the internet over app-net.
+  worker:
+    <<: *image-base
+    profiles: [ops]
+    restart: "no"
+    mem_limit: ${WORKER_MEM_LIMIT:-2g}
+    env_file: ../.env
+    command: ["node", "dist/main.js"]
+    environment:
+      DATABASE_URL: *database-url
+    networks: [app-net]
+
+  db:
+    # Postgres 18 with the pgvector extension (docs/decisions.md); keep the same tag as docker-compose.dev.yml
+    image: pgvector/pgvector:0.8.7-pg18-trixie
+    restart: unless-stopped
+    stop_grace_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: ${DB_MEM_LIMIT:-2g}
+    # Parallel queries and index builds work in shared memory: Docker's 64 MB ends an HNSW build with
+    # "could not resize shared memory segment" (seen on the dev copy, 2026-11-07)
+    shm_size: 256m
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?}
+      POSTGRES_USER: ${POSTGRES_USER:?}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+    volumes:
+      - db-data:/var/lib/postgresql
+    networks:
+      app-net:
+        aliases:
+          - promo-match-db
+    healthcheck:
+      # Over TCP: the first-start init server listens only on the socket, so a socket check would pass too early
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    logging: *logging
+
+volumes:
+  db-data:
+
+networks:
+  app-net:
+    driver: bridge
+  proxy:
+    external: true
+    name: ${TRAEFIK_NETWORK:?}

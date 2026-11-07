@@ -1,0 +1,157 @@
+/* The tabs (Shell.tsx), the links on a result card (ModelLinks.tsx) and the own products tab (OwnProductsView.tsx) */
+
+.tabs {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--tabs-height);
+  min-width: 1024px;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 0 24px;
+  background: var(--bg);
+}
+
+.tabs button[aria-current="page"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  min-width: 0;
+}
+
+.account .error-text {
+  margin: 0;
+}
+
+.own-links {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.own-links > button {
+  font-size: 0.875rem;
+}
+
+.own-marks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.own-mark {
+  padding: 2px 8px;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.own-mark.same {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.own-mark.analog {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.own-form {
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+}
+
+.own-form .panel-block {
+  margin-bottom: 8px;
+}
+
+.own-form .error-text {
+  margin: 0 0 8px;
+}
+
+.own-form .row {
+  margin-top: 0;
+}
+
+.own-product {
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.own-product h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.own-product-code {
+  margin-left: 8px;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.own-models {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.own-model {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.own-model p {
+  margin: 0;
+}
+
+.own-model-photo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: #ffffff;
+}
+
+.own-model-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.own-model-photo .hint {
+  margin: 0;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.own-model-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}

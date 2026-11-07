@@ -1,0 +1,212 @@
+[
+  {
+    "code": "bags",
+    "name": { "uk": "Сумки й рюкзаки", "en": "Bags & backpacks" },
+    "categories": [
+      { "code": "bags.backpacks", "name": { "uk": "Рюкзаки", "en": "Backpacks" } },
+      { "code": "bags.business", "name": { "uk": "Сумки для ноутбука й документів", "en": "Laptop & document bags" } },
+      { "code": "bags.shopping", "name": { "uk": "Шопери й сумки для покупок", "en": "Shopping & tote bags" } },
+      { "code": "bags.drawstring", "name": { "uk": "Мішки на шнурках", "en": "Drawstring bags" } },
+      { "code": "bags.beach", "name": { "uk": "Пляжні сумки", "en": "Beach bags" } },
+      { "code": "bags.cooler", "name": { "uk": "Термосумки", "en": "Cooler bags" } },
+      { "code": "bags.travel", "name": { "uk": "Дорожні й спортивні сумки", "en": "Travel & sports bags" } },
+      { "code": "bags.trolleys", "name": { "uk": "Валізи", "en": "Trolleys" } },
+      { "code": "bags.waist", "name": { "uk": "Сумки на пояс і через плече", "en": "Waist & shoulder bags" } },
+      { "code": "bags.gift", "name": { "uk": "Подарункові й паперові пакети", "en": "Gift & paper bags" } },
+      { "code": "bags.other", "name": { "uk": "Інші сумки", "en": "Other bags" } }
+    ]
+  },
+  {
+    "code": "drinkware",
+    "name": { "uk": "Посуд для напоїв", "en": "Drinkware" },
+    "categories": [
+      { "code": "drinkware.mugs", "name": { "uk": "Кружки й чашки", "en": "Mugs & cups" } },
+      { "code": "drinkware.tumblers", "name": { "uk": "Термокружки й тумблери", "en": "Travel mugs & tumblers" } },
+      { "code": "drinkware.vacuum", "name": { "uk": "Термопляшки й термоси", "en": "Vacuum bottles & flasks" } },
+      { "code": "drinkware.bottles", "name": { "uk": "Пляшки для води", "en": "Water & sports bottles" } },
+      { "code": "drinkware.glasses", "name": { "uk": "Склянки, келихи й карафи", "en": "Glasses & carafes" } },
+      { "code": "drinkware.hip-flasks", "name": { "uk": "Фляги", "en": "Hip flasks" } },
+      { "code": "drinkware.other", "name": { "uk": "Інше для напоїв", "en": "Other drinkware" } }
+    ]
+  },
+  {
+    "code": "kitchen",
+    "name": { "uk": "Кухня й сервірування", "en": "Kitchen & dining" },
+    "categories": [
+      { "code": "kitchen.lunch", "name": { "uk": "Ланч-бокси й столові прибори", "en": "Lunch boxes & cutlery" } },
+      { "code": "kitchen.utensils", "name": { "uk": "Кухонне приладдя", "en": "Kitchen utensils" } },
+      { "code": "kitchen.knives", "name": { "uk": "Кухонні ножі", "en": "Kitchen knives" } },
+      { "code": "kitchen.serving", "name": { "uk": "Дошки, підставки й набори для сиру", "en": "Boards, coasters & cheese sets" } },
+      { "code": "kitchen.wine", "name": { "uk": "Вино й бар", "en": "Wine & bar" } },
+      { "code": "kitchen.textiles", "name": { "uk": "Фартухи й кухонний текстиль", "en": "Aprons & kitchen textiles" } },
+      { "code": "kitchen.tea-coffee", "name": { "uk": "Чай і кава", "en": "Tea & coffee" } },
+      { "code": "kitchen.sweets", "name": { "uk": "Солодощі й м'ятні цукерки", "en": "Sweets & mints" } }
+    ]
+  },
+  {
+    "code": "electronics",
+    "name": { "uk": "Електроніка", "en": "Electronics" },
+    "categories": [
+      { "code": "electronics.power-banks", "name": { "uk": "Павербанки", "en": "Power banks" } },
+      { "code": "electronics.chargers", "name": { "uk": "Зарядні пристрої", "en": "Chargers" } },
+      { "code": "electronics.cables", "name": { "uk": "Кабелі й адаптери", "en": "Cables & adapters" } },
+      { "code": "electronics.audio", "name": { "uk": "Колонки й навушники", "en": "Speakers & headphones" } },
+      { "code": "electronics.computer", "name": { "uk": "Комп'ютерні аксесуари", "en": "Computer accessories" } },
+      { "code": "electronics.phone", "name": { "uk": "Аксесуари для телефона", "en": "Phone accessories" } },
+      { "code": "electronics.smart", "name": { "uk": "Трекери, смарт-годинники й пошук ключів", "en": "Trackers, smartwatches & finders" } },
+      { "code": "electronics.clocks", "name": { "uk": "Годинники й метеостанції", "en": "Clocks & weather stations" } },
+      { "code": "electronics.other", "name": { "uk": "Інша електроніка", "en": "Other electronics" } }
+    ]
+  },
+  {
+    "code": "office",
+    "name": { "uk": "Офіс", "en": "Office" },
+    "categories": [
+      { "code": "office.notebooks", "name": { "uk": "Блокноти й щоденники", "en": "Notebooks & diaries" } },
+      { "code": "office.notes", "name": { "uk": "Стікери, нотатки й календарі", "en": "Sticky notes, memo pads & calendars" } },
+      { "code": "office.folders", "name": { "uk": "Папки й портфоліо", "en": "Folders & portfolios" } },
+      { "code": "office.desk", "name": { "uk": "Настільне приладдя", "en": "Desk accessories" } },
+      { "code": "office.lamps", "name": { "uk": "Настільні лампи", "en": "Desk lamps" } },
+      { "code": "office.lanyards", "name": { "uk": "Ланьярди, бейджі й значки", "en": "Lanyards, badges & pins" } }
+    ]
+  },
+  {
+    "code": "writing",
+    "name": { "uk": "Письмове приладдя", "en": "Writing instruments" },
+    "categories": [
+      { "code": "writing.ballpens", "name": { "uk": "Кулькові ручки", "en": "Ball pens" } },
+      { "code": "writing.multifunction", "name": { "uk": "Стилуси й багатофункціональні ручки", "en": "Stylus & multifunction pens" } },
+      { "code": "writing.premium", "name": { "uk": "Ролери й пір'яні ручки", "en": "Rollerball & fountain pens" } },
+      { "code": "writing.pencils", "name": { "uk": "Олівці", "en": "Pencils" } },
+      { "code": "writing.highlighters", "name": { "uk": "Текстовиділювачі", "en": "Highlighters" } },
+      { "code": "writing.sets", "name": { "uk": "Письмові набори", "en": "Writing sets" } },
+      { "code": "writing.cases", "name": { "uk": "Футляри для ручок", "en": "Pen cases" } }
+    ]
+  },
+  {
+    "code": "clothing",
+    "name": { "uk": "Одяг", "en": "Clothing" },
+    "categories": [
+      { "code": "clothing.t-shirts", "name": { "uk": "Футболки", "en": "T-shirts" } },
+      { "code": "clothing.polo", "name": { "uk": "Поло", "en": "Polo shirts" } },
+      { "code": "clothing.shirts", "name": { "uk": "Сорочки й діловий одяг", "en": "Shirts & business wear" } },
+      { "code": "clothing.sweatshirts", "name": { "uk": "Світшоти, худі й светри", "en": "Sweatshirts, hoodies & sweaters" } },
+      { "code": "clothing.jackets", "name": { "uk": "Куртки, жилети й фліс", "en": "Jackets, bodywarmers & fleece" } },
+      { "code": "clothing.trousers", "name": { "uk": "Штани й шорти", "en": "Trousers & shorts" } },
+      { "code": "clothing.kids", "name": { "uk": "Дитячий одяг", "en": "Kids' clothing" } },
+      { "code": "clothing.other", "name": { "uk": "Інший одяг і текстиль", "en": "Other clothing & textiles" } }
+    ]
+  },
+  {
+    "code": "headwear",
+    "name": { "uk": "Головні убори й аксесуари", "en": "Headwear & accessories" },
+    "categories": [
+      { "code": "headwear.caps", "name": { "uk": "Кепки", "en": "Caps" } },
+      { "code": "headwear.hats", "name": { "uk": "Капелюхи й панами", "en": "Hats & bucket hats" } },
+      { "code": "headwear.winter", "name": { "uk": "Шапки, шарфи й рукавички", "en": "Beanies, scarves & gloves" } },
+      { "code": "headwear.footwear", "name": { "uk": "Взуття й шкарпетки", "en": "Footwear & socks" } }
+    ]
+  },
+  {
+    "code": "umbrellas",
+    "name": { "uk": "Парасолі й дощовики", "en": "Umbrellas & rainwear" },
+    "categories": [
+      { "code": "umbrellas.umbrellas", "name": { "uk": "Парасолі", "en": "Umbrellas" } },
+      { "code": "umbrellas.rainwear", "name": { "uk": "Дощовики й пончо", "en": "Ponchos & raincoats" } }
+    ]
+  },
+  {
+    "code": "keyrings",
+    "name": { "uk": "Брелоки", "en": "Keyrings" },
+    "categories": [
+      { "code": "keyrings.basic", "name": { "uk": "Брелоки", "en": "Keyrings" } },
+      { "code": "keyrings.token", "name": { "uk": "Брелоки з жетоном", "en": "Token keyrings" } },
+      { "code": "keyrings.openers", "name": { "uk": "Брелоки-відкривачки", "en": "Bottle opener keyrings" } },
+      { "code": "keyrings.torches", "name": { "uk": "Брелоки-ліхтарики", "en": "Torch keyrings" } },
+      { "code": "keyrings.multi", "name": { "uk": "Багатофункціональні брелоки", "en": "Multifunctional keyrings" } },
+      { "code": "keyrings.reflective", "name": { "uk": "Світловідбивні брелоки", "en": "Reflective keyrings" } }
+    ]
+  },
+  {
+    "code": "tools",
+    "name": { "uk": "Інструменти й авто", "en": "Tools & car" },
+    "categories": [
+      { "code": "tools.multitools", "name": { "uk": "Мультитули й ножі", "en": "Multitools & knives" } },
+      { "code": "tools.measuring", "name": { "uk": "Рулетки", "en": "Measuring tapes" } },
+      { "code": "tools.torches", "name": { "uk": "Ліхтарики", "en": "Torches" } },
+      { "code": "tools.sets", "name": { "uk": "Набори інструментів та інше", "en": "Tool sets & other tools" } },
+      { "code": "tools.car", "name": { "uk": "Автоаксесуари", "en": "Car accessories" } },
+      { "code": "tools.bicycle", "name": { "uk": "Велоаксесуари", "en": "Bicycle accessories" } },
+      { "code": "tools.safety", "name": { "uk": "Світловідбивні речі й безпека", "en": "Reflective & safety items" } }
+    ]
+  },
+  {
+    "code": "travel",
+    "name": { "uk": "Подорожі", "en": "Travel" },
+    "categories": [
+      { "code": "travel.wallets", "name": { "uk": "Гаманці й картхолдери", "en": "Wallets & card holders" } },
+      { "code": "travel.cosmetic", "name": { "uk": "Косметички", "en": "Cosmetic & toiletry bags" } },
+      { "code": "travel.accessories", "name": { "uk": "Аксесуари для подорожей", "en": "Travel accessories" } }
+    ]
+  },
+  {
+    "code": "care",
+    "name": { "uk": "Здоров'я й догляд", "en": "Health & personal care" },
+    "categories": [
+      { "code": "care.essentials", "name": { "uk": "Аптечки й гігієна", "en": "First aid & hygiene" } },
+      { "code": "care.cosmetics", "name": { "uk": "Бальзами для губ і сонцезахист", "en": "Lip balms & sun care" } },
+      { "code": "care.beauty", "name": { "uk": "Дзеркальця, манікюр і гребінці", "en": "Mirrors, manicure & hairbrushes" } },
+      { "code": "care.bath", "name": { "uk": "Ванна й релакс", "en": "Bath & relax" } }
+    ]
+  },
+  {
+    "code": "home",
+    "name": { "uk": "Дім", "en": "Home" },
+    "categories": [
+      { "code": "home.candles", "name": { "uk": "Свічки й аромати", "en": "Candles & scents" } },
+      { "code": "home.blankets", "name": { "uk": "Пледи", "en": "Blankets" } },
+      { "code": "home.towels", "name": { "uk": "Рушники", "en": "Towels" } },
+      { "code": "home.decor", "name": { "uk": "Декор і речі для дому", "en": "Home decor & accessories" } }
+    ]
+  },
+  {
+    "code": "leisure",
+    "name": { "uk": "Відпочинок і спорт", "en": "Leisure & sport" },
+    "categories": [
+      { "code": "leisure.picnic", "name": { "uk": "Пікнік, кемпінг і барбекю", "en": "Picnic, camping & barbecue" } },
+      { "code": "leisure.beach", "name": { "uk": "Пляж і літо", "en": "Beach & summer" } },
+      { "code": "leisure.sport", "name": { "uk": "Спорт і фітнес", "en": "Sport & fitness" } },
+      { "code": "leisure.sunglasses", "name": { "uk": "Сонцезахисні окуляри", "en": "Sunglasses" } },
+      { "code": "leisure.outdoor", "name": { "uk": "Туризм і прогулянки", "en": "Outdoor & walking" } },
+      { "code": "leisure.garden", "name": { "uk": "Сад і рослини", "en": "Gardening & plants" } }
+    ]
+  },
+  {
+    "code": "kids",
+    "name": { "uk": "Діти й ігри", "en": "Kids & games" },
+    "categories": [
+      { "code": "kids.plush", "name": { "uk": "М'які іграшки", "en": "Plush toys" } },
+      { "code": "kids.games", "name": { "uk": "Ігри, іграшки й головоломки", "en": "Games, toys & puzzles" } },
+      { "code": "kids.anti-stress", "name": { "uk": "Антистрес", "en": "Anti-stress toys" } },
+      { "code": "kids.colouring", "name": { "uk": "Розмальовки й малювання", "en": "Colouring & art" } },
+      { "code": "kids.school", "name": { "uk": "Шкільне приладдя", "en": "School supplies" } },
+      { "code": "kids.baby", "name": { "uk": "Для малюків", "en": "Baby & toddlers" } }
+    ]
+  },
+  {
+    "code": "seasonal",
+    "name": { "uk": "Новорічне", "en": "Christmas" },
+    "categories": [
+      { "code": "seasonal.decor", "name": { "uk": "Новорічний декор", "en": "Christmas decorations" } },
+      { "code": "seasonal.gifts", "name": { "uk": "Новорічні подарунки", "en": "Christmas gifts" } }
+    ]
+  },
+  {
+    "code": "other",
+    "name": { "uk": "Інше", "en": "Other" },
+    "categories": [
+      { "code": "other.gift-sets", "name": { "uk": "Подарункові набори", "en": "Gift sets" } },
+      { "code": "other.samples", "name": { "uk": "Каталоги й набори зразків", "en": "Catalogues & sample kits" } }
+    ]
+  }
+]

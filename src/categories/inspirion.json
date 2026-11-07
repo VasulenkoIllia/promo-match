@@ -1,0 +1,237 @@
+{
+  "bags.backpacks": [
+    "Bags & Travel > Backpacks"
+  ],
+  "bags.business": [
+    "Bags & Travel > Laptop & Tablet Bags"
+  ],
+  "bags.shopping": [
+    "Bags & Travel > Beach & Shopping Bags",
+    "Bags & Travel > Cotton Bags"
+  ],
+  "bags.drawstring": [
+    "Bags & Travel > Drawstring Bags"
+  ],
+  "bags.cooler": [
+    "Bags & Travel > Cooler Bags"
+  ],
+  "bags.travel": [
+    "Bags & Travel > Sport & Gym Bags",
+    "Bags & Travel > Weekender & Travel Bags"
+  ],
+  "bags.trolleys": [
+    "Bags & Travel > Suitcases"
+  ],
+  "bags.other": [
+    "Bags & Travel > Cases & Covers"
+  ],
+  "drinkware.mugs": [
+    "Drinkware > Mugs"
+  ],
+  "drinkware.vacuum": [
+    "Drinkware > Thermo & Vacuum insulation"
+  ],
+  "drinkware.bottles": [
+    "Drinkware > Sports & drink bottles"
+  ],
+  "drinkware.glasses": [
+    "Drinkware > Glassware",
+    "Drinkware > Pots & jugs"
+  ],
+  "drinkware.other": [
+    "Drinkware > Drinksets & Others",
+    "Drinkware > Drinkware accessories"
+  ],
+  "kitchen.lunch": [
+    "Home & Kitchen > Lunch Boxes & Containers",
+    "Home & Kitchen > Utensils, cutlery & straws"
+  ],
+  "kitchen.utensils": [
+    "Home & Kitchen > Kitchenware"
+  ],
+  "kitchen.knives": [
+    "Home & Kitchen > Knives"
+  ],
+  "kitchen.serving": [
+    "Home & Kitchen > Cutting Boards",
+    "Home & Kitchen > Serving Sets"
+  ],
+  "kitchen.wine": [
+    "Home & Kitchen > Bottle Openers & Accessories",
+    "Home & Kitchen > Wine & Bar",
+    "Wine > Wine",
+    "Wine > Wine Accessories"
+  ],
+  "kitchen.textiles": [
+    "Home & Kitchen > Aprons"
+  ],
+  "electronics.power-banks": [
+    "Electronics > Powerbanks"
+  ],
+  "electronics.chargers": [
+    "Electronics > Chargers"
+  ],
+  "electronics.audio": [
+    "Electronics > Headphones & Speakers",
+    "Electronics > Radios & Audio"
+  ],
+  "electronics.phone": [
+    "Electronics > Phone accessories"
+  ],
+  "electronics.clocks": [
+    "Electronics > Weather stations & Thermometers",
+    "Home & Kitchen > Clocks"
+  ],
+  "electronics.other": [
+    "Electronics > Gadgets and other accessories"
+  ],
+  "office.notebooks": [
+    "Office > Notebooks"
+  ],
+  "office.notes": [
+    "Office > Memoblocks & Sticky Notes"
+  ],
+  "office.folders": [
+    "Office > Portfolio & Folders"
+  ],
+  "office.desk": [
+    "Office > Business Card Holders",
+    "Office > Calculators",
+    "Office > Desk Accessories"
+  ],
+  "office.lanyards": [
+    "Giveaways > Wristbands"
+  ],
+  "writing.ballpens": [
+    "Pens & Writing > Ballpoint Pens"
+  ],
+  "writing.multifunction": [
+    "Pens & Writing > Touch & Stylus Pens"
+  ],
+  "writing.premium": [
+    "Pens & Writing > Executive Pens"
+  ],
+  "writing.pencils": [
+    "Pens & Writing > Pencils"
+  ],
+  "writing.highlighters": [
+    "Pens & Writing > Markers & Highlighters"
+  ],
+  "writing.sets": [
+    "Pens & Writing > Writing Sets"
+  ],
+  "headwear.caps": [
+    "Textiles > Caps & Hats"
+  ],
+  "headwear.winter": [
+    "Textiles > Gloves",
+    "Textiles > Scarves"
+  ],
+  "umbrellas.umbrellas": [
+    "Umbrellas > Folding Umbrellas",
+    "Umbrellas > Golf Umbrellas",
+    "Umbrellas > Stick Umbrellas",
+    "Umbrellas > Sun & UV Protection Umbrellas",
+    "Umbrellas > Windproof Umbrellas"
+  ],
+  "umbrellas.rainwear": [
+    "Umbrellas > Rain Gear"
+  ],
+  "keyrings.basic": [
+    "Giveaways > Keychains & Keyrings"
+  ],
+  "tools.multitools": [
+    "Tools & Accessories > Multitools & Pocket Knives"
+  ],
+  "tools.measuring": [
+    "Tools & Accessories > Measuring Tools"
+  ],
+  "tools.torches": [
+    "Electronics > Light & Torches",
+    "Tools & Accessories > Lighting & Flashlights"
+  ],
+  "tools.sets": [
+    "Tools & Accessories > Tool Sets"
+  ],
+  "tools.car": [
+    "Tools & Accessories > Car Accessories"
+  ],
+  "tools.bicycle": [
+    "Sports & Recreation > Cycling Accessories"
+  ],
+  "tools.safety": [
+    "Tools & Accessories > Safety Gear"
+  ],
+  "travel.wallets": [
+    "Bags & Travel > Wallets & Cardholders"
+  ],
+  "travel.cosmetic": [
+    "Bags & Travel > Cosmetic Bags & Cases"
+  ],
+  "travel.accessories": [
+    "Bags & Travel > Travel Accessories"
+  ],
+  "care.essentials": [
+    "Personal Care & Cosmetics > First Aid Kits",
+    "Personal Care & Cosmetics > Personal Care"
+  ],
+  "care.beauty": [
+    "Personal Care & Cosmetics > Wellness & Manicure Sets"
+  ],
+  "care.bath": [
+    "Giveaways > Warmers",
+    "Personal Care & Cosmetics > Bath Accessories"
+  ],
+  "home.candles": [
+    "Home & Kitchen > Candles"
+  ],
+  "home.blankets": [
+    "Textiles > Blankets"
+  ],
+  "home.towels": [
+    "Personal Care & Cosmetics > Towels & Bathrobes"
+  ],
+  "home.decor": [
+    "Home & Kitchen > Decoration",
+    "Home & Kitchen > Home Accessories"
+  ],
+  "leisure.picnic": [
+    "Sports & Recreation > BBQ & Picnic"
+  ],
+  "leisure.beach": [
+    "Sports & Recreation > Beach Items",
+    "Sports & Recreation > Inflatables"
+  ],
+  "leisure.sport": [
+    "Sports & Recreation > Fitness & Training",
+    "Sports & Recreation > Sports & Play Balls"
+  ],
+  "leisure.sunglasses": [
+    "Sports & Recreation > Sunglasses"
+  ],
+  "leisure.outdoor": [
+    "Sports & Recreation > Outdoor Recreation"
+  ],
+  "leisure.garden": [
+    "Home & Kitchen > Garden & Accessories",
+    "Sports & Recreation > Gardening"
+  ],
+  "kids.plush": [
+    "Family & Games > Plush Toys"
+  ],
+  "kids.games": [
+    "Family & Games > Indoor Games",
+    "Family & Games > Outdoor Games",
+    "Family & Games > Toys"
+  ],
+  "kids.anti-stress": [
+    "Giveaways > Antistress balls"
+  ],
+  "kids.colouring": [
+    "Family & Games > Arts & crafts",
+    "Pens & Writing > Colouring Sets"
+  ],
+  "kids.school": [
+    "Office > Pencil Cases"
+  ]
+}

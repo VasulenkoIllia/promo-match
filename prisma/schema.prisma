@@ -1,0 +1,562 @@
+// Models go here. Migrations: `npm run db:migrate` locally, additive only (new tables and columns).
+// Conventions from the start: time `DateTime @db.Timestamptz`, money `Decimal` (never Float), an index on every FK.
+// Tables and columns in snake_case (@@map, @map): the import writes them with raw SQL (src/import/write.ts).
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  runtime             = "nodejs"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SourceKind {
+  supplier
+  competitor
+
+  @@map("source_kind")
+}
+
+enum SyncStatus {
+  running
+  succeeded
+  failed
+
+  @@map("sync_status")
+}
+
+// Embedding of a photo (stage 3): pending until the worker has its vector
+enum PhotoStatus {
+  pending
+  ready
+  failed
+
+  @@map("photo_status")
+}
+
+// net: the price for our account (primary); catalog: the list price; final: Axpol's FinalNetPrice when above 0
+enum PriceKind {
+  net
+  catalog
+  final
+
+  @@map("price_kind")
+}
+
+// How a model of a source relates to our own product
+enum OwnProductLinkType {
+  same
+  analog
+
+  @@map("own_product_link_type")
+}
+
+// What a manager says of a model a search found
+enum ResultGradeValue {
+  exact
+  suitable
+  wrong
+
+  @@map("result_grade_value")
+}
+
+// A supplier or a competitor whose catalogue we keep
+model Source {
+  id             Int        @id @default(autoincrement())
+  code           String     @unique
+  name           String
+  kind           SourceKind
+  // Lease of the running import: while it is in the future, a second import of this source stops at once
+  syncLeaseRunId Int?       @map("sync_lease_run_id")
+  syncLeaseUntil DateTime?  @map("sync_lease_until") @db.Timestamptz
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz
+
+  models          ProductModel[]
+  variants        Variant[]
+  printTechniques PrintTechnique[]
+  rawRecords      RawRecord[]
+  syncRuns        SyncRun[]
+  categories      SourceCategory[]
+
+  @@map("source")
+}
+
+// The shared category list, the same for every source (decision 2026-10-30): groups and their categories. The list
+// and each source's mapping live in git (src/categories/*.json); WORKER=categories writes them here.
+model Category {
+  id       Int     @id @default(autoincrement())
+  // "drinkware" for a group, "drinkware.mugs" for one of its categories: the key of the search filter and the API
+  code     String  @unique
+  // null for a group
+  parentId Int?    @map("parent_id")
+  // { "uk": "...", "en": "..." }
+  name     Json
+  // Order among the groups, or within the group
+  position Int
+  // false once the list no longer has it; rows are not deleted
+  isActive Boolean @default(true) @map("is_active")
+
+  parent           Category?        @relation("CategoryChildren", fields: [parentId], references: [id], onDelete: Restrict)
+  children         Category[]       @relation("CategoryChildren")
+  sourceCategories SourceCategory[]
+
+  @@index([parentId])
+  @@map("category")
+}
+
+// The shared category of a source's own category path. Derived from the mapping file: the sync deletes the paths the
+// file no longer has.
+model SourceCategory {
+  sourceId   Int  @map("source_id")
+  // The whole English path, as product_model.category->'en' holds it: ["DRINKWARE", "ceramic mugs"]
+  path       Json
+  // A category, never a group
+  categoryId Int  @map("category_id")
+
+  source   Source   @relation(fields: [sourceId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@id([sourceId, path])
+  @@index([categoryId])
+  @@map("source_category")
+}
+
+// Every row the import keeps has the same bookkeeping: content_hash of the normalized data (changed or not),
+// last_seen_run_id (the sync_run that last saw it; not a foreign key, it is only compared), is_active (false once a
+// complete import no longer finds it) and deactivated_at.
+model ProductModel {
+  id              Int       @id @default(autoincrement())
+  sourceId        Int       @map("source_id")
+  // Axpol: CodeERP up to its last "." or "-"; Midocean: master_code
+  code            String
+  externalId      String?   @map("external_id")
+  // Texts by language: { "en": "...", "pl": "..." }
+  name            Json      @default("{}")
+  description     Json      @default("{}")
+  // The supplier's own category path by language: { "en": ["WRITINGS", "touch pens"] }
+  category        Json      @default("{}")
+  categoryCode    String?   @map("category_code")
+  material        Json      @default("{}")
+  brand           String?
+  dimensions      String?
+  weightGrams     Decimal?  @map("weight_grams") @db.Decimal(12, 3)
+  countryOfOrigin String?   @map("country_of_origin")
+  // Print positions and techniques as the supplier gives them
+  printing        Json?
+  // The supplier's other fields, cleaned
+  attributes      Json      @default("{}")
+  // Read from the fields above by one parser for every source (src/suppliers/specs.ts): the capacity, the materials of
+  // the shared list with the supplier's first one first, the sides longest first (a diameter is a side)
+  volumeMl        Int?      @map("volume_ml")
+  materials       String[]  @default([])
+  sizesCm         Decimal[] @default([]) @map("sizes_cm") @db.Decimal(7, 2)
+  // The supplier's techniques on the shared list (src/suppliers/printing.ts), with "unconfirmed" for a code no source explains
+  printTechniques String[]  @default([]) @map("print_techniques")
+  // Read from the texts by the same parser: a pad's sheets, and the weight of its paper or fabric in g/m2
+  sheets          Int?
+  gsm             Int?
+  contentHash     String    @map("content_hash")
+  isActive        Boolean   @default(true) @map("is_active")
+  lastSeenRunId   Int       @map("last_seen_run_id")
+  firstSeenAt     DateTime  @default(now()) @map("first_seen_at") @db.Timestamptz
+  // When the content last changed, not when the import last saw it
+  updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+  deactivatedAt   DateTime? @map("deactivated_at") @db.Timestamptz
+
+  source          Source           @relation(fields: [sourceId], references: [id])
+  variants        Variant[]
+  photos          Photo[]
+  textEmbeddings  TextEmbedding[]
+  ownProductLinks OwnProductLink[]
+  grades          ResultGrade[]
+
+  // The search's index of active models by source and English path (migration search_index_product_model_category)
+  // is on an expression, which Prisma does not model
+  @@unique([sourceId, code])
+  @@map("product_model")
+}
+
+// A colour, a size or both of a model: what has its own SKU, price and stock
+model Variant {
+  id            Int       @id @default(autoincrement())
+  sourceId      Int       @map("source_id")
+  modelId       Int       @map("model_id")
+  // Axpol: CodeERP; Midocean: sku
+  sku           String
+  externalId    String?   @map("external_id")
+  ean           String?
+  color         Json      @default("{}")
+  colorCode     String?   @map("color_code")
+  colorGroup    String?   @map("color_group")
+  size          String?
+  // The supplier's life-cycle status (Midocean's plc_status_description)
+  status        String?
+  printing      Json?
+  attributes    Json      @default("{}")
+  contentHash   String    @map("content_hash")
+  isActive      Boolean   @default(true) @map("is_active")
+  lastSeenRunId Int       @map("last_seen_run_id")
+  firstSeenAt   DateTime  @default(now()) @map("first_seen_at") @db.Timestamptz
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+  deactivatedAt DateTime? @map("deactivated_at") @db.Timestamptz
+
+  source Source         @relation(fields: [sourceId], references: [id])
+  model  ProductModel   @relation(fields: [modelId], references: [id])
+  photos PhotoVariant[]
+  prices Price[]
+  stock  Stock?
+
+  @@unique([sourceId, sku])
+  @@index([modelId])
+  @@map("variant")
+}
+
+// A picture of a model, once per URL; the variants that show it are in photo_variant
+model Photo {
+  id              Int         @id @default(autoincrement())
+  modelId         Int         @map("model_id")
+  url             String
+  urlLarge        String?     @map("url_large")
+  kind            String?
+  // Order within the model, as the supplier lists the pictures
+  position        Int
+  // Place among the model's pictures for the search, 0 first (src/embeddings/store.ts, refreshSearchRanks); null until
+  // an embeddings run ranks it
+  searchRank      Int?        @map("search_rank")
+  status          PhotoStatus @default(pending)
+  statusChangedAt DateTime?   @map("status_changed_at") @db.Timestamptz
+  error           String?
+  contentHash     String      @map("content_hash")
+  isActive        Boolean     @default(true) @map("is_active")
+  lastSeenRunId   Int         @map("last_seen_run_id")
+  firstSeenAt     DateTime    @default(now()) @map("first_seen_at") @db.Timestamptz
+  updatedAt       DateTime    @default(now()) @map("updated_at") @db.Timestamptz
+  deactivatedAt   DateTime?   @map("deactivated_at") @db.Timestamptz
+
+  model      ProductModel     @relation(fields: [modelId], references: [id])
+  variants   PhotoVariant[]
+  embeddings PhotoEmbedding[]
+
+  @@unique([modelId, url])
+  @@map("photo")
+}
+
+// The vector of a photo by one embedding model (stage 3, docs/integrations.md, «Ембедінги каталогу»). The column has
+// no dimension, since it depends on the model; a CHECK of migration embedding_checks, which Prisma does not model,
+// keeps it equal to the one in the model's name, and the HNSW search indexes of a model (migrations *_search_index_*,
+// not modelled here) cast to halfvec of it. Vectors of an earlier model stay until the search switches to the new one.
+model PhotoEmbedding {
+  photoId        Int                   @map("photo_id")
+  // The provider's model and dimension, e.g. "voyage-multimodal-3.5/1024"
+  embeddingModel String                @map("embedding_model")
+  embedding      Unsupported("vector")
+  // sha256 of the image bytes that were sent: the same picture under another URL reuses this vector
+  imageSha256    String                @map("image_sha256")
+  createdAt      DateTime              @default(now()) @map("created_at") @db.Timestamptz
+
+  photo Photo @relation(fields: [photoId], references: [id])
+
+  @@id([photoId, embeddingModel])
+  @@index([embeddingModel, imageSha256])
+  @@map("photo_embedding")
+}
+
+// The vector of a model's English text (name, category, material, colours, description) by one embedding model
+model TextEmbedding {
+  modelId        Int                   @map("model_id")
+  embeddingModel String                @map("embedding_model")
+  embedding      Unsupported("vector")
+  // sha256 of the text that was sent: a changed text is embedded again
+  textHash       String                @map("text_hash")
+  updatedAt      DateTime              @default(now()) @map("updated_at") @db.Timestamptz
+
+  model ProductModel @relation(fields: [modelId], references: [id])
+
+  @@id([modelId, embeddingModel])
+  @@map("text_embedding")
+}
+
+// The lease of a one-off job that has no source row of its own to hold it (the embeddings: "embed:<source code>"),
+// taken with one UPDATE like source.sync_lease_until: a crashed job blocks the next one until its lease runs out
+model WorkerLease {
+  name  String   @id
+  runId Int      @map("run_id")
+  until DateTime @db.Timestamptz
+
+  @@map("worker_lease")
+}
+
+// Which variants show a photo, in which order. Derived from the feed: a complete import deletes the links it no
+// longer finds.
+model PhotoVariant {
+  photoId       Int @map("photo_id")
+  variantId     Int @map("variant_id")
+  position      Int
+  lastSeenRunId Int @map("last_seen_run_id")
+
+  photo   Photo   @relation(fields: [photoId], references: [id])
+  variant Variant @relation(fields: [variantId], references: [id])
+
+  @@id([photoId, variantId])
+  @@index([variantId])
+  @@map("photo_variant")
+}
+
+// A purchase price: confidential, never in git, dumps or logs
+model Price {
+  id            Int       @id @default(autoincrement())
+  variantId     Int       @map("variant_id")
+  kind          PriceKind
+  // From this quantity on; 1 for the base price
+  minQuantity   Int       @default(1) @map("min_quantity")
+  currency      String    @db.Char(3)
+  // Never negative, and min_quantity from 1: CHECK constraints of migration catalog_checks, which Prisma does not model
+  amount        Decimal   @db.Decimal(12, 4)
+  // One active per variant: the price for filters and the result grid
+  isPrimary     Boolean   @default(false) @map("is_primary")
+  validUntil    DateTime? @map("valid_until") @db.Date
+  contentHash   String    @map("content_hash")
+  isActive      Boolean   @default(true) @map("is_active")
+  lastSeenRunId Int       @map("last_seen_run_id")
+  firstSeenAt   DateTime  @default(now()) @map("first_seen_at") @db.Timestamptz
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+  deactivatedAt DateTime? @map("deactivated_at") @db.Timestamptz
+
+  variant Variant @relation(fields: [variantId], references: [id])
+
+  @@unique([variantId, kind, minQuantity])
+  @@map("price")
+}
+
+// The latest stock of a variant; last_seen_run_id tells whether the last import still had it
+model Stock {
+  variantId           Int       @id @map("variant_id")
+  inStock             Int       @map("in_stock")
+  reserved            Int?
+  onOrder             Int?      @map("on_order")
+  nextArrivalQuantity Int?      @map("next_arrival_quantity")
+  nextArrivalDate     DateTime? @map("next_arrival_date") @db.Date
+  // Delivery time as the supplier writes it (Axpol's Days "2-3")
+  leadTime            String?   @map("lead_time")
+  // Every announced arrival: [{ "date": "2026-11-10", "quantity": 10000 }]
+  arrivals            Json      @default("[]")
+  sourceUpdatedAt     DateTime? @map("source_updated_at") @db.Timestamptz
+  contentHash         String    @map("content_hash")
+  lastSeenRunId       Int       @map("last_seen_run_id")
+  updatedAt           DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+
+  variant Variant @relation(fields: [variantId], references: [id])
+
+  @@map("stock")
+}
+
+// A supplier's printing technique by code, with names by language (Midocean's printdata; Axpol gives none)
+model PrintTechnique {
+  id            Int      @id @default(autoincrement())
+  sourceId      Int      @map("source_id")
+  code          String
+  name          Json     @default("{}")
+  contentHash   String   @map("content_hash")
+  lastSeenRunId Int      @map("last_seen_run_id")
+  updatedAt     DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  source Source @relation(fields: [sourceId], references: [id])
+
+  @@unique([sourceId, code])
+  @@map("print_technique")
+}
+
+// The last raw record of a feed for debugging, rewritten only when it changes. Holds purchase prices.
+model RawRecord {
+  id          Int      @id @default(autoincrement())
+  sourceId    Int      @map("source_id")
+  // Axpol: Product.List, Stock.List, Printing.List; Midocean: products, stock, pricelist, printdata
+  feed        String
+  externalId  String   @map("external_id")
+  payload     Json
+  payloadHash String   @map("payload_hash")
+  // The sync_run that wrote this payload, and when
+  syncRunId   Int      @map("sync_run_id")
+  fetchedAt   DateTime @map("fetched_at") @db.Timestamptz
+
+  source Source @relation(fields: [sourceId], references: [id])
+
+  @@unique([sourceId, feed, externalId])
+  @@map("raw_record")
+}
+
+// Our own product (stage 6, docs/integrations.md, «Свої товари»): what the models of suppliers, later of competitors,
+// are linked to
+model OwnProduct {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  // Our own article; several products may have none
+  code      String?  @unique
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  links OwnProductLink[]
+
+  @@map("own_product")
+}
+
+// A model linked to our own product, one row per pair: a model may belong to several own products, and linking a pair
+// again sets its type. A model stays linked after an import deactivates it: its rows are not deleted.
+model OwnProductLink {
+  ownProductId Int                @map("own_product_id")
+  modelId      Int                @map("model_id")
+  type         OwnProductLinkType
+  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz
+
+  ownProduct OwnProduct   @relation(fields: [ownProductId], references: [id])
+  model      ProductModel @relation(fields: [modelId], references: [id])
+
+  @@id([ownProductId, modelId])
+  @@index([modelId])
+  @@map("own_product_link")
+}
+
+// admin invites, disables and resets passwords on the «Користувачі» screen; manager searches, grades and links own
+// products (docs/decisions.md, 2026-11-07)
+enum UserRole {
+  admin
+  manager
+
+  @@map("user_role")
+}
+
+// invite makes a new user, reset sets a new password of one
+enum UserInviteKind {
+  invite
+  reset
+
+  @@map("user_invite_kind")
+}
+
+// Who may sign in (stage 7, docs/integrations.md, «Логін»): an employee, made by an admin's link or with WORKER=users. No
+// name, email or other personal data. `user` is a reserved word in Postgres.
+model AppUser {
+  id           Int      @id @default(autoincrement())
+  // Lower case, as the sign-in form's value is read (src/auth/request.ts)
+  login        String   @unique
+  // scrypt, with its parameters and salt in the value (src/auth/password.ts)
+  passwordHash String   @map("password_hash")
+  // false: cannot sign in. Rows are not deleted.
+  isActive     Boolean  @default(true) @map("is_active")
+  role         UserRole @default(manager)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  sessions       UserSession[]
+  grades         ResultGrade[]
+  createdInvites UserInvite[]  @relation("InviteCreatedBy")
+  invites        UserInvite[]  @relation("InviteUser")
+
+  @@map("app_user")
+}
+
+// A one-time link an admin made (docs/integrations.md, «Логін»): the admin sends it themselves, no email is kept.
+// Only the token's sha256 is here, so a dump of this table opens no link. Rows are not deleted.
+// CHECK of migration user_roles_invites, which Prisma does not model: an invite has a role, a reset has its user.
+model UserInvite {
+  id          Int            @id @default(autoincrement())
+  tokenHash   String         @unique @map("token_hash")
+  kind        UserInviteKind
+  // invite: the role of the user it makes; null for a reset, which keeps the user's role
+  role        UserRole?
+  createdById Int            @map("created_by_id")
+  // reset: whose password it sets; invite: the user it made, once used
+  userId      Int?           @map("user_id")
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  expiresAt   DateTime       @map("expires_at") @db.Timestamptz
+  // Set once, by the update that takes the link: a second use finds it set
+  usedAt      DateTime?      @map("used_at") @db.Timestamptz
+
+  createdBy AppUser  @relation("InviteCreatedBy", fields: [createdById], references: [id])
+  user      AppUser? @relation("InviteUser", fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([createdById])
+  @@index([userId])
+  @@map("user_invite")
+}
+
+// A manager's word on a model a search found, one row per search, model and user: the human grades the quality numbers
+// and the confidence percent are measured on (docs/integrations.md, «Оцінки»). The one table that keeps a query's text,
+// and only of a search someone graded (docs/decisions.md): the text goes with the search's last grade. The reference
+// photo is never kept, and there are no purchase prices here.
+model ResultGrade {
+  // Handed out with the answer of a search and kept nowhere else: it groups the grades of that search
+  searchId          String           @map("search_id") @db.Uuid
+  modelId           Int              @map("model_id")
+  userId            Int              @map("user_id")
+  grade             ResultGradeValue
+  // null: a search by photo alone
+  queryText         String?          @map("query_text")
+  hasPhoto          Boolean          @map("has_photo")
+  embeddingModel    String           @map("embedding_model")
+  filters           Json             @default("{}")
+  // What the search said of the model, as it was shown: the inputs of src/search/confidence.ts
+  rank              Int
+  confidencePercent Int?             @map("confidence_percent")
+  lists             Json             @default("{}")
+  conditionMatch    Json?            @map("condition_match")
+  matchedCode       String?          @map("matched_code")
+  gradedAt          DateTime         @default(now()) @map("graded_at") @db.Timestamptz
+
+  model ProductModel @relation(fields: [modelId], references: [id])
+  user  AppUser      @relation(fields: [userId], references: [id])
+
+  @@id([searchId, modelId, userId])
+  @@index([modelId])
+  @@index([userId])
+  @@map("result_grade")
+}
+
+// A signed-in browser. Signing out deletes its row, a new password or a disabled user all of theirs.
+model UserSession {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  // sha256 of the cookie's token: a dump of this table opens no session
+  tokenHash String   @unique @map("token_hash")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+
+  user AppUser @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("user_session")
+}
+
+// What Claude answered to a search's text, so that the same text reads the same after a restart too
+// (src/search/query-readings.ts). Rows of an old prompt or model are only unused. The text is kept as its hash: a
+// manager may paste a client's letter, with a name and a phone in it.
+model QueryReading {
+  parseModel   String   @map("parse_model")
+  // sha256 of all a call sends but the model and the text
+  promptSha256 String   @map("prompt_sha256")
+  textSha256   String   @map("text_sha256")
+  // The model's JSON as it came, read through the contract's check each time (src/search/query-parse-contract.ts)
+  answer       String
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@id([parseModel, promptSha256, textSha256])
+  @@map("query_reading")
+}
+
+// The log of imports: one row per run and source, with the counts of what it read and wrote
+model SyncRun {
+  id         Int        @id @default(autoincrement())
+  sourceId   Int        @map("source_id")
+  kind       String
+  status     SyncStatus
+  startedAt  DateTime   @default(now()) @map("started_at") @db.Timestamptz
+  finishedAt DateTime?  @map("finished_at") @db.Timestamptz
+  counts     Json       @default("{}")
+  error      String?
+
+  source Source @relation(fields: [sourceId], references: [id])
+
+  @@index([sourceId, startedAt])
+  @@map("sync_run")
+}

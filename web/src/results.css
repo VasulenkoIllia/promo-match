@@ -1,0 +1,245 @@
+/* The results grid and its cards (Results.tsx) */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+/* An opened table of variants takes two columns of the grid: in one, its stock and price would scroll out of sight */
+.card:has(details[open]) {
+  grid-column: span 2;
+}
+
+/* ...with its photo as high as in one column */
+.card:has(details[open]) .card-photo {
+  aspect-ratio: 2;
+}
+
+.card p {
+  margin: 0;
+}
+
+.card-photo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  /* Not the photo's own height: the box keeps its ratio when the card spans two columns */
+  min-height: 0;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.card-photo a {
+  display: contents;
+}
+
+.card-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.rank {
+  position: absolute;
+  top: 0;
+  left: 0;
+  min-width: 24px;
+  padding: 0 6px;
+  border-radius: var(--radius);
+  background: rgb(29 35 48 / 0.75);
+  color: #ffffff;
+  font-size: 0.75rem;
+  line-height: 20px;
+  text-align: center;
+}
+
+.thumbs {
+  display: flex;
+  gap: 6px;
+}
+
+.thumb {
+  width: 44px;
+  height: 44px;
+  padding: 2px;
+  background: #ffffff;
+}
+
+.thumb.is-active {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.card-source {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.card-page {
+  width: fit-content;
+  color: var(--accent);
+  font-size: 0.875rem;
+}
+
+.card-grade {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.card-grade > button {
+  flex: 1 1 auto;
+  padding-inline: 8px;
+  font-size: 0.8125rem;
+}
+
+.card-grade > .is-exact {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.card-grade > .is-suitable {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.card-grade > .is-wrong {
+  border-color: var(--error);
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.card-match {
+  margin: 0;
+  padding: 2px 8px;
+  width: fit-content;
+  max-width: 100%;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.875rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.card-name {
+  margin: 0;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+/* As with the conditions, the word carries the meaning */
+.card-confidence {
+  margin: 0;
+  padding: 0 8px;
+  width: fit-content;
+  border-radius: var(--radius);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.card-confidence.is-high {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.card-confidence.is-medium {
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.card-confidence.is-low {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.card-conditions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 2px 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The word carries the meaning; the colour only helps to scan a grid */
+.card-condition {
+  padding: 0 8px;
+  border-radius: var(--radius);
+  font-size: 0.8125rem;
+}
+
+.card-condition.is-fits {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.card-condition.is-unknown {
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.card-condition.is-against {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.card-price {
+  font-weight: 600;
+}
+
+.card details {
+  margin-top: 4px;
+  font-size: 0.875rem;
+}
+
+.card summary {
+  cursor: pointer;
+  color: var(--accent);
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin-top: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+th,
+td {
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+th.number,
+td.number {
+  text-align: right;
+}

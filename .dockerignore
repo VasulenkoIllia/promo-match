@@ -1,0 +1,24 @@
+.git
+**/.env*
+**/node_modules
+dist
+coverage
+src/generated
+**/*.pem
+**/*.key
+**/*.dump
+# Dumps in the project root only: prisma/migrations/**/*.sql must reach the image
+*.sql
+**/*.log
+**/.DS_Store
+.idea
+.vscode
+.claude
+CLAUDE.local.md
+docker-compose*.yml
+# ...but the production one rides in the image: the deploy reads it out of there (deploy/deploy-entry.sh)
+!docker-compose.yml
+docs
+design
+brief
+output

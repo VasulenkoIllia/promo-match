@@ -1,0 +1,393 @@
+{
+  "bags.backpacks": [
+    "BAGS & BACKPACKS > backpacks"
+  ],
+  "bags.business": [
+    "BAGS & BACKPACKS > document & laptop"
+  ],
+  "bags.shopping": [
+    "BAGS & BACKPACKS > shopping bags"
+  ],
+  "bags.drawstring": [
+    "BAGS & BACKPACKS > drawstring and duffle bags"
+  ],
+  "bags.cooler": [
+    "BAGS & BACKPACKS > cooler bags"
+  ],
+  "bags.travel": [
+    "BAGS & BACKPACKS > travel & sport bags"
+  ],
+  "bags.trolleys": [
+    "BAGS & BACKPACKS > trolleys"
+  ],
+  "bags.waist": [
+    "BAGS & BACKPACKS > shoulder bags",
+    "TRAVEL > waist bags"
+  ],
+  "bags.gift": [
+    "BAGS & BACKPACKS > paper bags"
+  ],
+  "bags.other": [
+    "BAGS & BACKPACKS > other bags"
+  ],
+  "drinkware.mugs": [
+    "DRINKWARE > ceramic mugs",
+    "DRINKWARE > other mugs"
+  ],
+  "drinkware.tumblers": [
+    "DRINKWARE > thermo mugs",
+    "DRINKWARE > travel mugs"
+  ],
+  "drinkware.vacuum": [
+    "DRINKWARE > thermo bottles",
+    "DRINKWARE > thermoses"
+  ],
+  "drinkware.bottles": [
+    "DRINKWARE > sport bottles",
+    "DRINKWARE > water bottles"
+  ],
+  "drinkware.glasses": [
+    "DRINKWARE > drinking jars",
+    "DRINKWARE > glass mugs and bottles, glasses",
+    "HOME > carafes and pots"
+  ],
+  "drinkware.hip-flasks": [
+    "DRINKWARE > hip flasks"
+  ],
+  "drinkware.other": [
+    "DRINKWARE > other drinking accessories"
+  ],
+  "kitchen.lunch": [
+    "HOME > lunch boxes"
+  ],
+  "kitchen.utensils": [
+    "HOME > kitchen timers",
+    "HOME > kitchen: accessories",
+    "HOME > salt and pepper"
+  ],
+  "kitchen.knives": [
+    "HOME > kitchen knives"
+  ],
+  "kitchen.serving": [
+    "HOME > cheese sets"
+  ],
+  "kitchen.wine": [
+    "HOME > bartender accessories",
+    "HOME > bottle openers",
+    "HOME > corkscrews",
+    "HOME > waiter's knives",
+    "HOME > wine accessories",
+    "HOME > wine boxes",
+    "HOME > wine carton boxes",
+    "HOME > wine coolers",
+    "HOME > wine sets"
+  ],
+  "kitchen.textiles": [
+    "HOME > aprons",
+    "HOME > kitchen pot holders"
+  ],
+  "kitchen.sweets": [
+    "HOME > sugar free mints"
+  ],
+  "electronics.power-banks": [
+    "ELECTRONICS > power banks",
+    "ELECTRONICS > solar chargers",
+    "ELECTRONICS > wireless power banks"
+  ],
+  "electronics.chargers": [
+    "ELECTRONICS > car chargers",
+    "ELECTRONICS > wall chargers",
+    "ELECTRONICS > wireless chargers"
+  ],
+  "electronics.cables": [
+    "ELECTRONICS > charging cables",
+    "ELECTRONICS > travel adapters"
+  ],
+  "electronics.audio": [
+    "ELECTRONICS > headphones & earphones",
+    "ELECTRONICS > speakers",
+    "ELECTRONICS > wireless headphones & earphones"
+  ],
+  "electronics.computer": [
+    "ELECTRONICS > USB hubs",
+    "ELECTRONICS > USB memory sticks",
+    "ELECTRONICS > computer mouses",
+    "ELECTRONICS > computer: accessories",
+    "OFFICE > mousepads"
+  ],
+  "electronics.phone": [
+    "ELECTRONICS > phone: accessories",
+    "ELECTRONICS > selfie sticks",
+    "OFFICE > mobile phone stands"
+  ],
+  "electronics.smart": [
+    "ELECTRONICS > activity trackers",
+    "ELECTRONICS > key finders"
+  ],
+  "electronics.clocks": [
+    "ELECTRONICS > clocks & watches",
+    "ELECTRONICS > weather stations"
+  ],
+  "electronics.other": [
+    "ELECTRONICS",
+    "ELECTRONICS > accessories for electronics",
+    "ELECTRONICS > laser pointers",
+    "ELECTRONICS > other electronic accessories",
+    "OFFICE > accessories for electronics"
+  ],
+  "office.notebooks": [
+    "MOLESKINE > MOLESKINE diaries (Large)",
+    "MOLESKINE > MOLESKINE diaries (XL)",
+    "MOLESKINE > MOLESKINE diaries (pocket)",
+    "MOLESKINE > MOLESKINE notebooks (XL)",
+    "MOLESKINE > MOLESKINE notebooks (large)",
+    "MOLESKINE > MOLESKINE notebooks (medium)",
+    "MOLESKINE > MOLESKINE notebooks (pocket)",
+    "MOLESKINE > other MOLESKINE products",
+    "OFFICE > notebooks & notepads"
+  ],
+  "office.notes": [
+    "OFFICE > sticky notes"
+  ],
+  "office.folders": [
+    "OFFICE > conference folders"
+  ],
+  "office.desk": [
+    "ELECTRONICS > calculators",
+    "OFFICE > business card holders",
+    "OFFICE > magnifying glasses",
+    "OFFICE > office: accessories",
+    "OFFICE > pen holders"
+  ],
+  "office.lamps": [
+    "OFFICE > desk lamps, reading lamps"
+  ],
+  "office.lanyards": [
+    "OFFICE > lanyards and ID badge holders"
+  ],
+  "writing.ballpens": [
+    "MOLESKINE > MOLESKINE plastic ballpens",
+    "WRITINGS > ball pens: eco",
+    "WRITINGS > ball pens: metal",
+    "WRITINGS > ball pens: plastic"
+  ],
+  "writing.multifunction": [
+    "WRITINGS > ball pens: multifunctional",
+    "WRITINGS > touch pens"
+  ],
+  "writing.premium": [
+    "MOLESKINE > MOLESKINE rollerballs",
+    "WRITINGS > fountain pen",
+    "WRITINGS > rollerball pens"
+  ],
+  "writing.pencils": [
+    "TOOLS > carpenter pencils and ball pens",
+    "WRITINGS > pencils"
+  ],
+  "writing.highlighters": [
+    "WRITINGS > highlighters"
+  ],
+  "writing.sets": [
+    "WRITINGS > other writing sets",
+    "WRITINGS > sets: ball pen and pencil",
+    "WRITINGS > sets: ball pen and rollerball pen"
+  ],
+  "writing.cases": [
+    "WRITINGS > pen cases"
+  ],
+  "clothing.t-shirts": [
+    "TEXTILES > T-shirts"
+  ],
+  "clothing.jackets": [
+    "TEXTILES > jackets",
+    "TEXTILES > vests"
+  ],
+  "clothing.other": [
+    "TEXTILES > other textiles and clothes"
+  ],
+  "headwear.caps": [
+    "TEXTILES > caps"
+  ],
+  "headwear.hats": [
+    "TEXTILES > hats"
+  ],
+  "headwear.winter": [
+    "TEXTILES > gloves",
+    "TEXTILES > scarfs",
+    "TEXTILES > winter hats"
+  ],
+  "umbrellas.umbrellas": [
+    "UMBRELLAS & PONCHOS > umbrellas: automatic",
+    "UMBRELLAS & PONCHOS > umbrellas: manual"
+  ],
+  "umbrellas.rainwear": [
+    "UMBRELLAS & PONCHOS > ponchos"
+  ],
+  "keyrings.basic": [
+    "KEYRINGS > keyrings shapes",
+    "KEYRINGS > other keyrings"
+  ],
+  "keyrings.token": [
+    "KEYRINGS > keyrings with token"
+  ],
+  "keyrings.openers": [
+    "KEYRINGS > keyrings bottle openers"
+  ],
+  "keyrings.torches": [
+    "KEYRINGS > keyrings torches and lights"
+  ],
+  "keyrings.multi": [
+    "KEYRINGS > keyrings measuring tapes",
+    "KEYRINGS > multifunctional keyrings"
+  ],
+  "keyrings.reflective": [
+    "KEYRINGS > reflective keyrings"
+  ],
+  "tools.multitools": [
+    "TOOLS > cutters",
+    "TOOLS > multifunctional tools",
+    "TOOLS > pocket knifes"
+  ],
+  "tools.measuring": [
+    "TOOLS > measuring tapes"
+  ],
+  "tools.torches": [
+    "TOOLS > emergency torches",
+    "TOOLS > torches and lights"
+  ],
+  "tools.sets": [
+    "TOOLS > other tools",
+    "TOOLS > screwdrivers",
+    "TOOLS > tool sets"
+  ],
+  "tools.car": [
+    "TOOLS > car organizers",
+    "TOOLS > car phone holders",
+    "TOOLS > car: accessories",
+    "TOOLS > ice scrapers"
+  ],
+  "tools.bicycle": [
+    "TOOLS > bicycle lights",
+    "TOOLS > bicycle phone holders",
+    "TOOLS > bicycle: accessories"
+  ],
+  "tools.safety": [
+    "TOOLS > safety"
+  ],
+  "travel.wallets": [
+    "TRAVEL > credit card holders",
+    "TRAVEL > wallets"
+  ],
+  "travel.cosmetic": [
+    "TRAVEL > cosmetic bags"
+  ],
+  "travel.accessories": [
+    "TRAVEL > luggage scales",
+    "TRAVEL > luggage tags",
+    "TRAVEL > travel accessories",
+    "TRAVEL > travel pillows"
+  ],
+  "care.essentials": [
+    "HOME > pill boxes",
+    "TRAVEL > first aid kits",
+    "TRAVEL > tooth brushes",
+    "TRAVEL > wipes and hand gels"
+  ],
+  "care.beauty": [
+    "TRAVEL > hairbrushes",
+    "TRAVEL > mirrors",
+    "TRAVEL > nail files and manicure sets"
+  ],
+  "care.bath": [
+    "HOME > bathroom: accessories",
+    "HOME > body mass indicators",
+    "HOME > shower coaches"
+  ],
+  "home.candles": [
+    "HOME > candles"
+  ],
+  "home.blankets": [
+    "HOME > home blankets"
+  ],
+  "home.towels": [
+    "LEISURE > sport towels"
+  ],
+  "home.decor": [
+    "HOME > home: accessories",
+    "HOME > lighters",
+    "HOME > photo frames",
+    "HOME > recycle waste bags",
+    "HOME > thermometers"
+  ],
+  "leisure.picnic": [
+    "LEISURE > barbecue & picnic",
+    "LEISURE > picnic blankets"
+  ],
+  "leisure.beach": [
+    "LEISURE > beach balls and other inflatable accessories",
+    "LEISURE > beach games",
+    "LEISURE > beach matts and others",
+    "LEISURE > beach umbrellas",
+    "LEISURE > summer"
+  ],
+  "leisure.sport": [
+    "LEISURE > pedometers",
+    "LEISURE > runner's accessories",
+    "LEISURE > ski passes",
+    "LEISURE > skipping ropes",
+    "LEISURE > sport",
+    "LEISURE > sport fan accessories"
+  ],
+  "leisure.sunglasses": [
+    "LEISURE > sunglasses"
+  ],
+  "leisure.outdoor": [
+    "LEISURE > binoculars",
+    "LEISURE > compasses",
+    "LEISURE > dog: accessories",
+    "LEISURE > mobile phone pouches",
+    "LEISURE > other outdoor accessories"
+  ],
+  "leisure.garden": [
+    "HOME > flower pots, herbs"
+  ],
+  "kids.plush": [
+    "FUN & SCHOOL > plush toys",
+    "Plush toys > Christmas plush toys",
+    "Plush toys > other plush accessories",
+    "Plush toys > plush bears",
+    "Plush toys > plush keyrings",
+    "Plush toys > plush pets",
+    "Plush toys > wild plush toys"
+  ],
+  "kids.games": [
+    "FUN & SCHOOL > bubble blowers",
+    "FUN & SCHOOL > fun",
+    "FUN & SCHOOL > games",
+    "FUN & SCHOOL > piggy banks",
+    "FUN & SCHOOL > puzzles",
+    "FUN & SCHOOL > yo-yos"
+  ],
+  "kids.anti-stress": [
+    "KEYRINGS > anti stress keyrings",
+    "OFFICE > anti stress toys"
+  ],
+  "kids.colouring": [
+    "FUN & SCHOOL > art sets",
+    "FUN & SCHOOL > colour pencils",
+    "FUN & SCHOOL > colouring"
+  ],
+  "kids.school": [
+    "FUN & SCHOOL > erasers",
+    "FUN & SCHOOL > pencil cases and school sets",
+    "FUN & SCHOOL > rulers",
+    "FUN & SCHOOL > school: accessories"
+  ],
+  "seasonal.decor": [
+    "HOME > Christmas balls and hangers",
+    "HOME > Christmas decorations and accessories"
+  ],
+  "other.gift-sets": [
+    "GIFT SETS > gift sets"
+  ]
+}

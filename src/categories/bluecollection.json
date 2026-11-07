@@ -1,0 +1,183 @@
+{
+  "bags.backpacks": [
+    "Bags and umbrellas > Backpacks"
+  ],
+  "bags.business": [
+    "Bags and umbrellas > Business"
+  ],
+  "bags.shopping": [
+    "Bags and umbrellas > Shopping bags"
+  ],
+  "bags.drawstring": [
+    "Bags and umbrellas > Drawstring bags"
+  ],
+  "bags.travel": [
+    "Bags and umbrellas > Sport bags"
+  ],
+  "bags.gift": [
+    "Bags and umbrellas > Gift packaging"
+  ],
+  "bags.other": [
+    "Bags and umbrellas > For sorting"
+  ],
+  "drinkware.mugs": [
+    "Food and drinks > Mugs"
+  ],
+  "drinkware.tumblers": [
+    "Food and drinks > Thermal mugs"
+  ],
+  "drinkware.vacuum": [
+    "Food and drinks > Thermal flasks and jugs"
+  ],
+  "drinkware.bottles": [
+    "Food and drinks > Bottles",
+    "Food and drinks > Sport bottles"
+  ],
+  "drinkware.hip-flasks": [
+    "Food and drinks > Hip flasks"
+  ],
+  "kitchen.lunch": [
+    "Food and drinks > Containers"
+  ],
+  "kitchen.utensils": [
+    "Food and drinks > Kitchen equipment"
+  ],
+  "kitchen.wine": [
+    "Food and drinks > Alcohol accessories"
+  ],
+  "electronics.power-banks": [
+    "Technology > Power banks"
+  ],
+  "electronics.cables": [
+    "Technology > Chargers and cables"
+  ],
+  "electronics.audio": [
+    "Technology > Headphones",
+    "Technology > Speakers"
+  ],
+  "electronics.computer": [
+    "Technology > USB memory sticks",
+    "Work and office > Computer accessories"
+  ],
+  "electronics.phone": [
+    "Technology > Phone accessories"
+  ],
+  "electronics.clocks": [
+    "Technology > Clocks and smartwatches",
+    "Technology > Weather stations"
+  ],
+  "electronics.other": [
+    "Technology > Accessories"
+  ],
+  "office.notebooks": [
+    "Work and office > Notebooks"
+  ],
+  "office.notes": [
+    "Work and office > Sticky notes"
+  ],
+  "office.folders": [
+    "Work and office > Portfolios"
+  ],
+  "office.desk": [
+    "Work and office > Accessories",
+    "Work and office > Card holders",
+    "Work and office > Desk equipment"
+  ],
+  "office.lamps": [
+    "Technology > Lamps"
+  ],
+  "office.lanyards": [
+    "Tools and keychains > Accessories"
+  ],
+  "writing.ballpens": [
+    "Stationery and other > Eco pens",
+    "Stationery and other > Metal pens",
+    "Stationery and other > Plastic pens"
+  ],
+  "writing.multifunction": [
+    "Stationery and other > Touch pens"
+  ],
+  "writing.premium": [
+    "Stationery and other > Roller pens and pointers"
+  ],
+  "writing.pencils": [
+    "Stationery and other > Pencils"
+  ],
+  "writing.highlighters": [
+    "Stationery and other > Crayons and highlighters"
+  ],
+  "writing.sets": [
+    "Stationery and other > Stationery sets"
+  ],
+  "writing.cases": [
+    "Stationery and other > Pen pouches"
+  ],
+  "umbrellas.umbrellas": [
+    "Bags and umbrellas > Umbrellas"
+  ],
+  "keyrings.basic": [
+    "Tools and keychains > Keychains"
+  ],
+  "tools.multitools": [
+    "Tools and keychains > Multitools"
+  ],
+  "tools.measuring": [
+    "Tools and keychains > Measuring tapes"
+  ],
+  "tools.torches": [
+    "Tools and keychains > Flashlights"
+  ],
+  "tools.sets": [
+    "Tools and keychains > Tool sets"
+  ],
+  "tools.car": [
+    "Tools and keychains > Window scraper"
+  ],
+  "tools.bicycle": [
+    "Sport and leisure > Bicycle"
+  ],
+  "tools.safety": [
+    "Tools and keychains > Reflectives"
+  ],
+  "travel.wallets": [
+    "Work and office > Wallets, card cases"
+  ],
+  "travel.cosmetic": [
+    "Bags and umbrellas > Toiletry bags"
+  ],
+  "travel.accessories": [
+    "Sport and leisure > Travel"
+  ],
+  "care.essentials": [
+    "Sport and leisure > Health"
+  ],
+  "care.bath": [
+    "Sport and leisure > Home SPA"
+  ],
+  "home.blankets": [
+    "Sport and leisure > Blankets and hot water bottles"
+  ],
+  "leisure.picnic": [
+    "Food and drinks > Grill accessories"
+  ],
+  "leisure.sport": [
+    "Sport and leisure > Sport"
+  ],
+  "leisure.outdoor": [
+    "Sport and leisure > For animals"
+  ],
+  "kids.games": [
+    "Sport and leisure > For children",
+    "Sport and leisure > Games"
+  ],
+  "seasonal.gifts": [
+    "Christmas offer > Christmas offer"
+  ],
+  "other.gift-sets": [
+    "Work and office > Gift sets"
+  ],
+  "other.samples": [
+    "Materiały promocyjne > Katalogi",
+    "Materiały promocyjne > Wzorniki"
+  ]
+}

@@ -1,0 +1,70 @@
+/* The «Користувачі» screen (UsersView.tsx): the invite form and the link just made on the left, the users on the right */
+
+.user-invite-submit {
+  margin-top: 12px;
+}
+
+.user-link {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.user-link h2 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.user-link input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.user-link .row button.primary {
+  width: auto;
+}
+
+.user-link .error-text {
+  margin: 8px 0 0;
+}
+
+table.users {
+  width: 100%;
+  margin-bottom: 12px;
+  border-collapse: collapse;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+table.users th,
+table.users td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+table.users th {
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+table.users tr.is-disabled td {
+  color: var(--muted);
+}
+
+.user-login {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.user-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+table.users .note {
+  margin: 8px 0 0;
+}

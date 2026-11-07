@@ -1,0 +1,384 @@
+{
+  "bags.backpacks": [
+    "Backpacks > Backpacks > Backpacks",
+    "Backpacks > Backpacks > Backpacks With Laptop Pocket",
+    "Backpacks > Backpacks > Travel Backpacks"
+  ],
+  "bags.business": [
+    "Backpacks > More Backpacks",
+    "Office And Business > Office Accessories And Organization > Laptop Cases"
+  ],
+  "bags.shopping": [
+    "Backpacks > Handbags > Handbags",
+    "Bags > According To Bag Format > Bags",
+    "Bags > According To Bag Format > Bellows Bags",
+    "Bags > According To Bag Format > Folding Bags",
+    "Bags > Depending On Bag Material > Cotton Bags",
+    "Bags > Depending On Bag Material > Non-Woven Fabrics",
+    "Bags > Depending On Bag Material > Rpet Bags"
+  ],
+  "bags.drawstring": [
+    "Backpacks > Drawstring Backpacks > Cotton Backpacks",
+    "Backpacks > Drawstring Backpacks > Polyester Backpacks"
+  ],
+  "bags.beach": [
+    "Summer And Beach > Beach And Pool Items > Beach And Pool Bags",
+    "Summer And Beach > Beach And Pool Items > Carries Everything Beach And Pool"
+  ],
+  "bags.cooler": [
+    "Bags > According To Bag Format > Thermal Bags",
+    "Take Away > Refrigerators > Cooler Bag",
+    "Take Away > Refrigerators > Coolers"
+  ],
+  "bags.travel": [
+    "Journey > Suitcases > Travel Bags",
+    "Sport > Sports Accessories > Sports Bags"
+  ],
+  "bags.trolleys": [
+    "Journey > Suitcases > Trolley"
+  ],
+  "bags.waist": [
+    "Backpacks > Accessories > Fanny Packs",
+    "Backpacks > Accessories > Shoulder Bags"
+  ],
+  "bags.gift": [
+    "Bags > Depending On Bag Material > Recycled Paper Bags",
+    "Packaging > Presentation Boxes > Presentation Boxes",
+    "Packaging > Special Packing Labels > Special Packing Labels"
+  ],
+  "bags.other": [
+    "Backpacks > Accessories > Everything Bag",
+    "Bags > More Bags > More Bags"
+  ],
+  "drinkware.mugs": [
+    "Drinkware > Cups > Cups"
+  ],
+  "drinkware.tumblers": [
+    "Drinkware > Cups > Thermal Mugs",
+    "Drinkware > Glasses > Thermal Vessels"
+  ],
+  "drinkware.vacuum": [
+    "Drinkware > Drums > Thermal Drums",
+    "Drinkware > Thermos > Thermos"
+  ],
+  "drinkware.bottles": [
+    "Drinkware > Drums",
+    "Drinkware > Drums > Drums",
+    "Sport > Sports Accessories > Sports Bottles"
+  ],
+  "drinkware.glasses": [
+    "Bar, Wine And Hotel > Wine And Bar Accessories > Glasses, Jugs And Cups",
+    "Drinkware > Glasses",
+    "Drinkware > Glasses > Glasses",
+    "Sublimation > Circular Sublimation > Circular Sublimation"
+  ],
+  "drinkware.other": [
+    "Drinkware > Glasses > Folding Cups",
+    "Drinkware > More Drinkware > More Mugs, Glasses, Bottles And Thermoses"
+  ],
+  "kitchen.lunch": [
+    "Take Away > Takeaway Accessories",
+    "Take Away > Takeaway Accessories > Cutlery",
+    "Take Away > Takeaway Accessories > Lunch Boxes",
+    "Take Away > Takeaway Accessories > Snack Holder"
+  ],
+  "kitchen.utensils": [
+    "Decoration And Home > Kitchen Accessories > Household Goods"
+  ],
+  "kitchen.serving": [
+    "Decoration And Home > Decoración > Coasters",
+    "Decoration And Home > Kitchen Accessories > Chopping Boards",
+    "Events And Party > Party > Cups And Plates"
+  ],
+  "kitchen.wine": [
+    "Bar, Wine And Hotel > Bar And Hotel Accessories > Bar And Hotel Accessories",
+    "Bar, Wine And Hotel > Wine And Bar Accessories > Bar",
+    "Bar, Wine And Hotel > Wine And Bar Accessories > Coolers",
+    "Bar, Wine And Hotel > Wine And Bar Accessories > Drink Set",
+    "Bar, Wine And Hotel > Wine And Bar Accessories > Openers",
+    "Bar, Wine And Hotel > Wine And Bar Accessories > Wine Accessories",
+    "Decoration And Home > Kitchen Accessories > Drink Accessories"
+  ],
+  "kitchen.textiles": [
+    "Bar, Wine And Hotel > Wine And Bar Accessories > Aprons",
+    "Decoration And Home > Kitchen Accessories > Aprons And Mittens"
+  ],
+  "electronics.power-banks": [
+    "Technology And Accessories > Charging > Power Bank"
+  ],
+  "electronics.chargers": [
+    "Technology And Accessories > Charging > Chargers",
+    "Technology And Accessories > Charging > Wireless Chargers"
+  ],
+  "electronics.cables": [
+    "Technology And Accessories > Charging > Charger Cables"
+  ],
+  "electronics.audio": [
+    "Technology And Accessories > Audio > Headphones",
+    "Technology And Accessories > Audio > Speakers"
+  ],
+  "electronics.computer": [
+    "Technology And Accessories > Computer Accessories > Memories",
+    "Technology And Accessories > Computer Accessories > Mice And Keyboards",
+    "Technology And Accessories > Computer Accessories > Mouse pads",
+    "Technology And Accessories > Computer Accessories > USB Ports",
+    "Technology And Accessories > Computer Accessories > Webcam Caps",
+    "Technology And Accessories > Stock USBs > Memories 2.1"
+  ],
+  "electronics.phone": [
+    "Technology And Accessories > Others > Supports",
+    "Technology And Accessories > Technology Accessories > Smartphone Accessories"
+  ],
+  "electronics.smart": [
+    "Technology And Accessories > Others > Smart Watch",
+    "Technology And Accessories > Others > Trackers"
+  ],
+  "electronics.clocks": [
+    "Decoration And Home > Decoración > Weather Stations",
+    "Technology And Accessories > Others > Watches"
+  ],
+  "electronics.other": [
+    "Technology And Accessories > More Technology",
+    "Technology And Accessories > Others > Cameras",
+    "Technology And Accessories > Technology Accessories > Gadget"
+  ],
+  "office.notebooks": [
+    "Office And Business > Office Accessories And Organization > Agendas",
+    "Pads, Notebooks, And Sticky Notes > Notebooks > Notebooks"
+  ],
+  "office.notes": [
+    "Office And Business > Desk Accessories > Calendars",
+    "Pads, Notebooks, And Sticky Notes > Notepads > Notepads",
+    "Pads, Notebooks, And Sticky Notes > Sets Of Notepads And Notebooks > Sets Of Notepads And Notebooks",
+    "Pads, Notebooks, And Sticky Notes > Sticky Note Holder > Sticky Note Holder"
+  ],
+  "office.folders": [
+    "Office And Business > Folders And Organizers > Folders And Organizers",
+    "Office And Business > Office Accessories And Organization > Document Holder",
+    "Office And Business > Office Accessories And Organization > Multifunction Pads"
+  ],
+  "office.desk": [
+    "Events And Party > Events > Medals, Trophies And Plaques",
+    "Gifts And Premiums > Gifts And Premiums Accessories > Trophies And Medals",
+    "Office And Business > Desk Accessories > Calculators",
+    "Office And Business > Desk Accessories > Pencil Holders And Organizers",
+    "Office And Business > More Office And Business > More Office And Business",
+    "Writing"
+  ],
+  "office.lamps": [
+    "Technology And Accessories > Others > Lamps"
+  ],
+  "office.lanyards": [
+    "Events And Party > Party > Bracelets",
+    "Events And Party > Party > Lanyards And Id Holders",
+    "Office And Business > Office Accessories And Organization > Identifiers",
+    "Office And Business > Office Accessories And Organization > Lanyards"
+  ],
+  "writing.ballpens": [
+    "Writing > Pens > Pens"
+  ],
+  "writing.multifunction": [
+    "Writing > Pens > Pointer Pens"
+  ],
+  "writing.premium": [
+    "Writing > Pens > Rollerball Pens"
+  ],
+  "writing.pencils": [
+    "Writing > More Writing > More Writing",
+    "Writing > Pencils > Eternal Writing",
+    "Writing > Pencils > Pencils"
+  ],
+  "writing.sets": [
+    "Writing > Pens > Writing Set",
+    "Writing > Writing Accessories > Writing Set"
+  ],
+  "writing.cases": [
+    "Writing > Writing Accessories > Cases"
+  ],
+  "clothing.t-shirts": [
+    "Textile > Tshirts > Adult T-Shirts",
+    "Textile > Tshirts > Women'S T-Shirts"
+  ],
+  "clothing.polo": [
+    "Textile > Polos > Adult Polos",
+    "Textile > Polos > Women'S Polo Shirts"
+  ],
+  "clothing.sweatshirts": [
+    "Textile > Sweatshirts > Adult Sweatshirts",
+    "Textile > Sweatshirts > Women'S Sweatshirts"
+  ],
+  "clothing.jackets": [
+    "Textile > Jackets > Jackets",
+    "Textile > Jackets > Parkas",
+    "Textile > Jackets > Polar",
+    "Textile > Jackets > Shoftshells",
+    "Textile > Jackets > Vests"
+  ],
+  "clothing.trousers": [
+    "Textile > Pants > Pants"
+  ],
+  "clothing.kids": [
+    "Textile > Polos > Boy'S Polo Shirts",
+    "Textile > Sweatshirts > Children'S Sweatshirts",
+    "Textile > Tshirts > Boy'S T-Shirts"
+  ],
+  "clothing.other": [
+    "Textile",
+    "Textile > More Textile > More Textile"
+  ],
+  "headwear.caps": [
+    "Caps And Hats > Caps",
+    "Caps And Hats > Caps > Adult Caps",
+    "Caps And Hats > Caps > Children'S Caps"
+  ],
+  "headwear.hats": [
+    "Caps And Hats > Hats > Hat Bands",
+    "Caps And Hats > Hats > Straw Hats",
+    "Caps And Hats > Hats > Synthetic Hats"
+  ],
+  "headwear.winter": [
+    "Rain And Cold > Cold > Accessories For The Cold",
+    "Rain And Cold > Cold > Hats, Neck Warmers, Gloves, And Scarves"
+  ],
+  "headwear.footwear": [
+    "Events And Party > Rainbow > Rainbow",
+    "Summer And Beach > Beach And Pool Items > Flip Flops"
+  ],
+  "umbrellas.umbrellas": [
+    "Rain And Cold > Rain > Umbrella"
+  ],
+  "umbrellas.rainwear": [
+    "Rain And Cold > Rain > Ponchos"
+  ],
+  "keyrings.basic": [
+    "Gifts And Premiums > Gifts And Premiums Accessories > Key Ring"
+  ],
+  "tools.multitools": [
+    "Tools And Diy > Diy > Knives",
+    "Tools And Diy > Diy > Multitools"
+  ],
+  "tools.measuring": [
+    "Tools And Diy > Diy > Flexometers"
+  ],
+  "tools.torches": [
+    "Tools And Diy > Diy > Lanterns"
+  ],
+  "tools.sets": [
+    "Agriculture > Measurement Items > Cubes",
+    "Agriculture > Measurement Items > Magnifying Glasses",
+    "Agriculture > Measurement Items > Measuring Instruments",
+    "Tools And Diy > More Tools",
+    "Tools And Diy > More Tools > More Tools"
+  ],
+  "tools.car": [
+    "Tools And Diy > Car > Automobile Tools",
+    "Tools And Diy > Car > Car Accessories",
+    "Tools And Diy > Car > Parasols"
+  ],
+  "travel.wallets": [
+    "Gifts And Premiums > Accessories And Entertainment > Card Holders",
+    "Gifts And Premiums > Accessories And Entertainment > Wallets And Purses"
+  ],
+  "travel.cosmetic": [
+    "Personal Care And Pharma > Personal Care And Pharma > Toiletry Bags"
+  ],
+  "travel.accessories": [
+    "Bar, Wine And Hotel > Hotel > Hotel",
+    "Journey > More Travel > More Travel",
+    "Journey > Travel Accessories > Adapters",
+    "Journey > Travel Accessories > Document Holder Identifiers",
+    "Journey > Travel Accessories > Masks And Pads",
+    "Journey > Travel Accessories > Travel Accessories"
+  ],
+  "care.essentials": [
+    "Personal Care And Pharma > Hygienic Protection Collection > Hygienic Protection Accessories",
+    "Personal Care And Pharma > Personal Care And Pharma > Health",
+    "Personal Care And Pharma > Personal Care And Pharma > Toothbrushes"
+  ],
+  "care.cosmetics": [
+    "Personal Care And Pharma > Personal Care And Pharma > Lip Balms"
+  ],
+  "care.beauty": [
+    "Personal Care And Pharma > More Personal Care And Pharma > More Personal Care And Pharma",
+    "Personal Care And Pharma > Personal Care And Pharma > Combs",
+    "Personal Care And Pharma > Personal Care And Pharma > Facial Care",
+    "Personal Care And Pharma > Personal Care And Pharma > Mirrors",
+    "Personal Care And Pharma > Personal Care And Pharma > Personal Care"
+  ],
+  "care.bath": [
+    "Gifts And Premiums > Accessories And Entertainment > Personal Care"
+  ],
+  "home.candles": [
+    "Decoration And Home > Decoración > Candles And Scents"
+  ],
+  "home.towels": [
+    "Sport > Sports Accessories > Sports Towels"
+  ],
+  "home.decor": [
+    "Decoration And Home > Decoración > Decoration",
+    "Decoration And Home > Decoración > Lamps",
+    "Decoration And Home > More Home And Decoration > More Home",
+    "Gifts And Premiums > Gifts And Premiums Accessories > Home",
+    "Gifts And Premiums > Gifts And Premiums Accessories > Lighters",
+    "Pets > Feeders And Waterers > Feeders And Waterers",
+    "Pets > More Pets > More Pets",
+    "Pets > Pet Sitting > Pet Sitting"
+  ],
+  "leisure.picnic": [
+    "Outdoor > Outdoor Gadget > Pique-Nique"
+  ],
+  "leisure.beach": [
+    "Gifts And Premiums > Rainbow > Rainbow",
+    "Summer And Beach > Beach And Pool Items > Beach And Pool Games",
+    "Summer And Beach > Beach And Pool Items > Fans And Ventilators",
+    "Summer And Beach > Beach And Pool Items > Inflatable",
+    "Summer And Beach > Beach And Pool Items > Sarongs And Mats",
+    "Summer And Beach > Beach And Pool Items > Umbrellas",
+    "Summer And Beach > More Summer > More Summer"
+  ],
+  "leisure.sport": [
+    "Events And Party > Events",
+    "Events And Party > Events > Animation",
+    "Events And Party > Events > Banner",
+    "Events And Party > More Events And Parties > More Events And Parties",
+    "Sport > Sports Accessories > Sports Accessories",
+    "Sport > World Cup 2026"
+  ],
+  "leisure.sunglasses": [
+    "Events And Party > Party > Glasses",
+    "Summer And Beach > Beach And Pool Items > Sunglasses"
+  ],
+  "leisure.outdoor": [
+    "Outdoor > Outdoor Gadget > Leisure Accessories",
+    "Pets > Pet Toys > Pet Toys",
+    "Pets > Walking Accessories > Walking Accessories",
+    "Summer And Beach > OUTDOOR SEASON"
+  ],
+  "leisure.garden": [
+    "Gifts And Premiums > Gifts And Premiums Accessories > Floors"
+  ],
+  "kids.games": [
+    "Gifts And Premiums > Accessories And Entertainment > Hability Games",
+    "Kids > Children'S Games",
+    "Kids > Children'S Games > Children'S Games",
+    "Kids > More Kids > More Kids"
+  ],
+  "kids.anti-stress": [
+    "Gifts And Premiums",
+    "Gifts And Premiums > Gifts And Premiums Accessories > Anti-Stress"
+  ],
+  "kids.colouring": [
+    "Kids > Children'S Cases > Children'S Cases",
+    "Writing > Pencils > Pencil Set"
+  ],
+  "seasonal.decor": [
+    "Christmas > Christmas Decoration > Christmas Decoration"
+  ],
+  "seasonal.gifts": [
+    "Christmas > More Christmas > More Christmas",
+    "Christmas > Tableware > Tableware"
+  ],
+  "other.gift-sets": [
+    "Gifts And Premiums > More Gifts And Premiums > More Gifts And Premiums"
+  ]
+}

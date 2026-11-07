@@ -1,0 +1,361 @@
+{
+  "bags.backpacks": [
+    "BAGS > Backpacks",
+    "KIDS, SUMMER & LEISURE > Backpacks"
+  ],
+  "bags.business": [
+    "BAGS > Laptop & document bags",
+    "KIDS, SUMMER & LEISURE > Laptop & document bags"
+  ],
+  "bags.shopping": [
+    "BAGS > Shopping & tote bags"
+  ],
+  "bags.drawstring": [
+    "BAGS > Drawstring bags",
+    "KIDS, SUMMER & LEISURE > Drawstring bags",
+    "SEASONAL > Drawstring bags"
+  ],
+  "bags.beach": [
+    "BAGS > Beach bags"
+  ],
+  "bags.cooler": [
+    "BAGS > Cooler bags"
+  ],
+  "bags.travel": [
+    "BAGS > Travel & sports bags"
+  ],
+  "bags.trolleys": [
+    "BAGS > Trolleys",
+    "HOME & GIFTS > Trolleys",
+    "UMBRELLAS & TRAVEL > Trolleys",
+    "UMBRELLAS > Trolleys"
+  ],
+  "bags.waist": [
+    "BAGS > Waist & shoulder bags"
+  ],
+  "bags.gift": [
+    "BAGS > Gift & paper bags",
+    "HOME & GIFTS > Gift & paper bags",
+    "WRITING > Gift & paper bags"
+  ],
+  "bags.other": [
+    "BAGS > Other bags",
+    "TOOLS & MORE > Other bags"
+  ],
+  "drinkware.mugs": [
+    "DRINK TO GO > Mugs & cups",
+    "HOME & GIFTS > Mugs & cups",
+    "SEASONAL > Mugs & cups"
+  ],
+  "drinkware.tumblers": [
+    "DRINK TO GO > Travel mugs & tumblers"
+  ],
+  "drinkware.vacuum": [
+    "DRINK TO GO > Vacuum bottles & flasks",
+    "HOME & GIFTS > Vacuum bottles & flasks"
+  ],
+  "drinkware.bottles": [
+    "BAGS > Water & sports bottles",
+    "DRINK TO GO > Water & sports bottles",
+    "HOME & GIFTS > Water & sports bottles"
+  ],
+  "drinkware.glasses": [
+    "DRINK TO GO > Glasses & carafes",
+    "HOME & GIFTS > Glasses & carafes"
+  ],
+  "drinkware.hip-flasks": [
+    "DRINK TO GO > Hip flasks",
+    "HOME & GIFTS > Hip flasks"
+  ],
+  "drinkware.other": [
+    "HOME & GIFTS > Other drinkware"
+  ],
+  "kitchen.lunch": [
+    "HOME & GIFTS > Lunch boxes & cutlery",
+    "KIDS, SUMMER & LEISURE > Lunch boxes & cutlery",
+    "SEASONAL > Lunch boxes & cutlery"
+  ],
+  "kitchen.utensils": [
+    "HOME & GIFTS > Kitchen utensils"
+  ],
+  "kitchen.knives": [
+    "HOME & GIFTS > Kitchen knives"
+  ],
+  "kitchen.serving": [
+    "HOME & GIFTS > Boards, coasters & cheese sets"
+  ],
+  "kitchen.wine": [
+    "DRINK TO GO > Wine & bar",
+    "HOME & GIFTS > Wine & bar",
+    "TOOLS & MORE > Wine & bar",
+    "TOOLS&MORE > Wine & bar"
+  ],
+  "kitchen.textiles": [
+    "HOME & GIFTS > Aprons & kitchen textiles"
+  ],
+  "kitchen.tea-coffee": [
+    "HOME & GIFTS > Tea & coffee"
+  ],
+  "kitchen.sweets": [
+    "HOME & GIFTS > Sweets & mints"
+  ],
+  "electronics.power-banks": [
+    "PHONE, TABLET & TIME > Power banks"
+  ],
+  "electronics.chargers": [
+    "PHONE, TABLET & TIME > Chargers",
+    "TOOLS & MORE > Chargers"
+  ],
+  "electronics.cables": [
+    "OFFICE > Cables & adapters",
+    "PHONE, TABLET & TIME > Cables & adapters",
+    "UMBRELLAS & TRAVEL > Cables & adapters"
+  ],
+  "electronics.audio": [
+    "OFFICE > Speakers & headphones",
+    "PHONE, TABLET & TIME > Speakers & headphones",
+    "TOOLS & MORE > Speakers & headphones"
+  ],
+  "electronics.computer": [
+    "KIDS, SUMMER & LEISURE > Computer accessories",
+    "OFFICE > Computer accessories",
+    "PHONE, TABLET & TIME > Computer accessories",
+    "SPECIALS > Computer accessories"
+  ],
+  "electronics.phone": [
+    "BAGS > Phone accessories",
+    "PHONE, TABLET & TIME > Phone accessories",
+    "TOOLS & MORE > Phone accessories"
+  ],
+  "electronics.smart": [
+    "TOOLS & MORE > Trackers, smartwatches & finders"
+  ],
+  "electronics.clocks": [
+    "OFFICE > Clocks & weather stations",
+    "PHONE, TABLET & TIME > Clocks & weather stations"
+  ],
+  "electronics.other": [
+    "OFFICE > Other electronics",
+    "PHONE, TABLET & TIME > Other electronics",
+    "TOOLS & MORE > Other electronics"
+  ],
+  "office.notebooks": [
+    "OFFICE > Notebooks & diaries"
+  ],
+  "office.notes": [
+    "OFFICE > Sticky notes, memo pads & calendars",
+    "SEASONAL > Sticky notes, memo pads & calendars"
+  ],
+  "office.folders": [
+    "OFFICE > Folders & portfolios",
+    "PHONE, TABLET & TIME > Folders & portfolios"
+  ],
+  "office.desk": [
+    "HOME & GIFTS > Desk accessories",
+    "OFFICE > Desk accessories",
+    "TOOLS & MORE > Desk accessories"
+  ],
+  "office.lamps": [
+    "HOME & GIFTS > Desk lamps",
+    "TOOLS & MORE > Desk lamps"
+  ],
+  "office.lanyards": [
+    "TOOLS & MORE > Lanyards, badges & pins"
+  ],
+  "writing.ballpens": [
+    "OFFICE > Ball pens",
+    "PHONE, TABLET & TIME > Ball pens",
+    "WRITING > Ball pens"
+  ],
+  "writing.multifunction": [
+    "WRITING > Stylus & multifunction pens"
+  ],
+  "writing.premium": [
+    "WRITING > Rollerball & fountain pens"
+  ],
+  "writing.pencils": [
+    "WRITING > Pencils"
+  ],
+  "writing.highlighters": [
+    "OFFICE > Highlighters",
+    "WRITING > Highlighters"
+  ],
+  "writing.sets": [
+    "WRITING > Writing sets"
+  ],
+  "writing.cases": [
+    "OFFICE > Pen cases",
+    "WRITING > Pen cases"
+  ],
+  "headwear.caps": [
+    "KIDS, SUMMER & LEISURE > Caps",
+    "TOOLS & MORE > Caps"
+  ],
+  "headwear.hats": [
+    "SEASONAL > Hats & bucket hats",
+    "TOOLS & MORE > Hats & bucket hats"
+  ],
+  "headwear.winter": [
+    "PHONE, TABLET & TIME > Beanies, scarves & gloves",
+    "TOOLS & MORE > Beanies, scarves & gloves"
+  ],
+  "headwear.footwear": [
+    "SEASONAL > Footwear & socks",
+    "TOOLS & MORE > Footwear & socks",
+    "UMBRELLAS & TRAVEL > Footwear & socks"
+  ],
+  "umbrellas.umbrellas": [
+    "UMBRELLAS & TRAVEL > Umbrellas",
+    "UMBRELLAS > Umbrellas"
+  ],
+  "umbrellas.rainwear": [
+    "UMBRELLAS & TRAVEL > Ponchos & raincoats",
+    "UMBRELLAS > Ponchos & raincoats"
+  ],
+  "keyrings.basic": [
+    "DRINK TO GO > Keyrings",
+    "PHONE, TABLET & TIME > Keyrings",
+    "TOOLS & MORE > Keyrings",
+    "TOOLS&MORE > Keyrings"
+  ],
+  "keyrings.token": [
+    "TOOLS & MORE > Token keyrings"
+  ],
+  "keyrings.openers": [
+    "TOOLS & MORE > Bottle opener keyrings"
+  ],
+  "keyrings.torches": [
+    "TOOLS & MORE > Torch keyrings"
+  ],
+  "keyrings.multi": [
+    "TOOLS & MORE > Multifunctional keyrings"
+  ],
+  "keyrings.reflective": [
+    "TOOLS & MORE > Reflective keyrings"
+  ],
+  "tools.multitools": [
+    "HOME & GIFTS > Multitools & knives",
+    "TOOLS & MORE > Multitools & knives"
+  ],
+  "tools.measuring": [
+    "TOOLS & MORE > Measuring tapes"
+  ],
+  "tools.torches": [
+    "TOOLS & MORE > Torches"
+  ],
+  "tools.sets": [
+    "TOOLS & MORE > Tool sets & other tools"
+  ],
+  "tools.car": [
+    "TOOLS & MORE > Car accessories"
+  ],
+  "tools.bicycle": [
+    "TOOLS & MORE > Bicycle accessories"
+  ],
+  "tools.safety": [
+    "KIDS, SUMMER & LEISURE > Reflective & safety items",
+    "TOOLS & MORE > Reflective & safety items"
+  ],
+  "travel.wallets": [
+    "OFFICE > Wallets & card holders",
+    "UMBRELLAS & TRAVEL > Wallets & card holders"
+  ],
+  "travel.cosmetic": [
+    "BAGS > Cosmetic & toiletry bags"
+  ],
+  "travel.accessories": [
+    "BAGS > Travel accessories",
+    "HOME & GIFTS > Travel accessories",
+    "KIDS, SUMMER & LEISURE > Travel accessories",
+    "PHONE, TABLET & TIME > Travel accessories",
+    "TOOLS & MORE > Travel accessories",
+    "UMBRELLAS & TRAVEL > Travel accessories",
+    "UMBRELLAS > Travel accessories"
+  ],
+  "care.essentials": [
+    "BAGS & TRAVEL > First aid & hygiene",
+    "BAGS > First aid & hygiene",
+    "HOME & GIFTS > First aid & hygiene",
+    "KIDS, SUMMER & LEISURE > First aid & hygiene",
+    "PRICE HITS > First aid & hygiene",
+    "SEASONAL > First aid & hygiene",
+    "TOOLS & MORE > First aid & hygiene"
+  ],
+  "care.beauty": [
+    "HOME & GIFTS > Mirrors, manicure & hairbrushes",
+    "UMBRELLAS & TRAVEL > Mirrors, manicure & hairbrushes",
+    "UMBRELLAS > Mirrors, manicure & hairbrushes"
+  ],
+  "home.candles": [
+    "HOME & GIFTS > Candles & scents",
+    "SEASONAL > Candles & scents",
+    "TOOLS & MORE > Candles & scents"
+  ],
+  "home.blankets": [
+    "HOME & GIFTS > Blankets",
+    "KIDS, SUMMER & LEISURE > Blankets",
+    "SEASONAL > Blankets"
+  ],
+  "home.towels": [
+    "HOME & GIFTS > Towels",
+    "KIDS, SUMMER & LEISURE > Towels"
+  ],
+  "home.decor": [
+    "HOME & GIFTS > Home decor & accessories",
+    "OFFICE > Home decor & accessories",
+    "TOOLS & MORE > Home decor & accessories",
+    "TOOLS&MORE > Home decor & accessories"
+  ],
+  "leisure.picnic": [
+    "BAGS > Picnic, camping & barbecue",
+    "KIDS, SUMMER & LEISURE > Picnic, camping & barbecue"
+  ],
+  "leisure.beach": [
+    "KIDS, SUMMER & LEISURE > Beach & summer",
+    "TOOLS & MORE > Beach & summer"
+  ],
+  "leisure.sport": [
+    "KIDS, SUMMER & LEISURE > Sport & fitness"
+  ],
+  "leisure.sunglasses": [
+    "KIDS, SUMMER & LEISURE > Sunglasses"
+  ],
+  "leisure.outdoor": [
+    "KIDS, SUMMER & LEISURE > Outdoor & walking"
+  ],
+  "leisure.garden": [
+    "HOME & GIFTS > Gardening & plants",
+    "KIDS, SUMMER & LEISURE > Gardening & plants"
+  ],
+  "kids.plush": [
+    "KIDS, SUMMER & LEISURE > Plush toys"
+  ],
+  "kids.games": [
+    "HOME & GIFTS > Games, toys & puzzles",
+    "KIDS, SUMMER & LEISURE > Games, toys & puzzles",
+    "SEASONAL > Games, toys & puzzles",
+    "TOOLS & MORE > Games, toys & puzzles"
+  ],
+  "kids.anti-stress": [
+    "KIDS, SUMMER & LEISURE > Anti-stress toys"
+  ],
+  "kids.colouring": [
+    "BAGS > Colouring & art",
+    "KIDS, SUMMER & LEISURE > Colouring & art",
+    "SEASONAL > Colouring & art",
+    "WRITING > Colouring & art"
+  ],
+  "kids.school": [
+    "TOOLS & MORE > School supplies"
+  ],
+  "kids.baby": [
+    "HOME & GIFTS > Baby & toddlers"
+  ],
+  "seasonal.decor": [
+    "HOME & GIFTS > Christmas decorations",
+    "SEASONAL > Christmas decorations"
+  ],
+  "other.gift-sets": [
+    "HOME & GIFTS > Gift sets"
+  ]
+}

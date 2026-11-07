@@ -1,0 +1,63 @@
+/* The «Постачальники» screen (SuppliersView.tsx): one wide table, a supplier a row, a few lines a cell */
+
+.suppliers-page {
+  min-width: 1024px;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 16px 24px;
+}
+
+.suppliers-page .results-head h1 {
+  margin: 0;
+}
+
+.suppliers-page .results-head .row {
+  margin-top: 0;
+}
+
+table.suppliers {
+  width: 100%;
+  margin-bottom: 12px;
+  border-collapse: collapse;
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+
+/* results.css keeps every cell on one line for the variants of a card */
+table.suppliers th,
+table.suppliers td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+}
+
+table.suppliers thead th {
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+table.suppliers tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cell-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+}
+
+.cell-lines li.is-warn {
+  margin: 2px 0;
+  padding: 0 6px;
+  border-left: 3px solid var(--warn-border);
+  background: var(--warn-bg);
+}
+
+.suppliers-hints {
+  max-width: 960px;
+}
