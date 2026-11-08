@@ -1,6 +1,6 @@
 # Build stage: all dependencies, compile the code (npm run build).
 # .npmrc comes with the manifests: install scripts of dependencies never run, here or in the runtime stage.
-FROM node:24-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json .npmrc ./
 RUN --mount=type=cache,target=/root/.npm npm ci
@@ -8,7 +8,7 @@ COPY . .
 RUN npm run build
 
 # Runtime stage: production dependencies and compiled code only, as the unprivileged node user.
-FROM node:24-alpine
+FROM node:26-alpine
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 WORKDIR /app
