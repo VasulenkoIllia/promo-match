@@ -7,7 +7,7 @@
 #   deploy/export-db.sh           plan: the counts and what the copy would leave out, nothing written
 #   deploy/export-db.sh --write   the copy, its counts and the dump in output/export/ (purchase prices: mode 600)
 #
-# Run from the repository root, with the dev database up (npm run db:up).
+# Run from the repository root, with the dev database up (pnpm run db:up).
 set -euo pipefail
 umask 077
 
@@ -57,7 +57,7 @@ clean_sql="begin;
   update source set sync_lease_run_id = null, sync_lease_until = null where sync_lease_until is not null;
 commit;"
 
-"${dev[@]}" ps --status running --quiet db | grep -q . || die "the dev database is not running: npm run db:up"
+"${dev[@]}" ps --status running --quiet db | grep -q . || die "the dev database is not running: pnpm run db:up"
 mkdir -p "$OUT_DIR"
 stamp=$(date +%Y%m%d-%H%M%S)
 

@@ -3,7 +3,7 @@
 // share of cases with a right model in the top 10. Reads the cases and the database, writes only the report to
 // output/quality/ (outside git, like the cases); the report has no prices. Photos go as they are, neither cropped nor
 // shrunk as the web screen does.
-//   npm run search:quality -- [--cases output/quality/cases.csv] [--condition-pass] [--dry-run]
+//   pnpm run search:quality [--cases output/quality/cases.csv] [--condition-pass] [--dry-run]
 // Photos lie in photos/ beside the cases file. --dry-run checks the cases and prints the cost at list prices, calling no
 // provider. --condition-pass runs with the screen's switch on (src/search/condition-pass.ts), at no extra cost; off by
 // default, as the screen's. A run needs the keys of all models and ANTHROPIC_API_KEY, and stays under SEARCH_BUDGET_USD and

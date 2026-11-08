@@ -21,7 +21,7 @@ src/generated/
 # The client's brief: prices and personal data stay out of git (no trailing slash: a symlink or a file too)
 /brief
 
-# Samples of supplier API responses (npm run smoke:suppliers): purchase prices
+# Samples of supplier API responses (pnpm run smoke:suppliers): purchase prices
 /output/
 
 # Notes and settings of the agent sessions: the repository is public, they name the client and the server

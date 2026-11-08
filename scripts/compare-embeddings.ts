@@ -2,7 +2,7 @@
 // hundred models of both suppliers go to every provider, and each is scored on finding the model again: its name finds
 // its photos, a photo finds the other photos of its model, a photo finds its model's text (src/embeddings/compare.ts).
 // Writes nothing to the database; the report goes to output/embeddings-compare/ (outside git).
-//   npm run embed:compare -- [--models 200] [--provider voyage|gemini] [--dry-run]
+//   pnpm run embed:compare [--models 200] [--provider voyage|gemini] [--dry-run]
 // --dry-run downloads the sample photos and prints the cost at list prices, calling no provider. A run needs the keys
 // of the providers and EMBED_BUDGET_USD (src/embeddings/provider.ts).
 import { mkdir, writeFile } from "node:fs/promises";

@@ -108,7 +108,7 @@ export interface ErrorText {
 
 const UNREACHABLE: ErrorText = {
   message: "Сервер пошуку не відповідає. Спробуйте ще раз за хвилину.",
-  detail: "the API server is not reachable: is npm run dev running?",
+  detail: "the API server is not reachable: is pnpm run dev running?",
 };
 
 export function searchErrorText(failure: ApiFailure): ErrorText {

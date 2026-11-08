@@ -2,11 +2,11 @@
 // POST /api/search (src/search/), against the database of DATABASE_URL. Reads only; the text is read by Claude
 // (QUERY_PARSE_MODEL, under QUERY_PARSE_BUDGET_USD) and the query embedded by the paid provider of the model, under
 // SEARCH_BUDGET_USD.
-//   npm run search -- [--text "<text>"] [--image <file.jpg|png>] [--model <name>|all] [--source axpol|midocean]...
+//   pnpm run search [--text "<text>"] [--image <file.jpg|png>] [--model <name>|all] [--source axpol|midocean]...
 //     [--category "<source>:<level 1>[ > <level 2>...]"]... [--shared-category <code>]... [--min-stock <n>]
 //     [--limit <n>] [--lists image-photo,image-text,text-photo,text-text] [--no-parse-query] [--parse-model <name>]
 //     [--condition-pass] [--json]
-// --shared-category takes a code of the shared list (npm run categories:sync, src/categories/taxonomy.json): a group
+// --shared-category takes a code of the shared list (pnpm run categories:sync, src/categories/taxonomy.json): a group
 // ("drinkware") or a category ("drinkware.mugs"). --model all runs the query through every model, one after the
 // other, with the text read once. --no-parse-query embeds the text as it is; --parse-model reads it with another
 // Claude model than QUERY_PARSE_MODEL. --condition-pass lifts the models whose catalogue confirms what the query asks, as

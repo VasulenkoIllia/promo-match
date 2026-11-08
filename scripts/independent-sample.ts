@@ -4,7 +4,7 @@
 // a visual case from a held-out photo alone, both knowing nothing of the search; the order comes from the seed and a
 // hash, never from ids. Photos come the way the embeddings fetch them (src/suppliers/registry.ts, photoFetchFor):
 // Makito's with its token, those of Macma and Easy Gifts out of their ZIP archives.
-//   npm run search:independent:sample -- --seed <text> --dev <n per source> --final <n per source> [--root <folder>]
+//   pnpm run search:independent:sample --seed <text> --dev <n per source> --final <n per source> [--root <folder>]
 //     [--exclude <cases.json,...>] [--dry-run] [--budget-usd <limit of the run's Claude calls>]
 // --exclude keeps out the models of earlier sets, whose results have been looked at. --dry-run counts what each source
 // can give and prices the calls at most; a run needs --budget-usd.

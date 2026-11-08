@@ -26,9 +26,9 @@ export function inspirionAdapter(apiKey: string): SupplierAdapter {
   return {
     source: { code: "inspirion", name: "Inspirion", kind: "supplier" },
     fetchCatalog: (context) => fetchCatalog(apiKey, context),
-    // The smoke test (npm run smoke:suppliers) found what there is to find: no limits besides x-ratelimit-limit
+    // The smoke test (pnpm run smoke:suppliers) found what there is to find: no limits besides x-ratelimit-limit
     probe: (context) => {
-      context.log("inspirion: nothing to probe, see npm run smoke:suppliers -- --only inspirion");
+      context.log("inspirion: nothing to probe, see pnpm run smoke:suppliers --only inspirion");
       return Promise.resolve();
     },
   };

@@ -1,6 +1,6 @@
 // WORKER=users: whoever runs the server makes and manages the users, there is no sign-up (docs/deployment.md,
 // «Користувачі»). The first admin comes from here; after them, admins invite on the «Користувачі» screen.
-//   npm run users -- add <login> [--role admin|manager] | password <login> | disable <login> | enable <login> | list
+//   pnpm run users add <login> [--role admin|manager] | password <login> | disable <login> | enable <login> | list
 // The password is read hidden from the terminal, or as a line from a pipe; never an argument, which the shell's history
 // and `ps` would keep. A new password and disabling end the user's sessions. add makes a manager unless told otherwise.
 import { createInterface } from "node:readline";

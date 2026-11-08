@@ -16,8 +16,8 @@
 
 ## Як код потрапляє на сервер
 - Репозиторій публічний на GitHub (docs/decisions.md, 2026-11-07). Кожен push у `main` запускає `.github/workflows/ci.yml`:
-  - `verify`: `npm ci` і `npm run check`;
-  - `security`: gitleaks по всій історії, `npm audit` продакшн-пакетів рівня high, автор кожного коміту з `COMMIT_AUTHOR_EMAIL` і без `Co-authored-by`, shellcheck скриптів `deploy/`, `docker compose config -q`;
+  - `verify`: pnpm версії `packageManager` через `npm install --global` (у Node 26 немає corepack), `pnpm install --frozen-lockfile` і `pnpm run check`;
+  - `security`: gitleaks по всій історії, `pnpm audit --prod` продакшн-пакетів рівня high, автор кожного коміту з `COMMIT_AUTHOR_EMAIL` і без `Co-authored-by`, shellcheck скриптів `deploy/`, `docker compose config -q`;
   - `image`: збірка, Trivy (CRITICAL зупиняє), пробний старт до `/health`, публікація `ghcr.io/vasulenkoillia/promo-match:sha-<повний коміт>`;
   - `clean-images`: `deploy/clean-images.sh` через `gh api` лишає 30 найновіших версій пакета з тегом і не видаляє образ свого запуску; версій без тегу не чіпає (зараз кожен push це один маніфест з тегом, а дочірні маніфести індексу були б без тегу); збій чистки деплой не зупиняє. Якщо 30 і більше push пройшли без деплою, образ на сервері зникне з GHCR, хоч локальна копія лишиться. Замість `actions/delete-package-versions`, у якої немає версії на Node 24 (рішення власника 2026-11-07);
   - `deploy`: лише коли змінна репозиторію `DEPLOY_ENABLED` дорівнює `true`.

@@ -1,13 +1,13 @@
 // One-off jobs of the same image, picked by WORKER (src/main.ts). WORKER=import runs the catalogue import:
-//   npm run import:catalog -- [--dry-run] [--only axpol|midocean|inspirion|bluecollection|makito|macma|easygifts] [--probe] [--allow-mass-deactivation]
+//   pnpm run import:catalog [--dry-run] [--only axpol|midocean|inspirion|bluecollection|makito|macma|easygifts] [--probe] [--allow-mass-deactivation]
 // --dry-run reads the suppliers and the database and writes nothing; --probe only sends the small reads that find
 // the APIs' limits. Supplier APIs are read only. Macma and Easy Gifts are read with --only alone.
 // WORKER=embed makes the vectors of photos and texts (docs/integrations.md, «Ембедінги каталогу»):
-//   npm run embed:catalog -- [--dry-run] [--only axpol|midocean|inspirion|bluecollection|makito|macma|easygifts] [--limit <n>] [--retry-failed]
+//   pnpm run embed:catalog [--dry-run] [--only axpol|midocean|inspirion|bluecollection|makito|macma|easygifts] [--limit <n>] [--retry-failed]
 // --dry-run prints counts and the cost at list prices and calls no provider; --limit caps photos and texts per source.
 // WORKER=categories writes the shared category list and the sources' mappings from git to the database
-// (docs/integrations.md, «Спільні категорії»): npm run categories:sync -- [--dry-run] [--allow-mass-removal]
-// WORKER=users manages the users (src/auth/users.ts): npm run users -- add <login> [--role admin]
+// (docs/integrations.md, «Спільні категорії»): pnpm run categories:sync [--dry-run] [--allow-mass-removal]
+// WORKER=users manages the users (src/auth/users.ts): pnpm run users add <login> [--role admin]
 import { parseArgs } from "node:util";
 import { runUsers } from "./auth/users.js";
 import { config, ConfigError } from "./config.js";

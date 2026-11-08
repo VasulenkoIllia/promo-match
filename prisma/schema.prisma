@@ -1,4 +1,4 @@
-// Models go here. Migrations: `npm run db:migrate` locally, additive only (new tables and columns).
+// Models go here. Migrations: `pnpm run db:migrate` locally, additive only (new tables and columns).
 // Conventions from the start: time `DateTime @db.Timestamptz`, money `Decimal` (never Float), an index on every FK.
 // Tables and columns in snake_case (@@map, @map): the import writes them with raw SQL (src/import/write.ts).
 generator client {

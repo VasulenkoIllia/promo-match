@@ -3,7 +3,7 @@
 // written beside that model's own vectors under the variant's name (src/search/models.ts, TEXT_VARIANTS). The screen
 // never reads them. A model is embedded again only when its brand-free text changed (text_hash), so a repeat pays for
 // what is missing alone. Run one at a time: two at once would both pay for the same texts.
-//   npm run embed:brand-free -- [--dry-run]
+//   pnpm run embed:brand-free [--dry-run]
 // --dry-run reads the database and prints per source what would go, its cost at list prices and a few names before and
 // after, calling no provider. A run needs GEMINI_API_KEY and EMBED_BUDGET_USD.
 import { parseArgs } from "node:util";

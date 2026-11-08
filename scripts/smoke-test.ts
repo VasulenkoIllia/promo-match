@@ -2,7 +2,7 @@
 // uses and keep the shape and the first records of each response in output/ (outside git: purchase prices).
 // Read only: Axpol Order.Add, Address.* and Api.*, Midocean order/* and proof/*, the order and offer methods of
 // Makito, Inspirion and Blue Collection are never called.
-// npm run smoke:suppliers -- --dry-run prints the plan without network; without the flag the plan runs.
+// pnpm run smoke:suppliers --dry-run prints the plan without network; without the flag the plan runs.
 // --only <supplier> runs one supplier and needs only its variables.
 import { join, relative } from "node:path";
 import { parseArgs } from "node:util";

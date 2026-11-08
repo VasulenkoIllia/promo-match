@@ -1,0 +1,14 @@
+# pnpm settings of the project; .npmrc gives pnpm only auth and registry settings.
+# An install script of a dependency runs only for a package listed here as true. A new dependency with
+# a script stops `pnpm install` (strictDepBuilds) until its line is added, true or false, with the reason.
+# dangerouslyAllowAllBuilds stays false here: a true one in the global pnpm config would lift that stop.
+strictDepBuilds: true
+dangerouslyAllowAllBuilds: false
+allowBuilds:
+  '@prisma/engines': false  # the migration engine is fetched explicitly: Dockerfile prisma version, locally the CLI
+  esbuild: false  # its binary comes from its platform package; the script only checks it
+  prisma: false  # the script only checks the environment
+# Fixed versions of vulnerable packages that Prisma 7.10.0 brings in; drop them with Prisma 7.10.1, which pins them itself
+overrides:
+  deepmerge-ts: 8.0.2
+  mysql2: 3.24.4

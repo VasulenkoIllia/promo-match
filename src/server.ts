@@ -37,7 +37,7 @@ export async function startServer(): Promise<void> {
   const webRoot = join(import.meta.dirname, "web");
   const hasWeb = existsSync(webRoot);
   if (!hasWeb && process.env.NODE_ENV === "production") {
-    throw new Error(`${webRoot} is missing: the image was built without the web app (npm run build)`);
+    throw new Error(`${webRoot} is missing: the image was built without the web app (pnpm run build)`);
   }
 
   const prisma = createPrisma(config.databaseUrl, (error) => app.log.error({ err: error }, "database pool error"));
@@ -76,7 +76,7 @@ export async function startServer(): Promise<void> {
     process.exit(0);
   }
 
-  // process.on with a flag, not once: Ctrl+C in npm run dev also brings the signal that npm and Node's watch mode
+  // process.on with a flag, not once: Ctrl+C in pnpm run dev also brings the signal that pnpm and Node's watch mode
   // pass on, which would kill the app halfway through closing
   let isShuttingDown = false;
   for (const signal of ["SIGTERM", "SIGINT"] as const) {

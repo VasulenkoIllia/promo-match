@@ -1,14 +1,14 @@
 // Runs a frozen set of the independent test (README «Незалежний тест») through the same search as the web screen, every
 // embedding model in turn, and writes the numbers per source. The query's vectors and Claude's readings stay in a cache
 // on disk, so a repeat pays nothing and differs only by what changed in the search; a changed prompt reads again.
-//   npm run search:independent -- --set output/quality/independent/dev --label <name> [--quiet] [--kinds category]
+//   pnpm run search:independent --set output/quality/independent/dev --label <name> [--quiet] [--kinds category]
 //     [--lists text-text] [--model gemini-embedding-2/1536] [--against 0.8] [--other-material near] [--numbers-only]
 //     [--category-lift 1.25] [--condition-pass on|off|0.5] [--pass-materials] [--pass-print] [--tuning '{"textCategoryLift":1.25}']
 //     [--hubness 0.5] [--photo-hubness 0.5] [--text-variant gemini-embedding-2-brand-free/1536] [--dry-run]
 // --dry-run prices what the cache lacks and runs nothing. --hubness and --photo-hubness: the candidate correction of
 // the text and the photo lists by their hubs, with this alpha, for the default model (src/search/hubness.ts).
 // --text-variant: the text lists of its model read these vectors of the model texts (src/search/models.ts,
-// TEXT_VARIANTS; npm run embed:brand-free makes them); a run stops when an active model has none.
+// TEXT_VARIANTS; pnpm run embed:brand-free makes them); a run stops when an active model has none.
 // --quiet writes the report and prints nothing of it: the final set's baseline stays unopened until the end. --kinds,
 // --lists and --model narrow a run, to see where a number comes from. --against and --other-material set how far a
 // model falls for going against what the query asks of it (src/search/conditions.ts); --against 1 is no demotion,
@@ -216,7 +216,7 @@ async function checkTextVariant(db: PrismaClient, variant: TextVariantName): Pro
     WHERE t.embedding_model = ${model} AND m.is_active
       AND NOT EXISTS (SELECT 1 FROM text_embedding v WHERE v.model_id = t.model_id AND v.embedding_model = ${variant})`;
   const missing = row?.missing ?? 0;
-  if (missing) throw new ConfigError(`${missing} active models have texts of ${model} and none of ${variant}: run npm run embed:brand-free`);
+  if (missing) throw new ConfigError(`${missing} active models have texts of ${model} and none of ${variant}: run pnpm run embed:brand-free`);
   log(`text lists of ${model} read ${variant}`);
 }
 

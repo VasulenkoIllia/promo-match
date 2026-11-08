@@ -1,4 +1,4 @@
-# Local development: only Postgres, its port bound to 127.0.0.1. The app runs with `npm run dev`.
+# Local development: only Postgres, its port bound to 127.0.0.1. The app runs with `pnpm run dev`.
 name: promo-match-dev
 
 services:

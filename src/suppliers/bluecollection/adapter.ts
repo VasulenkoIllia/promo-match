@@ -26,7 +26,7 @@ export function bluecollectionAdapter(credentials: Credentials): SupplierAdapter
     source: { code: "bluecollection", name: "Blue Collection", kind: "supplier" },
     fetchCatalog: (context) => fetchCatalog(credentials, context),
     probe: (context) => {
-      context.log("bluecollection: nothing to probe, see npm run smoke:suppliers -- --only bluecollection");
+      context.log("bluecollection: nothing to probe, see pnpm run smoke:suppliers --only bluecollection");
       return Promise.resolve();
     },
   };
