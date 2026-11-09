@@ -32,6 +32,20 @@ describe("adapterFor", () => {
     vi.stubEnv("MACMA_FEED_URL", "https://shop.example/import/macma/macma.xml");
     expect(adapterFor("macma").source.code).toBe("macma");
   });
+
+  // The token is part of the feed addresses; away from the server the saved files need none
+  it("builds Anda Present from its token, or from saved files without one", () => {
+    vi.stubEnv("ANDA_FEED_DIR", "");
+    vi.stubEnv("ANDA_FEED_TOKEN", "");
+    expect(() => adapterFor("anda")).toThrow("ANDA_FEED_TOKEN is not set");
+    vi.stubEnv("ANDA_FEED_TOKEN", "a/b");
+    expect(() => adapterFor("anda")).toThrow("ANDA_FEED_TOKEN must be letters and digits only");
+    vi.stubEnv("ANDA_FEED_TOKEN", "Tok3n");
+    expect(adapterFor("anda").source).toEqual({ code: "anda", name: "Anda Present", kind: "supplier" });
+    vi.stubEnv("ANDA_FEED_TOKEN", "");
+    vi.stubEnv("ANDA_FEED_DIR", "/tmp/anda");
+    expect(adapterFor("anda").source.code).toBe("anda");
+  });
 });
 
 describe("photoFetchFor", () => {
@@ -45,7 +59,7 @@ describe("photoFetchFor", () => {
   });
 
   it("leaves a public CDN to the plain request", () => {
-    for (const code of ["axpol", "midocean", "inspirion", "bluecollection"]) expect(photoFetchFor(code, [])).toBeUndefined();
+    for (const code of ["axpol", "midocean", "inspirion", "bluecollection", "anda"]) expect(photoFetchFor(code, [])).toBeUndefined();
   });
 
   it("needs Makito's keys, and takes them without a login", () => {

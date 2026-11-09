@@ -1,6 +1,8 @@
 // The suppliers the import knows, each built from its .env keys when it is asked for. A new supplier is a module of
 // its own (src/suppliers/<code>/) and a line here.
 import { required } from "../config.js";
+import { andaAdapter } from "./anda/adapter.js";
+import { andaSource } from "./anda/api.js";
 import { axpolAdapter } from "./axpol/adapter.js";
 import { bluecollectionAdapter } from "./bluecollection/adapter.js";
 import { inspirionAdapter } from "./inspirion/adapter.js";
@@ -13,7 +15,9 @@ import { type Credentials, MakitoSession, makitoPhotoFetch } from "./makito/api.
 import { midoceanAdapter } from "./midocean/adapter.js";
 import type { SupplierAdapter } from "./types.js";
 
-export const SUPPLIER_CODES = ["axpol", "midocean", "inspirion", "bluecollection", "makito", "macma", "easygifts"] as const;
+export const SUPPLIER_CODES = [
+  "axpol", "midocean", "inspirion", "bluecollection", "makito", "macma", "easygifts", "anda",
+] as const;
 export type SupplierCode = (typeof SUPPLIER_CODES)[number];
 // Read only with --only: the feeds of Macma and Easy Gifts are read once for the demo (owner's decision 2026-11-05)
 const ONE_OFF_CODES: ReadonlySet<SupplierCode> = new Set(["macma", "easygifts"]);
@@ -43,6 +47,11 @@ export function adapterFor(code: SupplierCode): SupplierAdapter {
       return macmaAdapter(feedUrl(FEED_URL_VARIABLES.macma, required(FEED_URL_VARIABLES.macma)));
     case "easygifts":
       return easygiftsAdapter(feedUrl(FEED_URL_VARIABLES.easygifts, required(FEED_URL_VARIABLES.easygifts)));
+    // Read daily with the others (owner's decision 2026-11-09); ANDA_FEED_DIR reads saved files away from the server
+    case "anda":
+      return andaAdapter(andaSource(
+        process.env.ANDA_FEED_DIR || undefined, () => required("ANDA_FEED_TOKEN"), process.env.NODE_ENV === "production",
+      ));
   }
 }
 

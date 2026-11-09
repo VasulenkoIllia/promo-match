@@ -5,6 +5,7 @@
 import { ConfigError } from "../config.js";
 import { isRecord } from "../suppliers/normalize.js";
 import { type CategoryName, CODE_SEGMENT } from "./codes.js";
+import anda from "./anda.json" with { type: "json" };
 import axpol from "./axpol.json" with { type: "json" };
 import bluecollection from "./bluecollection.json" with { type: "json" };
 import easygifts from "./easygifts.json" with { type: "json" };
@@ -14,7 +15,7 @@ import makito from "./makito.json" with { type: "json" };
 import midocean from "./midocean.json" with { type: "json" };
 import groups from "./taxonomy.json" with { type: "json" };
 
-const SOURCE_FILES: Record<string, unknown> = { axpol, midocean, inspirion, bluecollection, makito, macma, easygifts };
+const SOURCE_FILES: Record<string, unknown> = { axpol, midocean, inspirion, bluecollection, makito, macma, easygifts, anda };
 
 // A level of a path in a mapping file: "DRINKWARE > ceramic mugs" is ["DRINKWARE", "ceramic mugs"]
 export const PATH_SEPARATOR = " > ";

@@ -1,0 +1,379 @@
+{
+  "bags.backpacks": [
+    "Bags & Travel > Backpacks & Shoulder bags > Backpacks"
+  ],
+  "bags.business": [
+    "Bags & Travel > Laptop & Document bags"
+  ],
+  "bags.shopping": [
+    "Bags & Travel > Beach & Shopping bags > Foldable shopping bags",
+    "Bags & Travel > Beach & Shopping bags > Shopping Bags"
+  ],
+  "bags.drawstring": [
+    "Bags & Travel > Drawstring bags"
+  ],
+  "bags.beach": [
+    "Bags & Travel > Beach & Shopping bags > Beach bags"
+  ],
+  "bags.cooler": [
+    "Bags & Travel > Cooler bags"
+  ],
+  "bags.travel": [
+    "Bags & Travel > Sport & Travel bags",
+    "Bags & Travel > Sport & Travel bags > Sport bags"
+  ],
+  "bags.trolleys": [
+    "Bags & Travel > Sport & Travel bags > Trolley bags"
+  ],
+  "bags.waist": [
+    "Bags & Travel > Backpacks & Shoulder bags > Shoulder bags",
+    "Bags & Travel > Sport & Travel bags > Waist bags"
+  ],
+  "bags.gift": [
+    "Bags & Travel > Beach & Shopping bags > Paper shopping bags",
+    "Bags & Travel > Beach & Shopping bags > Produce & Gift bags",
+    "CreaPack > CreaBox"
+  ],
+  "drinkware.mugs": [
+    "Food & Drinkware > Mugs, Cups & Glasses > Coffee cups",
+    "Food & Drinkware > Mugs, Cups & Glasses > Mugs"
+  ],
+  "drinkware.tumblers": [
+    "Food & Drinkware > Mugs, Cups & Glasses > Thermo mugs & cups"
+  ],
+  "drinkware.vacuum": [
+    "Food & Drinkware > Bottles > Insulated bottles & vacuum flasks"
+  ],
+  "drinkware.bottles": [
+    "Food & Drinkware > Bottles",
+    "Food & Drinkware > Bottles > Glass bottles",
+    "Food & Drinkware > Bottles > Metal & Aluminium bottles",
+    "Food & Drinkware > Bottles > Plastic bottles",
+    "Food & Drinkware > Bottles > Sport bottles"
+  ],
+  "drinkware.glasses": [
+    "Food & Drinkware > Mugs, Cups & Glasses > Glasses"
+  ],
+  "drinkware.hip-flasks": [
+    "Food & Drinkware > Wine & bar accessories > Hip flasks"
+  ],
+  "drinkware.other": [
+    "Food & Drinkware > Kitchen accessories > Drinking straws"
+  ],
+  "kitchen.lunch": [
+    "Food & Drinkware > Lunch boxes & containers"
+  ],
+  "kitchen.utensils": [
+    "Food & Drinkware > Kitchen accessories",
+    "Food & Drinkware > Kitchen accessories > Kitchen timers",
+    "Food & Drinkware > Kitchen accessories > Kitchen utensils & cutlery",
+    "Food & Drinkware > Kitchen accessories > Salt & pepper mills"
+  ],
+  "kitchen.serving": [
+    "Food & Drinkware > Kitchen accessories > Cutting boards",
+    "Food & Drinkware > Wine & bar accessories > Coasters"
+  ],
+  "kitchen.wine": [
+    "Food & Drinkware > Bottle openers",
+    "Food & Drinkware > Wine & bar accessories",
+    "Food & Drinkware > Wine & bar accessories > Cocktail accessories",
+    "Food & Drinkware > Wine & bar accessories > Wine sets & accessories"
+  ],
+  "kitchen.textiles": [
+    "Food & Drinkware > Kitchen accessories > Aprons",
+    "Food & Drinkware > Kitchen accessories > Oven mitts"
+  ],
+  "kitchen.tea-coffee": [
+    "Food & Drinkware > Coffee & Tea accessories"
+  ],
+  "kitchen.sweets": [
+    "Vitality & Care > Candies"
+  ],
+  "electronics.power-banks": [
+    "Technology & Mobile > Power banks"
+  ],
+  "electronics.chargers": [
+    "Technology & Mobile > USB chargers",
+    "Technology & Mobile > USB chargers > Wall & Car USB chargers",
+    "Technology & Mobile > Wireless chargers"
+  ],
+  "electronics.cables": [
+    "Bags & Travel > Travel accessories > Travel adapters",
+    "Technology & Mobile > USB chargers > USB charger cables"
+  ],
+  "electronics.audio": [
+    "Technology & Mobile > Music & Audio",
+    "Technology & Mobile > Music & Audio > Earphones",
+    "Technology & Mobile > Music & Audio > Headphones",
+    "Technology & Mobile > Music & Audio > Speakers"
+  ],
+  "electronics.computer": [
+    "Technology & Mobile > Computer accessories",
+    "Technology & Mobile > Computer accessories > Mouses & Mouse pads",
+    "Technology & Mobile > Computer accessories > USB hubs",
+    "Technology & Mobile > Computer accessories > Webcam blockers"
+  ],
+  "electronics.phone": [
+    "Technology & Mobile > Mobile & Tablet accessories",
+    "Technology & Mobile > Mobile & Tablet accessories > Mobile cases & Holders",
+    "Technology & Mobile > Mobile & Tablet accessories > Selfie sticks & mobile photography",
+    "Technology & Mobile > Mobile & Tablet accessories > Touch screen gloves & Styluses"
+  ],
+  "electronics.smart": [
+    "Technology & Mobile > Clocks & watches > Smart watches"
+  ],
+  "electronics.clocks": [
+    "Technology & Mobile > Clocks & watches > Table clocks",
+    "Technology & Mobile > Clocks & watches > Wall clocks",
+    "Technology & Mobile > Weather stations & Thermometers"
+  ],
+  "electronics.other": [
+    "Technology & Mobile > USB flash drives"
+  ],
+  "office.notebooks": [
+    "Office & Business > Notebooks & Notepads > Notebooks"
+  ],
+  "office.notes": [
+    "Office & Business",
+    "Office & Business > Notebooks & Notepads > Notepads & adhesive notes"
+  ],
+  "office.folders": [
+    "Office & Business > Document folders",
+    "Office & Business > Noteclips & Clipboards"
+  ],
+  "office.desk": [
+    "Office & Business > Business card holders",
+    "Office & Business > Desk items",
+    "Office & Business > Desk items > Desk pen holders",
+    "Office & Business > Glass trophies",
+    "Office & Business > Rulers & Bookmarks"
+  ],
+  "office.lamps": [
+    "Office & Business > Desk items > Table lamps"
+  ],
+  "office.lanyards": [
+    "Office & Business > Lanyards & Pass holders",
+    "Office & Business > Lanyards & Pass holders > Sublimation lanyards",
+    "Textile & Accessories > Pin badges"
+  ],
+  "writing.ballpens": [
+    "Writing > Pens > Ecological pens",
+    "Writing > Pens > Metal & Aluminium pens",
+    "Writing > Pens > Plastic pens",
+    "Writing > Pens > Wooden & Bamboo pens"
+  ],
+  "writing.multifunction": [
+    "Writing > Pens > Multicolour pens",
+    "Writing > Touch screen pens"
+  ],
+  "writing.pencils": [
+    "Writing > Pencils",
+    "Writing > Pencils > Coloured pencils",
+    "Writing > Pencils > Lead pencils",
+    "Writing > Pencils > Mechanical pencils"
+  ],
+  "writing.highlighters": [
+    "Writing > Highlighters"
+  ],
+  "writing.sets": [
+    "Writing > Pen sets"
+  ],
+  "writing.cases": [
+    "Writing > Pen cases"
+  ],
+  "clothing.t-shirts": [
+    "Textile & Accessories > T-shirts > Short sleeve T-shirts"
+  ],
+  "clothing.polo": [
+    "Textile & Accessories > Shirts & Polo shirts"
+  ],
+  "clothing.shirts": [
+    "Textile & Accessories > Fashion accessories > Fashion scarves & Ties"
+  ],
+  "clothing.sweatshirts": [
+    "Textile & Accessories > Jackets & Sweatshirts > Sweatshirts"
+  ],
+  "clothing.jackets": [
+    "Textile & Accessories > Jackets & Sweatshirts",
+    "Textile & Accessories > Jackets & Sweatshirts > Body warmers",
+    "Textile & Accessories > Jackets & Sweatshirts > Jackets"
+  ],
+  "clothing.other": [
+    "Textile & Accessories > Fashion accessories > Belts",
+    "Textile & Accessories > Fashion accessories > Wristbands & Jewellery",
+    "Textile & Accessories > Sportwear"
+  ],
+  "headwear.caps": [
+    "Textile & Accessories > Headwear > Baseball caps"
+  ],
+  "headwear.hats": [
+    "Textile & Accessories > Hats & straw hats",
+    "Textile & Accessories > Headwear > Bucket & Straw hats"
+  ],
+  "headwear.winter": [
+    "Textile & Accessories > Gloves & Scarves",
+    "Textile & Accessories > Headwear > Beanies & Winter hats"
+  ],
+  "headwear.footwear": [
+    "Textile & Accessories > Beach slippers"
+  ],
+  "umbrellas.umbrellas": [
+    "Bags & Travel > Umbrellas",
+    "Bags & Travel > Umbrellas > Folding umbrellas",
+    "Bags & Travel > Umbrellas > Full-sized umbrellas"
+  ],
+  "umbrellas.rainwear": [
+    "Textile & Accessories > Rainwear > Ponchos",
+    "Textile & Accessories > Rainwear > Raincoats"
+  ],
+  "keyrings.basic": [
+    "Keys & Tools > Keyrings",
+    "Keys & Tools > Keyrings > Metal & Aluminium keyrings",
+    "Keys & Tools > Keyrings > Plastic keyrings",
+    "Keys & Tools > Keyrings > Wooden keyrings"
+  ],
+  "keyrings.token": [
+    "Keys & Tools > Shopping trolley coins"
+  ],
+  "tools.multitools": [
+    "Keys & Tools > Knives & Tools"
+  ],
+  "tools.measuring": [
+    "Keys & Tools > Tape measures"
+  ],
+  "tools.torches": [
+    "Keys & Tools > Flashlights"
+  ],
+  "tools.car": [
+    "Keys & Tools > Car accessories",
+    "Keys & Tools > Car accessories > Car air fresheners",
+    "Keys & Tools > Car accessories > Car mobile holders",
+    "Keys & Tools > Car accessories > Ice scrapers",
+    "Keys & Tools > Car accessories > Sunshades"
+  ],
+  "tools.bicycle": [
+    "Leisure & Sport > Events & Sport accessories > Bicycle accessories"
+  ],
+  "tools.safety": [
+    "Keys & Tools > Reflective products"
+  ],
+  "travel.wallets": [
+    "Bags & Travel > Wallets & Card holders",
+    "Bags & Travel > Wallets & Card holders > Credit card holders",
+    "Bags & Travel > Wallets & Card holders > Money clips",
+    "Bags & Travel > Wallets & Card holders > Wallets & purses"
+  ],
+  "travel.cosmetic": [
+    "Vitality & Care > Cosmetic bags"
+  ],
+  "travel.accessories": [
+    "Bags & Travel > Travel accessories",
+    "Bags & Travel > Travel accessories > Bag hangers",
+    "Bags & Travel > Travel accessories > Eye masks & Earplugs",
+    "Bags & Travel > Travel accessories > Luggage scales",
+    "Bags & Travel > Travel accessories > Luggage tags & Luggage belts"
+  ],
+  "care.essentials": [
+    "Vitality & Care > Bathroom accessories > Toothbrushes",
+    "Vitality & Care > Hygienic & Antibacterial products",
+    "Vitality & Care > Medical products",
+    "Vitality & Care > Medical products > Hot-cold packs",
+    "Vitality & Care > Medical products > Pillboxes"
+  ],
+  "care.beauty": [
+    "Vitality & Care > Manicure & Makeup sets",
+    "Vitality & Care > Mirrors & Combs"
+  ],
+  "care.bath": [
+    "Vitality & Care > Bathroom accessories"
+  ],
+  "home.candles": [
+    "Vitality & Care > Home & Living > Candles & Incense sets"
+  ],
+  "home.blankets": [
+    "Leisure & Sport > Outdoor & Hiking > Polar blankets",
+    "Vitality & Care > Home & Living > Home textiles"
+  ],
+  "home.towels": [
+    "Vitality & Care > Towels > Microfiber towels",
+    "Vitality & Care > Towels > Terry towels"
+  ],
+  "home.decor": [
+    "Food & Drinkware > Fridge magnets",
+    "Keys & Tools > Lighters",
+    "Leisure & Sport > Pet products",
+    "Vitality & Care > Home & Living",
+    "Vitality & Care > Home & Living > Humidifiers",
+    "Vitality & Care > Home & Living > Photo frames"
+  ],
+  "leisure.picnic": [
+    "Leisure & Sport > Outdoor & Hiking > BBQ accessories",
+    "Leisure & Sport > Outdoor & Hiking > Picnic & Camping"
+  ],
+  "leisure.beach": [
+    "Leisure & Sport > Beach accessories",
+    "Leisure & Sport > Beach accessories > Beach toys",
+    "Leisure & Sport > Beach accessories > Fans",
+    "Leisure & Sport > Beach accessories > Waterproof mobile cases",
+    "Leisure & Sport > Inflatables > Beach balls",
+    "Leisure & Sport > Inflatables > Pillows & Mattresses"
+  ],
+  "leisure.sport": [
+    "Leisure & Sport > Events & Sport accessories",
+    "Leisure & Sport > Events & Sport accessories > Festival and Cheering products",
+    "Leisure & Sport > Events & Sport accessories > Football accessories",
+    "Leisure & Sport > Events & Sport accessories > Running accessories"
+  ],
+  "leisure.sunglasses": [
+    "Office & Business > Cleaning clothes",
+    "Textile & Accessories > Sunglasses"
+  ],
+  "leisure.outdoor": [
+    "Leisure & Sport > Outdoor & Hiking",
+    "Leisure & Sport > Outdoor & Hiking > Binoculars & Compasses"
+  ],
+  "leisure.garden": [
+    "Leisure & Sport > Gardening"
+  ],
+  "kids.plush": [
+    "Kids & Toys > Plush animals"
+  ],
+  "kids.games": [
+    "Kids & Toys > Piggy banks",
+    "Kids & Toys > Puzzles",
+    "Kids & Toys > Toys"
+  ],
+  "kids.anti-stress": [
+    "Vitality & Care > Antistress balls"
+  ],
+  "kids.colouring": [
+    "Kids & Toys > Drawing & Colouring",
+    "Kids & Toys > Drawing & Colouring > Colouring toys",
+    "Kids & Toys > Drawing & Colouring > Crayons & Coloured pencils"
+  ],
+  "kids.school": [
+    "Kids & Toys > Drawing & Colouring > Pens & Pencils for Kids",
+    "Writing > Erasers & sharpeners"
+  ],
+  "seasonal.decor": [
+    "Christmas & Holiday > Decoration | Christmas",
+    "Christmas & Holiday > Decoration | Christmas > Candles & Lights | Christmas",
+    "Christmas & Holiday > Decoration | Christmas > Christmas tree ornament | Christmas"
+  ],
+  "seasonal.gifts": [
+    "Christmas & Holiday",
+    "Christmas & Holiday > Culinary gifts | Christmas",
+    "Christmas & Holiday > Keyrings | Christmas",
+    "Christmas & Holiday > Kitchen accessories|Christmas",
+    "Christmas & Holiday > Packaging | Christmas > Gift bags | Christmas",
+    "Christmas & Holiday > Packaging | Christmas > Gift boxes | Christmas",
+    "Christmas & Holiday > Packaging | Christmas > Gift cards & clips | Christmas",
+    "Christmas & Holiday > Toys|Christmas",
+    "Christmas & Holiday > Toys|Christmas > Colouring toys | Christmas",
+    "Christmas & Holiday > Wearables | Christmas",
+    "Christmas & Holiday > Writing & Stationery|Christmas"
+  ],
+  "other.gift-sets": [
+    "Office & Business > Stationery gift sets"
+  ]
+}

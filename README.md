@@ -28,7 +28,8 @@
 ## Імпорт каталогів
 - Ті самі ключі в `.env`, БД запущена й з міграціями (`pnpm run db:up`, `pnpm run db:migrate`).
 - `pnpm run import:catalog --dry-run`: читає API постачальників і БД, друкує план (нові, змінені, зниклі рядки) і нічого не пише.
-- `pnpm run import:catalog`: повний імпорт усіх підключених каталогів (Axpol, Midocean, Inspirion, Blue Collection, Makito), повторний запуск безпечний; потрібні змінні всіх п'яти. `--only inspirion` (чи `axpol`, `midocean`, `bluecollection`, `makito`) для одного постачальника; `--probe` лише перевіряє ліміти API.
+- `pnpm run import:catalog`: повний імпорт усіх підключених каталогів (Axpol, Midocean, Inspirion, Blue Collection, Makito, Anda Present), повторний запуск безпечний; потрібні змінні всіх шести. `--only inspirion` (чи `axpol`, `midocean`, `bluecollection`, `makito`, `anda`) для одного постачальника; `--probe` лише перевіряє ліміти API.
+- Anda Present віддає фіди лише IP сервера. На Mac: `ANDA_FEED_DIR=<тека> pnpm run import:catalog --only anda --dry-run` читає 4 фіди, збережені через тунель власника, без токена; команда збереження в docs/integrations.md, «Anda Present XML». Повний імпорт на Mac без `ANDA_FEED_DIR` читає Anda з мережі й отримує 403 (решта постачальників іде далі, код виходу 1); без `ANDA_FEED_TOKEN` і `ANDA_FEED_DIR` worker зупиняється з `ConfigError` ще до читання.
 - Macma й Easy Gifts лише разово й окремо: `pnpm run import:catalog --only macma`, потім `--only easygifts` (фіди XML з магазину клієнта, їхні адреси в `.env`: `MACMA_FEED_URL` і `EASYGIFTS_FEED_URL`, бо репозиторій публічний). Без `--only` імпорт їх не читає; залишків у них немає.
 - Що й як пишеться, деактивація зниклого, захист від подвійного запуску: docs/integrations.md, «Імпорт каталогів». На сервері: docs/deployment.md.
 

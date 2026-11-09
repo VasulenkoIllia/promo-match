@@ -103,7 +103,7 @@ cd /var/www/projects/promo-match && { [ ! -e .env ] || { echo '.env already exis
 ```
 Потім ключі й адреси фідів, кожне окремо й без показу на екрані: команда питає назву, значення вставляється й не відображається. Порожнє значення пропускається. Очікуються назви всіх змінних.
 ```bash
-cd /var/www/projects/promo-match && umask 077 && for k in AXPOL_LOGIN AXPOL_PASSWORD AXPOL_API_KEY MIDOCEAN_API_KEY MAKITO_CLIENT_ID MAKITO_CLIENT_SECRET INSPIRION_API_KEY BLUECOLLECTION_USERNAME BLUECOLLECTION_PASSWORD GEMINI_API_KEY ANTHROPIC_API_KEY MACMA_FEED_URL EASYGIFTS_FEED_URL; do printf '%s: ' "$k"; IFS= read -rs V; echo; [ -z "$V" ] || printf '%s=%s\n' "$k" "$V" >> .env; unset V; done; cut -d= -f1 .env
+cd /var/www/projects/promo-match && umask 077 && for k in AXPOL_LOGIN AXPOL_PASSWORD AXPOL_API_KEY MIDOCEAN_API_KEY MAKITO_CLIENT_ID MAKITO_CLIENT_SECRET INSPIRION_API_KEY BLUECOLLECTION_USERNAME BLUECOLLECTION_PASSWORD GEMINI_API_KEY ANTHROPIC_API_KEY MACMA_FEED_URL EASYGIFTS_FEED_URL ANDA_FEED_TOKEN; do printf '%s: ' "$k"; IFS= read -rs V; echo; [ -z "$V" ] || printf '%s=%s\n' "$k" "$V" >> .env; unset V; done; cut -d= -f1 .env
 ```
 
 **6. Скрипти з образу (пише).** На Mac (лише читає) хеші скриптів коміту, вони будуть `<HASH_...>`:
@@ -223,7 +223,7 @@ cd /var/www/projects/promo-match && tail -n 30 deploy.log && cat current_tag
 ## Розклад (крок 6)
 | Що | Коли (час сервера, Europe/Kyiv) | Що робить |
 |---|---|---|
-| `nightly.sh` | щодня 01:17 | імпорт постачальників, яких читаємо щодня (без Macma й Easy Gifts, ті лише руками з `--only`), тримаючи `.deploy.lock`; потім ембедінги нового без блокування |
+| `nightly.sh` | щодня 01:17 | імпорт постачальників, яких читаємо щодня (з 2026-11-09 разом з Anda Present; без Macma й Easy Gifts, ті лише руками з `--only`), тримаючи `.deploy.lock`; потім ембедінги нового без блокування |
 | `backup.sh dump` | щодня 05:23 | `pg_dump -Fc`, повне читання дампу (`pg_restore -f /dev/null`), ротація: 7 щоденних і 4 тижневі (жорсткі посилання, місце не подвоюють) |
 | `backup.sh check` | 15-го о 06:47 | найновіший щоденний дамп у тимчасову базу без мережі, порівняння таблиць і рядків з живою, контейнер видаляється разом з томом |
 
@@ -271,6 +271,11 @@ crontab -l | sed '/# promo-match: begin/,/# promo-match: end/d' | crontab - && c
 ## Ручні задачі
 Та сама функція `pm` (розділ «Теки на сервері»). Не запускати під час деплою: міграції чекали б транзакцій імпорту, а пошук тим часом стоїть.
 - План імпорту без запису: `pm run --rm --no-deps -e WORKER=import worker node dist/main.js --dry-run`. Імпорт: та сама команда без `--dry-run`; один постачальник `--only axpol` тощо. Macma й Easy Gifts лише так: `--only macma`, потім `--only easygifts` (адреси фідів у `.env`, docs/integrations.md, «Macma і Easy Gifts»).
+- Anda Present (docs/integrations.md, «Anda Present XML»): реліз з адаптером читає Anda щоночі разом з іншими, тож `ANDA_FEED_TOKEN` має бути в `.env` до цього релізу. Без нього worker імпорту зупиняється з `ConfigError` ще до читання, і нічний імпорт не проходить для жодного постачальника. `ANDA_FEED_DIR` на сервері не ставити: worker його відмовляє. Порядок після релізу, по кроку: доступ `--only anda --probe` (один GET `categories/en`, очікується `the feeds answer this IP`), план `--only anda --dry-run`, імпорт `--only anda`, кошторис ембедінгів `--only anda --dry-run`. Нічний ліміт ембедінгів бере близько 5000 нових фото за ніч, тож 24 450 фото Anda (кошторис локально 2026-11-09: gemini близько $2,99) без окремого запуску доїдуть за 5-6 ночей; разовий запуск з `-e EMBED_BUDGET_USD=<сума>` лише з OK власника на суму.
+**Додати токен Anda в `.env` сервера (пише), якщо його ще немає.** Значення вставляється без показу. Очікується `added` чи `already set`.
+```bash
+cd /var/www/projects/promo-match && umask 077 && if grep -q '^ANDA_FEED_TOKEN=' .env; then echo 'already set'; else printf 'ANDA_FEED_TOKEN: '; IFS= read -rs V; echo; [ -n "$V" ] && printf 'ANDA_FEED_TOKEN=%s\n' "$V" >> .env && echo added; unset V; fi
+```
 - Ембедінги: `pm run --rm --no-deps -e WORKER=embed worker node dist/main.js --dry-run` друкує кошторис без викликів; запуск без `--dry-run` лише з OK власника на суму. Один запуск на сервер: два разом на слабкому каналі ловлять таймаути.
 - Спільні категорії: `pm run --rm --no-deps -e WORKER=categories worker node dist/main.js --dry-run`, запис без `--dry-run`; план, що прибирає понад 20%, свідомо: `--allow-mass-removal`. Деплой робить це сам після міграцій.
 - Користувачі: `pm run --rm --no-deps -e WORKER=users worker node dist/main.js <add|password|disable|enable|list> ...` (docs/integrations.md, «Логін»). `password` і `disable` закривають усі сесії; `password <LOGIN>` вертає вхід, коли адмін один і забув пароль.
