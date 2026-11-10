@@ -27,6 +27,12 @@ describe("searchErrorText", () => {
     expect(searchErrorText({ kind: "status", status: 500, detail: null })).toEqual(unreachable);
     expect(searchErrorText({ kind: "status", status: 404, detail: null }).message).not.toBe(unreachable.message);
   });
+
+  it("shows a manager no hint meant for whoever runs the server, nor a model the screen does not offer", () => {
+    expect(searchErrorText({ kind: "network" }).detail).toBeNull();
+    expect(searchErrorText({ kind: "status", status: 503, detail: null }).detail).toBeNull();
+    expect(searchErrorText({ kind: "status", status: 503, detail: "x" }).message).not.toMatch(/іншу модель/);
+  });
 });
 
 describe("parse notes", () => {

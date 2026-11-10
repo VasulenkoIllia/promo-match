@@ -27,7 +27,7 @@ const PARSE_FAILURES: Partial<Record<string, string>> = {
   "not-configured": "немає ключа Claude",
   "budget-spent": "денний ліміт Claude вичерпано",
   "timed-out": "Claude не відповів вчасно",
-  "rejected": "Claude API не прийняв запит, подробиці в лозі сервера",
+  "rejected": "Claude API не прийняв запит",
   "provider-failed": "Claude API недоступний",
   "refused": "Claude відмовився розбирати запит",
   "bad-answer": "відповідь Claude не за контрактом",
@@ -106,9 +106,10 @@ export interface ErrorText {
   detail: string | null;
 }
 
+// The server said nothing: a hint for whoever runs it locally would only puzzle a manager
 const UNREACHABLE: ErrorText = {
   message: "Сервер пошуку не відповідає. Спробуйте ще раз за хвилину.",
-  detail: "the API server is not reachable: is pnpm run dev running?",
+  detail: null,
 };
 
 export function searchErrorText(failure: ApiFailure): ErrorText {
@@ -143,7 +144,7 @@ function statusText(status: number): string {
     case 502:
       return "Зовнішній сервіс пошуку відповів помилкою. Спробуйте ще раз за хвилину.";
     case 503:
-      return "Для цієї моделі ембедінгів на сервері немає ключа. Оберіть іншу модель.";
+      return "Пошук зараз недоступний: на сервері не налаштовано модель пошуку. Скажіть адміністратору.";
     case 504:
       return "Пошук не встиг вчасно. Спробуйте ще раз чи звузьте фільтри.";
     default:

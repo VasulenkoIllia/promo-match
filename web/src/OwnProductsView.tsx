@@ -1,5 +1,6 @@
 import { type SubmitEvent, useId, useState } from "react";
 import type { LinkedModel, NewOwnProduct, OwnProductEntry } from "./api";
+import { photoSrc } from "./format";
 import { EMPTY_FIELDS, OwnProductFields } from "./OwnProductFields";
 import { ErrorNote } from "./SearchView";
 import { type ErrorText, linkTypeName, text } from "./text";
@@ -71,7 +72,7 @@ function LinkedModelRow({ ownProductId, model, own }: LinkedModelRowProps) {
     <li className="own-model">
       <div className="own-model-photo">
         {model.photoUrl
-          ? <img src={model.photoUrl} alt="" loading="lazy" referrerPolicy="no-referrer" />
+          ? <img src={photoSrc(model.photoUrl)} alt="" loading="lazy" referrerPolicy="no-referrer" />
           : <span className="hint">{text.results.noPhoto}</span>}
       </div>
       <div className="own-model-text">
