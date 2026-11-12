@@ -20,6 +20,10 @@ const MAX_IMAGES_PER_REQUEST = 6;
 const MAX_TEXTS_PER_REQUEST = 32;
 // Inline data of a Gemini request stays under 20 MB
 const MAX_IMAGE_BYTES_PER_REQUEST = 12 * 1024 * 1024;
+// "Maximum 16384 x 16384 pixels per image" (Vertex AI page of gemini-embedding-2, 2026-11-12; the Gemini API guide names
+// none). The model reads every image as 258 tokens whatever its size. Not yet tried live past 16 million pixels: a
+// refusal (400) marks the photo failed, a timeout or 5xx stops the run like any provider failure
+const MAX_IMAGE_SIDE = 16_384;
 
 type Part = { text: string } | { inline_data: { mime_type: string; data: string } };
 
@@ -54,6 +58,7 @@ export function geminiProvider(apiKey: string, baseUrl = GEMINI_DEFAULT_URL): Em
     maxImagesPerRequest: MAX_IMAGES_PER_REQUEST,
     maxTextsPerRequest: MAX_TEXTS_PER_REQUEST,
     maxImageBytesPerRequest: MAX_IMAGE_BYTES_PER_REQUEST,
+    maxImagePixels: MAX_IMAGE_SIDE * MAX_IMAGE_SIDE,
     priceUsd({ imagePixels, textChars }: PriceInput): number {
       return imagePixels.length * USD_PER_IMAGE + estimatedTokens(textChars) * USD_PER_TEXT_TOKEN;
     },

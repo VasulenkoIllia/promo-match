@@ -16,8 +16,10 @@ const DOWNLOAD_CONCURRENCY = 24;
 const REQUEST_CONCURRENCY = 4;
 // Pages in a row where the CDN gave no photo: it is down, and the run stops instead of walking the catalogue
 const MAX_DEFERRED_PAGES = 3;
-// A page this large where every photo failed and none came is a block or a moved CDN, not that many missing photos:
-// the run stops before marking them
+// A full page (more photos follow it) of at least this many where every photo failed and none came is a block or a
+// moved CDN, not that many missing photos: the run stops before marking them. The last, shorter page is marked: there
+// the photos left are those the CDN does not have, and stopping on them failed the run every night (Makito,
+// 2026-11-09..12; decision 2026-11-12)
 const MIN_PAGE_FOR_FAILED_GUARD = 8;
 
 export interface PhotoCounts {
@@ -130,7 +132,8 @@ async function embedPictures(job: EmbedJob, pictures: Picture[], counts: PhotoCo
 }
 
 async function downloadPage(job: EmbedJob, page: PhotoToEmbed[]) {
-  const downloads = await mapSettled(page, DOWNLOAD_CONCURRENCY, (photo) => downloadImage(photo.url, job.signal, job.fetchPhoto));
+  const downloads = await mapSettled(page, DOWNLOAD_CONCURRENCY,
+    (photo) => downloadImage(photo.url, job.signal, job.fetchPhoto, job.provider.maxImagePixels));
   const downloaded: Downloaded[] = [];
   const failed: { photoId: number; error: string }[] = [];
   const deferred: { photoId: number; error: string }[] = [];
@@ -148,10 +151,10 @@ async function downloadPage(job: EmbedJob, page: PhotoToEmbed[]) {
   return { downloaded, failed, deferred };
 }
 
-// False when the CDN gave no photo of the page
-async function embedPage(job: EmbedJob, page: PhotoToEmbed[], counts: PhotoCounts): Promise<boolean> {
+// False when the CDN gave no photo of the page. isFullPage: the page is as long as asked, so more photos may follow
+async function embedPage(job: EmbedJob, page: PhotoToEmbed[], isFullPage: boolean, counts: PhotoCounts): Promise<boolean> {
   const { downloaded, failed, deferred } = await downloadPage(job, page);
-  if (!downloaded.length && failed.length === page.length && page.length >= MIN_PAGE_FOR_FAILED_GUARD) {
+  if (isFullPage && !downloaded.length && failed.length === page.length && page.length >= MIN_PAGE_FOR_FAILED_GUARD) {
     throw new Error(`every one of ${page.length} photos failed to download and none came, nothing marked: `
       + `${failed.slice(0, 3).map((item) => `photo ${item.photoId}: ${item.error}`).join("; ")}`);
   }
@@ -174,13 +177,13 @@ export async function embedPhotos(job: EmbedJob, counts: PhotoCounts): Promise<v
   let deferredPages = 0;
   while (left > 0) {
     await job.beforeBatch();
-    const page = await nextPhotos(job.db, job.sourceId, job.provider.name, afterId, Math.min(PAGE_SIZE, left),
-      job.isRetryFailed);
+    const size = Math.min(PAGE_SIZE, left);
+    const page = await nextPhotos(job.db, job.sourceId, job.provider.name, afterId, size, job.isRetryFailed);
     const last = page.at(-1);
     if (!last) return;
     afterId = last.id;
     left -= page.length;
-    deferredPages = (await embedPage(job, page, counts)) ? 0 : deferredPages + 1;
+    deferredPages = (await embedPage(job, page, page.length === size, counts)) ? 0 : deferredPages + 1;
     if (deferredPages >= MAX_DEFERRED_PAGES) {
       throw new Error(`no photo of ${MAX_DEFERRED_PAGES} pages in a row could be downloaded, the CDN looks down`
         + ` (${counts.examples.join("; ")})`);

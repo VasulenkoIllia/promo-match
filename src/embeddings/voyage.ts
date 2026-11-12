@@ -2,6 +2,7 @@
 // key in Authorization: Bearer. Keys made in MongoDB Atlas (AI Model APIs) go to ai.mongodb.com, keys of the old
 // Voyage platform to api.voyageai.com: VOYAGE_API_URL picks.
 import { checkVectors, estimatedTokens, numericFields, postJson, ProviderError } from "./api.js";
+import { MAX_IMAGE_PIXELS } from "./image.js";
 import { isRecord } from "../suppliers/normalize.js";
 import type { EmbedResult, EmbeddingProvider, ImageInput, InputRole, PriceInput, TextInput } from "./provider.js";
 
@@ -52,6 +53,8 @@ export function voyageProvider(apiKey: string, baseUrl: string): EmbeddingProvid
     maxImagesPerRequest: MAX_IMAGES_PER_REQUEST,
     maxTextsPerRequest: MAX_TEXTS_PER_REQUEST,
     maxImageBytesPerRequest: MAX_IMAGE_BYTES_PER_REQUEST,
+    // "up to 16 million pixels" an image (docs/integrations.md, «Модель ембедінгів»)
+    maxImagePixels: MAX_IMAGE_PIXELS,
     priceUsd({ imagePixels, textChars }: PriceInput): number {
       const pixels = imagePixels.reduce((sum, count) =>
         sum + Math.min(Math.max(count, MIN_BILLED_PIXELS), MAX_BILLED_PIXELS), 0);

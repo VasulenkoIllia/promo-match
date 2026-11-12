@@ -13,7 +13,8 @@ export interface ImageInfo {
   height: number;
 }
 
-// Both providers take images up to 20 MB, Voyage up to 16 million pixels; Gemini takes PNG and JPEG only
+// Both providers take images up to 20 MB; Gemini takes PNG and JPEG only. The pixel bound is each provider's
+// (EmbeddingProvider.maxImagePixels); MAX_IMAGE_PIXELS is Voyage's, the smaller one, for an image any provider may get
 export const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 export const MAX_IMAGE_PIXELS = 16_000_000;
 const DOWNLOAD_TIMEOUT_MS = 30_000;
@@ -51,7 +52,7 @@ function jpegSize(bytes: Buffer): { width: number; height: number } | undefined 
 }
 
 // The type and size from the file itself, not from a header or the URL; a string says why the image cannot be sent.
-// The pixel bound is the vectors' (MAX_IMAGE_PIXELS); a photo only shown on screen has none
+// The pixel bound is the provider's (by default MAX_IMAGE_PIXELS, the smaller one); a photo only shown on screen has none
 export function inspectImage(bytes: Buffer, maxPixels = MAX_IMAGE_PIXELS): ImageInfo | string {
   if (bytes.length > MAX_IMAGE_BYTES) return `image is ${bytes.length} bytes, over ${MAX_IMAGE_BYTES}`;
   let info: ImageInfo | undefined;
@@ -96,15 +97,17 @@ export function statusOutcome(status: number): "failed" | "deferred" {
   return "deferred";
 }
 
-// fetchUrl is the source's own when its photos need a token (src/suppliers/registry.ts, photoFetchFor)
-export async function downloadImage(link: string, signal: AbortSignal, fetchUrl: UrlFetch = request): Promise<Download> {
+// fetchUrl is the source's own when its photos need a token (src/suppliers/registry.ts, photoFetchFor); maxPixels is
+// the provider's bound, past it the photo is failed
+export async function downloadImage(link: string, signal: AbortSignal, fetchUrl: UrlFetch = request,
+  maxPixels = MAX_IMAGE_PIXELS): Promise<Download> {
   if (!isPublicHttpsUrl(link)) return { kind: "failed", error: "not a public https link" };
   try {
     const result = await fetchUrl(new URL(link), {
       method: "GET", timeoutMs: DOWNLOAD_TIMEOUT_MS, maxBytes: MAX_IMAGE_BYTES, maxAttempts: DOWNLOAD_ATTEMPTS, signal,
     });
     if (result.status === 200) {
-      const info = inspectImage(result.body);
+      const info = inspectImage(result.body, maxPixels);
       if (typeof info === "string") return { kind: "failed", error: info };
       return { kind: "ok", bytes: result.body, info, sha256: createHash("sha256").update(result.body).digest("hex") };
     }

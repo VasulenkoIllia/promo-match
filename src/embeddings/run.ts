@@ -53,13 +53,14 @@ function photoLine(code: string, counts: PhotoCounts): string {
     + ` deferred ${counts.deferred}; calls ${counts.calls}`;
 }
 
-// The mean size of a few photos still to embed (the first ones by id, of any provider); undefined when none was read
+// The mean size of a few photos still to embed (the first ones by id, of any provider); undefined when none was read.
+// The sample only learns sizes, so no provider's pixel bound applies to it
 async function meanPixels(db: PrismaClient, sourceId: number, model: string, options: EmbedOptions,
   fetchPhoto: UrlFetch | undefined): Promise<number | undefined> {
   const photos = await nextPhotos(db, sourceId, model, 0, SIZE_SAMPLE, options.isRetryFailed);
   const sizes: number[] = [];
   for (const photo of photos) {
-    const download = await downloadImage(photo.url, options.context.signal, fetchPhoto);
+    const download = await downloadImage(photo.url, options.context.signal, fetchPhoto, Number.POSITIVE_INFINITY);
     if (download.kind === "ok") sizes.push(download.info.width * download.info.height);
   }
   options.context.log(`size sample: ${sizes.length} of ${photos.length} photos read`);

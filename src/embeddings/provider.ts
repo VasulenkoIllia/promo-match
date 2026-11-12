@@ -41,6 +41,8 @@ export interface EmbeddingProvider {
   readonly maxTextsPerRequest: number;
   // Image bytes per request, before base64 makes them a third larger
   readonly maxImageBytesPerRequest: number;
+  // Width × height of one image the provider takes; a larger catalogue photo is marked failed without a call
+  readonly maxImagePixels: number;
   // List price in USD, from the pricing page and date in the provider's module
   priceUsd(input: PriceInput): number;
   embedImages(images: ImageInput[], role: InputRole, signal: AbortSignal): Promise<EmbedResult>;

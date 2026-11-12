@@ -29,7 +29,7 @@ describe("DailyBudget", () => {
 function fakeProvider(name: string): EmbeddingProvider & { calls: string[] } {
   const calls: string[] = [];
   return {
-    calls, name, dimensions: 2, maxImagesPerRequest: 1, maxTextsPerRequest: 1, maxImageBytesPerRequest: 1,
+    calls, name, dimensions: 2, maxImagesPerRequest: 1, maxTextsPerRequest: 1, maxImageBytesPerRequest: 1, maxImagePixels: 1,
     priceUsd: ({ imagePixels, textChars }) => imagePixels.length * 0.0001 + textChars * 0.000_001,
     embedImages: (_images, role) => {
       calls.push(`image ${role}`);
