@@ -93,7 +93,7 @@ afterEach(() => {
 });
 
 describe("runAxpol", () => {
-  it("logs in, reads every feed, checks the other base and keeps no secret in the output", async () => {
+  it("logs in and reads every feed only on axpol.com and keeps no secret in the output", async () => {
     serve((call) => {
       if (call.method === "login") return envelope({ uid: "86", jwt: JWT });
       return axpolRead(call);
@@ -101,20 +101,19 @@ describe("runAxpol", () => {
     const run = newRun();
     await runAxpol(run);
     expect(steps(run)).toEqual([
-      "axpol.com.pl Customer.Login (plain) ok",
-      "axpol.com.pl Product.Count ok",
-      "axpol.com.pl Product.List ok",
-      "axpol.com.pl Stock.Count ok",
-      "axpol.com.pl Stock.List ok",
-      "axpol.com.pl Printing.Count ok",
-      "axpol.com.pl Printing.List ok",
       "axpol.com Customer.Login (plain) ok",
       "axpol.com Product.Count ok",
+      "axpol.com Product.List ok",
+      "axpol.com Stock.Count ok",
+      "axpol.com Stock.List ok",
+      "axpol.com Printing.Count ok",
+      "axpol.com Printing.List ok",
     ]);
+    expect(calls.every((call) => call.host === "axpol.com")).toBe(true);
     expect(run.results.find((row) => row.step === "Product.Count")?.total).toBe(10_817);
     expect(run.results.find((row) => row.step === "Product.List")?.records).toBe(1);
     expect(failedRequired(run)).toEqual([]);
-    expect(run).toMatchObject({ jwtTtlSeconds: 600, axpolBase: "axpol.com.pl" });
+    expect(run).toMatchObject({ jwtTtlSeconds: 600, axpolBase: "axpol.com" });
     const text = filesText(run.dir);
     expect(text).toContain("V0901-02");
     for (const secret of [...Object.values(env), JWT]) expect(text).not.toContain(secret);
@@ -122,34 +121,33 @@ describe("runAxpol", () => {
 
   it("repeats a refused login with the collection's browser User-Agent", async () => {
     serve((call) => {
-      if (call.host === "axpol.com") return forbidden();
       if (call.method !== "login") return axpolRead(call);
       return call.userAgent ? envelope({ uid: "86", jwt: JWT }) : forbidden();
     });
     const run = newRun();
     await runAxpol(run);
     expect(steps(run).slice(0, 3)).toEqual([
-      "axpol.com.pl Customer.Login (plain) fail",
-      "axpol.com.pl Customer.Login (collection) ok",
-      "axpol.com.pl Product.Count ok",
+      "axpol.com Customer.Login (plain) fail",
+      "axpol.com Customer.Login (collection) ok",
+      "axpol.com Product.Count ok",
     ]);
     expect(calls.filter((call) => call.method !== "login").every((call) => call.userAgent)).toBe(true);
     expect(failedRequired(run)).toEqual([]);
   });
 
-  it("stops at a rejected login without data, so the password is not tried on the other base", async () => {
+  it("stops at a rejected login without data, so the password is not tried again", async () => {
     serve(wrongPassword);
     const run = newRun();
     await runAxpol(run);
     expect(calls).toHaveLength(1);
     expect(run.results.map((row) => [row.step, row.isRequired, row.isOk, row.note])).toEqual([
       ["Customer.Login (plain)", false, false, "rejected by Axpol: Wrong password"],
-      ["login", true, false, "no base logged in"],
+      ["login", true, false, "not logged in"],
     ]);
   });
 
   it("fails a login that succeeds without a token", async () => {
-    serve((call) => (call.host === "axpol.com" ? forbidden() : envelope({ uid: "86" })));
+    serve(() => envelope({ uid: "86" }));
     const run = newRun();
     await runAxpol(run);
     expect(run.results[0]).toMatchObject({ isOk: false, note: "success without data.jwt and data.uid" });
@@ -158,7 +156,6 @@ describe("runAxpol", () => {
 
   it("fails reads without data: a count that is not a number, an empty page", async () => {
     serve((call) => {
-      if (call.host === "axpol.com") return forbidden();
       if (call.method === "login") return envelope({ uid: "86", jwt: JWT });
       return call.method.endsWith(".Count") ? envelope({ count: "" }) : envelope([]);
     });
@@ -177,7 +174,6 @@ describe("runAxpol", () => {
   it("renews the JWT before it expires", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     serve((call) => {
-      if (call.host === "axpol.com") return forbidden();
       if (call.method === "login") return envelope({ uid: "86", jwt: JWT });
       if (call.method === "Product.List") vi.setSystemTime(Date.now() + TEN_MINUTES_MS);
       return axpolRead(call);
@@ -185,14 +181,14 @@ describe("runAxpol", () => {
     const run = newRun();
     await runAxpol(run);
     expect(steps(run).slice(2, 5)).toEqual([
-      "axpol.com.pl Product.List ok",
-      "axpol.com.pl Customer.Login (renew) ok",
-      "axpol.com.pl Stock.Count ok",
+      "axpol.com Product.List ok",
+      "axpol.com Customer.Login (renew) ok",
+      "axpol.com Stock.Count ok",
     ]);
     expect(failedRequired(run)).toEqual([]);
   });
 
-  it("skips the remaining reads after a failed renewal and logs in nowhere else", async () => {
+  it("skips the remaining reads after a failed renewal and logs in no more", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     serve((call, logins) => {
       if (call.method === "login") return logins === 1 ? envelope({ uid: "86", jwt: JWT }) : wrongPassword();
@@ -202,7 +198,6 @@ describe("runAxpol", () => {
     const run = newRun();
     await runAxpol(run);
     expect(calls.filter((call) => call.method === "login")).toHaveLength(2);
-    expect(calls.some((call) => call.host === "axpol.com")).toBe(false);
     expect(failedRequired(run).map((row) => [row.step, row.note])).toEqual([
       ["Customer.Login (renew)", "rejected by Axpol: Wrong password"],
       ["Stock.Count", "skipped: JWT renewal failed"],

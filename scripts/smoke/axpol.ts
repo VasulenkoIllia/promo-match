@@ -5,8 +5,8 @@ import { MS_PER_SECOND } from "../../src/suppliers/http.js";
 import { isRecord } from "../../src/suppliers/normalize.js";
 import { addNote, BYTES_PER_MB, exchange, HTTP_OK, report, SAMPLE_LIMIT, type Run, type StepResult } from "./run.js";
 
-// Axpol B2B API (docs/integrations.md): Customer.Login, then Count and a small List page of each feed
-const AXPOL_BASES = ["https://axpol.com.pl/api/b2b-api/", AXPOL_BASE] as const;
+// Axpol B2B API (docs/integrations.md): Customer.Login, then Count and a small List page of each feed. Only on
+// axpol.com, as Axpol asked on 2026-11-18: the collection's axpol.com.pl gets neither the key nor the password.
 const AXPOL_TIMEOUT_MS = 30_000;
 const AXPOL_MAX_BYTES = 10 * BYTES_PER_MB;
 // A gateway or firewall that turns away a client without browser headers answers like this, not with JSON
@@ -17,10 +17,9 @@ interface AxpolRead {
   method: string;
   params: Record<string, string>;
 }
-const PRODUCT_COUNT: AxpolRead = { method: "Product.Count", params: { date: AXPOL_SINCE } };
 const PAGE = { date: AXPOL_SINCE, limit: String(SAMPLE_LIMIT), offset: "0" };
 const AXPOL_READS: AxpolRead[] = [
-  PRODUCT_COUNT,
+  { method: "Product.Count", params: { date: AXPOL_SINCE } },
   { method: "Product.List", params: PAGE },
   { method: "Stock.Count", params: { date: AXPOL_SINCE } },
   { method: "Stock.List", params: PAGE },
@@ -76,24 +75,17 @@ function formatParams(params: Record<string, string>): string {
 
 export function axpolPlan(): string[] {
   const refused = REFUSED_STATUSES.join(", ");
-  const lines = [`Axpol, timeout ${AXPOL_TIMEOUT_MS / MS_PER_SECOND} s per request, each base in turn:`];
-  for (const base of AXPOL_BASES) {
-    lines.push(`  POST ${base}  form-data: method=Customer.Login, key, params[username], params[password]`);
-  }
-  lines.push(
-    "  the login sends the API key, login and password to every base above;",
+  return [
+    `Axpol, timeout ${AXPOL_TIMEOUT_MS / MS_PER_SECOND} s per request, only on ${new URL(AXPOL_BASE).host}:`,
+    `  POST ${AXPOL_BASE}  form-data: method=Customer.Login, key, params[username], params[password]`,
     `  a refused login (${refused} without JSON, or a 200 that is not JSON) is repeated once with the collection's`
       + " browser User-Agent;",
     `  a rejected login (Axpol's answer without success, ${UNAUTHORIZED}, or ${refused} with JSON) stops all further`
       + " logins, so a wrong password is not retried",
-    "  on the first base that logs in, GET ?key=<key>&uid=<uid>&method=... with Authorization: Bearer <jwt>:",
-  );
-  for (const read of AXPOL_READS) lines.push(`    ${read.method} ${formatParams(read.params)}`);
-  lines.push(
-    `  on any other base that logs in: ${PRODUCT_COUNT.method} only`,
-    `  the JWT is renewed a minute before it expires; a failed renewal skips the remaining reads`,
-  );
-  return lines;
+    "  then GET ?key=<key>&uid=<uid>&method=... with Authorization: Bearer <jwt>:",
+    ...AXPOL_READS.map((read) => `    ${read.method} ${formatParams(read.params)}`),
+    "  the JWT is renewed a minute before it expires; a failed renewal skips the remaining reads",
+  ];
 }
 
 // ok: success 1 with HTTP 200; rejected: Axpol's answer without success, a 401, or a firewall status with JSON
@@ -219,22 +211,11 @@ async function readAxpol(run: Run, session: AxpolSession, read: AxpolRead, isReq
 }
 
 export async function runAxpol(run: Run): Promise<void> {
-  let primary: AxpolSession | undefined;
-  for (const base of AXPOL_BASES) {
-    const { outcome, session } = await loginAxpol(run, base);
-    // The same account on the next base would be one more failed login: stop before a lockout
-    if (outcome === "rejected") break;
-    if (!session) continue;
-    if (primary) {
-      await readAxpol(run, session, PRODUCT_COUNT, false);
-      continue;
-    }
-    primary = session;
-    run.axpolBase = new URL(base).host;
-    for (const read of AXPOL_READS) await readAxpol(run, primary, read, true);
-    if (primary.isExpired) break;
+  const { session } = await loginAxpol(run, AXPOL_BASE);
+  if (!session) {
+    report(run, { supplier: "axpol", host: "-", step: "login", isRequired: true, isOk: false, note: "not logged in" });
+    return;
   }
-  if (!primary) {
-    report(run, { supplier: "axpol", host: "-", step: "login", isRequired: true, isOk: false, note: "no base logged in" });
-  }
+  run.axpolBase = new URL(AXPOL_BASE).host;
+  for (const read of AXPOL_READS) await readAxpol(run, session, read, true);
 }
