@@ -276,6 +276,7 @@ crontab -l | sed '/# promo-match: begin/,/# promo-match: end/d' | crontab - && c
 ```bash
 cd /var/www/projects/promo-match && umask 077 && if grep -q '^ANDA_FEED_TOKEN=' .env; then echo 'already set'; else printf 'ANDA_FEED_TOKEN: '; IFS= read -rs V; echo; [ -n "$V" ] && printf 'ANDA_FEED_TOKEN=%s\n' "$V" >> .env && echo added; unset V; fi
 ```
+- Axpol з німецького сайту в EUR (docs/decisions.md, 2026-11-19): після деплою цього релізу нічний імпорт Axpol зупиняється на захисті від масової деактивації (асортимент менший), тож разово по кроку: `--dry-run --only axpol` (неактивними лише ціни випалих варіантів, дві на кожен), потім `--only axpol --allow-mass-deactivation`, далі спільні категорії й ембедінги з `--dry-run`. Не під час нічного запуску.
 - Ембедінги: `pm run --rm --no-deps -e WORKER=embed worker node dist/main.js --dry-run` друкує кошторис без викликів; запуск без `--dry-run` лише з OK власника на суму. Один запуск на сервер: два разом на слабкому каналі ловлять таймаути.
 - Спільні категорії: `pm run --rm --no-deps -e WORKER=categories worker node dist/main.js --dry-run`, запис без `--dry-run`; план, що прибирає понад 20%, свідомо: `--allow-mass-removal`. Деплой робить це сам після міграцій.
 - Користувачі: `pm run --rm --no-deps -e WORKER=users worker node dist/main.js <add|password|disable|enable|list> ...` (docs/integrations.md, «Логін»). `password` і `disable` закривають усі сесії; `password <LOGIN>` вертає вхід, коли адмін один і забув пароль.

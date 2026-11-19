@@ -1,12 +1,14 @@
 import {
-  AXPOL_BASE, AXPOL_READ_METHOD, AXPOL_SINCE, JWT_MARGIN_MS, JWT_TTL_FALLBACK_SECONDS, readJwtTtlSeconds,
+  AXPOL_BASE, AXPOL_READ_BASE, AXPOL_READ_METHOD, AXPOL_SINCE, JWT_MARGIN_MS, JWT_TTL_FALLBACK_SECONDS,
+  readJwtTtlSeconds,
 } from "../../src/suppliers/axpol/api.js";
 import { MS_PER_SECOND } from "../../src/suppliers/http.js";
 import { isRecord } from "../../src/suppliers/normalize.js";
 import { addNote, BYTES_PER_MB, exchange, HTTP_OK, report, SAMPLE_LIMIT, type Run, type StepResult } from "./run.js";
 
-// Axpol B2B API (docs/integrations.md): Customer.Login, then Count and a small List page of each feed. Only on
-// axpol.com, as Axpol asked on 2026-11-18: the collection's axpol.com.pl gets neither the key nor the password.
+// Axpol B2B API (docs/integrations.md): Customer.Login on the main site, then Count and a small List page of each feed
+// on the German one, as the import reads them. Only on axpol.com, as Axpol asked on 2026-11-18: the collection's
+// axpol.com.pl gets neither the key nor the password.
 const AXPOL_TIMEOUT_MS = 30_000;
 const AXPOL_MAX_BYTES = 10 * BYTES_PER_MB;
 // A gateway or firewall that turns away a client without browser headers answers like this, not with JSON
@@ -47,6 +49,7 @@ const AXPOL_PROFILES: AxpolProfile[] = [
 ];
 
 interface AxpolSession {
+  // Where the login went, and where a renewal goes
   base: string;
   profile: AxpolProfile;
   uid: string;
@@ -82,7 +85,7 @@ export function axpolPlan(): string[] {
       + " browser User-Agent;",
     `  a rejected login (Axpol's answer without success, ${UNAUTHORIZED}, or ${refused} with JSON) stops all further`
       + " logins, so a wrong password is not retried",
-    "  then GET ?key=<key>&uid=<uid>&method=... with Authorization: Bearer <jwt>:",
+    `  then GET ${AXPOL_READ_BASE}?key=<key>&uid=<uid>&method=... with Authorization: Bearer <jwt>:`,
     ...AXPOL_READS.map((read) => `    ${read.method} ${formatParams(read.params)}`),
     "  the JWT is renewed a minute before it expires; a failed renewal skips the remaining reads",
   ];
@@ -191,7 +194,7 @@ async function readAxpol(run: Run, session: AxpolSession, read: AxpolRead, isReq
     report(run, { supplier: "axpol", host, step: read.method, isRequired, isOk: false, note: "skipped: JWT renewal failed" });
     return;
   }
-  const url = new URL(session.base);
+  const url = new URL(AXPOL_READ_BASE);
   url.searchParams.set("key", run.env.axpolApiKey);
   url.searchParams.set("uid", session.uid);
   url.searchParams.set("method", read.method);

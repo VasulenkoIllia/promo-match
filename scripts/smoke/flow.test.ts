@@ -23,6 +23,7 @@ const JWT = `eyJhbGciOiJIUzI1NiJ9.${claims}.signature-part`;
 
 interface Call {
   host: string;
+  path: string;
   method: string;
   userAgent?: string;
   apiKeyHeader?: string;
@@ -48,6 +49,7 @@ function serve(answer: Answer): void {
     if (isLogin) logins += 1;
     const call: Call = {
       host: input.host,
+      path: input.pathname,
       method: isLogin ? "login" : input.searchParams.get("method") ?? input.pathname,
       userAgent: headers["User-Agent"],
       apiKeyHeader: headers["x-Gateway-APIKey"],
@@ -60,7 +62,7 @@ function serve(answer: Answer): void {
 // A working Axpol read: a count or one record
 function axpolRead(call: Call): Response {
   if (call.method.endsWith(".Count")) return envelope({ count: "10 817" });
-  return envelope({ "9217": { CodeERP: "V0901-02", NetPricePLN: "12,5" } });
+  return envelope({ "9217": { CodeERP: "V0901-02", NetPriceEUR: "12,5" } });
 }
 
 function newRun(): Run {
@@ -93,7 +95,7 @@ afterEach(() => {
 });
 
 describe("runAxpol", () => {
-  it("logs in and reads every feed only on axpol.com and keeps no secret in the output", async () => {
+  it("logs in on axpol.com, reads every feed on its German site and keeps no secret in the output", async () => {
     serve((call) => {
       if (call.method === "login") return envelope({ uid: "86", jwt: JWT });
       return axpolRead(call);
@@ -110,6 +112,7 @@ describe("runAxpol", () => {
       "axpol.com Printing.List ok",
     ]);
     expect(calls.every((call) => call.host === "axpol.com")).toBe(true);
+    expect(calls.map((call) => call.path)).toEqual(["/api/b2b-api/", ...Array<string>(6).fill("/de/api/b2b-api/")]);
     expect(run.results.find((row) => row.step === "Product.Count")?.total).toBe(10_817);
     expect(run.results.find((row) => row.step === "Product.List")?.records).toBe(1);
     expect(failedRequired(run)).toEqual([]);
@@ -185,6 +188,8 @@ describe("runAxpol", () => {
       "axpol.com Customer.Login (renew) ok",
       "axpol.com Stock.Count ok",
     ]);
+    expect(calls.filter((call) => call.method === "login").map((call) => call.path))
+      .toEqual(["/api/b2b-api/", "/api/b2b-api/"]);
     expect(failedRequired(run)).toEqual([]);
   });
 

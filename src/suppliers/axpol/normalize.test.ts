@@ -9,7 +9,7 @@ function product(productId: string, codeErp: string, extra: Record<string, unkno
     DescriptionEN: "PU notebook &amp; pen", MaterialEN: "PU", MainCategoryEN: "OFFICE", SubCategoryEN: "notebooks",
     MainCategoryPL: "BIURO", SubCategoryPL: "", ColorEN: "black", ColorPL: "czarny", Dimensions: "1,5 x 14,5 x 21,5 cm.",
     ItemWeightG: "19,5", CountryOfOrigin: "CN", Page: "424", Film: "",
-    NetPricePLN: "3,40", CatalogPricePLN: "5.10", FinalNetPrice: 0,
+    NetPriceEUR: "3,40", CatalogPriceEUR: "5.10", NetPriceGBP: "0.00", CatalogPriceGBP: "0.00", FinalNetPrice: 0,
     InStock: "56", reserved: "0", onOrder: "2", nextDelivery: "7 000", Days: "2-3",
     Foto: [`https://files.axpol.com/fotohr/${codeErp.toLowerCase()}__b_1.jpg`, "https://files.axpol.com/foto_add_view/shared.jpg"],
     ...extra,
@@ -20,7 +20,7 @@ const products = new Map([
   ["6052", product("6052", "P773.425")],
   ["6051", product("6051", "P773.421")],
   ["11632", product("11632", "V6520-00", { TitleEN: "Bamboo pen", Foto: [] })],
-  ["9000", product("9000", "SOLO1", { NetPricePLN: "0" })],
+  ["9000", product("9000", "SOLO1", { NetPriceEUR: "0" })],
   ["9001", product("9001", "P773.425")],
 ]);
 const stock = new Map([
@@ -50,21 +50,25 @@ describe("splitCode", () => {
 });
 
 describe("axpolPrices", () => {
-  it("makes NetPricePLN primary and keeps the others beside it, without zero prices", () => {
-    expect(axpolPrices({ NetPricePLN: "3,40", CatalogPricePLN: "5.10", FinalNetPrice: 0 }, new Checks())).toEqual([
-      { kind: "net", currency: "PLN", minQuantity: 1, amount: "3.40", isPrimary: true, validUntil: null },
-      { kind: "catalog", currency: "PLN", minQuantity: 1, amount: "5.10", isPrimary: false, validUntil: null },
+  it("makes NetPriceEUR primary and keeps the others beside it, without zero prices", () => {
+    expect(axpolPrices({ NetPriceEUR: "3,40", CatalogPriceEUR: "5.10", FinalNetPrice: 0 }, new Checks())).toEqual([
+      { kind: "net", currency: "EUR", minQuantity: 1, amount: "3.40", isPrimary: true, validUntil: null },
+      { kind: "catalog", currency: "EUR", minQuantity: 1, amount: "5.10", isPrimary: false, validUntil: null },
     ]);
-    expect(axpolPrices({ NetPricePLN: "", FinalNetPrice: 9.5 }, new Checks())).toEqual([
-      { kind: "final", currency: "PLN", minQuantity: 1, amount: "9.5", isPrimary: false, validUntil: null },
+    expect(axpolPrices({ NetPriceEUR: "", FinalNetPrice: 9.5 }, new Checks())).toEqual([
+      { kind: "final", currency: "EUR", minQuantity: 1, amount: "9.5", isPrimary: false, validUntil: null },
     ]);
+  });
+
+  it("takes no PLN price of the Polish site for a EUR one", () => {
+    expect(axpolPrices({ NetPricePLN: "3,40", CatalogPricePLN: "5.10" }, new Checks())).toEqual([]);
   });
 
   it("counts a price it cannot read, but not a price of 0", () => {
     const checks = new Checks();
-    expect(axpolPrices({ CodeERP: "V1-00", NetPricePLN: "n/a", CatalogPricePLN: "-3", FinalNetPrice: "0,00" }, checks)).toEqual([]);
-    expect(checks.counts).toEqual({ "unreadable NetPricePLN prices": 1, "unreadable CatalogPricePLN prices": 1 });
-    expect(checks.examples["unreadable NetPricePLN prices"]).toEqual(["V1-00"]);
+    expect(axpolPrices({ CodeERP: "V1-00", NetPriceEUR: "n/a", CatalogPriceEUR: "-3", FinalNetPrice: "0,00" }, checks)).toEqual([]);
+    expect(checks.counts).toEqual({ "unreadable NetPriceEUR prices": 1, "unreadable CatalogPriceEUR prices": 1 });
+    expect(checks.examples["unreadable NetPriceEUR prices"]).toEqual(["V1-00"]);
   });
 });
 
@@ -122,7 +126,7 @@ describe("normalizeAxpol", () => {
     ]);
   });
 
-  it("keeps the unmapped fields as attributes, never the prices", () => {
+  it("keeps the unmapped fields as attributes, never the prices, GBP ones included", () => {
     const attributes = byCode.get("P773.42")?.variants[0]?.attributes ?? {};
     expect(attributes).toEqual({ Page: "424" });
   });

@@ -2,8 +2,10 @@ import { HttpError, type HttpResult, MS_PER_SECOND, pause, request } from "../ht
 import { isRecord, parseInteger } from "../normalize.js";
 import { scrub } from "../secrets.js";
 
-// Axpol B2B API (docs/integrations.md): Customer.Login, then GET reads with the JWT. Read only.
+// Axpol B2B API (docs/integrations.md): Customer.Login on the main site, then GET reads with the JWT on the German
+// site, which gives the EN-DE-FR assortment with EUR prices (Axpol, 2026-11-19). Read only.
 export const AXPOL_BASE = "https://axpol.com/api/b2b-api/";
+export const AXPOL_READ_BASE = "https://axpol.com/de/api/b2b-api/";
 // Only these methods can be called: Order.Add, Address.* and Api.* are refused before a request is built
 export const AXPOL_READ_METHOD = /^(Product|Stock|Printing)\.(Count|List)$/;
 // "Changed after this date": an old date selects the whole catalogue
@@ -102,7 +104,8 @@ export class AxpolClient {
     private readonly credentials: AxpolCredentials,
     private readonly secrets: string[],
     private readonly signal: AbortSignal,
-    private readonly base = AXPOL_BASE,
+    private readonly loginBase = AXPOL_BASE,
+    private readonly readBase = AXPOL_READ_BASE,
     private readonly pauseMs = PAUSE_MS,
   ) {
     secrets.push(credentials.login, credentials.password, credentials.apiKey);
@@ -154,7 +157,7 @@ export class AxpolClient {
   }
 
   private async get(method: string, params: Record<string, string>, session: Session): Promise<Answer> {
-    const url = new URL(this.base);
+    const url = new URL(this.readBase);
     url.searchParams.set("key", this.credentials.apiKey);
     url.searchParams.set("uid", session.uid);
     url.searchParams.set("method", method);
@@ -176,7 +179,7 @@ export class AxpolClient {
     form.set("key", this.credentials.apiKey);
     form.set("params[username]", this.credentials.login);
     form.set("params[password]", this.credentials.password);
-    const answer = answerOf(await this.call(new URL(this.base), { method: "POST", body: form }, LOGIN_ATTEMPTS,
+    const answer = answerOf(await this.call(new URL(this.loginBase), { method: "POST", body: form }, LOGIN_ATTEMPTS,
       "Customer.Login"));
     const data = isRecord(answer.envelope?.data) ? answer.envelope.data : {};
     const { jwt, uid } = data;

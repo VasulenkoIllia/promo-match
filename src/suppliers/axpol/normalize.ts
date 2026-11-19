@@ -11,11 +11,14 @@ import { axpolPrintTechniques } from "./print-codes.js";
 
 const LANGUAGES = { pl: "PL", en: "EN", de: "DE", fr: "FR" } as const;
 const LOCALIZED_FIELDS = ["Title", "Description", "Material", "MainCategory", "SubCategory", "Color"];
-const CURRENCY = "PLN";
-// Fields that become columns or rows; the rest of a record goes to the variant's attributes
+// The German site gives EUR prices (owner's decision 2026-11-19, docs/decisions.md)
+const CURRENCY = "EUR";
+// GBP prices of the German site: 0.00 in its answer, not a price we buy at, so left out
+const LEFT_OUT = ["NetPriceGBP", "CatalogPriceGBP"];
+// Fields that become columns or rows, or are left out; the rest of a record goes to the variant's attributes
 const MAPPED = new Set([
   "productId", "CodeERP", "EAN", "Brand", "Dimensions", "ItemWeightG", "CountryOfOrigin", "Foto",
-  "NetPricePLN", "CatalogPricePLN", "FinalNetPrice", "InStock", "reserved", "onOrder", "nextDelivery", "Days",
+  "NetPriceEUR", "CatalogPriceEUR", "FinalNetPrice", "InStock", "reserved", "onOrder", "nextDelivery", "Days", ...LEFT_OUT,
   ...LOCALIZED_FIELDS.flatMap((field) => Object.values(LANGUAGES).map((suffix) => `${field}${suffix}`)),
 ]);
 
@@ -64,10 +67,10 @@ function categoryOf(record: Record<string, unknown>): Record<string, string[]> {
   return category;
 }
 
-// NetPricePLN is the primary price (owner's decision 2026-10-28); the catalogue and the final net price are kept
-// beside it. A price of 0 means none.
+// The net price is the primary one (owner's decision 2026-10-28, in EUR since 2026-11-19); the catalogue and the
+// final net price are kept beside it. A price of 0 means none.
 export function axpolPrices(record: Record<string, unknown>, checks: Checks): PriceInput[] {
-  const kinds = [["net", "NetPricePLN"], ["catalog", "CatalogPricePLN"], ["final", "FinalNetPrice"]] as const;
+  const kinds = [["net", "NetPriceEUR"], ["catalog", "CatalogPriceEUR"], ["final", "FinalNetPrice"]] as const;
   const sku = cleanText(record.CodeERP) ?? undefined;
   const prices: PriceInput[] = [];
   for (const [kind, field] of kinds) {

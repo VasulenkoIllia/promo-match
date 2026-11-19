@@ -1,12 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { readFeed } from "./adapter.js";
-import { AXPOL_BASE, AxpolClient, AxpolError, type AxpolPage, readJwtTtlSeconds } from "./api.js";
+import { AXPOL_BASE, AXPOL_READ_BASE, AxpolClient, AxpolError, type AxpolPage, readJwtTtlSeconds } from "./api.js";
 
 const credentials = { login: "b2b-login", password: "b2b-password", apiKey: "axpol-api-key" };
 const JWT = `header.${Buffer.from(JSON.stringify({ iat: 1, exp: 601 })).toString("base64url")}.signature`;
 
 interface Call {
   method: string;
+  address: string;
   key: string | null;
   authorization?: string;
 }
@@ -24,7 +25,10 @@ function serve(answer: (method: string, nth: number) => Response): void {
     const isLogin = init.method === "POST";
     const method = isLogin ? "login" : input.searchParams.get("method") ?? "?";
     const headers = (init.headers ?? {}) as Record<string, string>;
-    calls.push({ method, key: input.searchParams.get("key"), authorization: headers.Authorization });
+    calls.push({
+      method, address: `${input.origin}${input.pathname}`, key: input.searchParams.get("key"),
+      authorization: headers.Authorization,
+    });
     const nth = (counts.get(method) ?? 0) + 1;
     counts.set(method, nth);
     return Promise.resolve(answer(method, nth));
@@ -32,7 +36,7 @@ function serve(answer: (method: string, nth: number) => Response): void {
 }
 
 function client(secrets: string[] = []): AxpolClient {
-  return new AxpolClient(credentials, secrets, new AbortController().signal, AXPOL_BASE, 0);
+  return new AxpolClient(credentials, secrets, new AbortController().signal, AXPOL_BASE, AXPOL_READ_BASE, 0);
 }
 
 afterEach(() => {
@@ -41,12 +45,16 @@ afterEach(() => {
 });
 
 describe("AxpolClient", () => {
-  it("logs in once and reads with the key, the uid and the JWT", async () => {
+  it("logs in once on the main site and reads on the German one with the key, the uid and the JWT", async () => {
     serve((method) => (method === "login" ? loginOk() : json({ success: 1, data: { count: "10 883" } })));
-    const axpol = client();
+    const axpol = new AxpolClient(credentials, [], new AbortController().signal, undefined, undefined, 0);
     expect(await axpol.count("Product")).toBe(10_883);
     expect(await axpol.count("Stock")).toBe(10_883);
-    expect(calls.map((call) => call.method)).toEqual(["login", "Product.Count", "Stock.Count"]);
+    expect(calls.map((call) => [call.method, call.address])).toEqual([
+      ["login", "https://axpol.com/api/b2b-api/"],
+      ["Product.Count", "https://axpol.com/de/api/b2b-api/"],
+      ["Stock.Count", "https://axpol.com/de/api/b2b-api/"],
+    ]);
     expect(calls[1]).toMatchObject({ key: "axpol-api-key", authorization: `Bearer ${JWT}` });
   });
 
@@ -57,6 +65,8 @@ describe("AxpolClient", () => {
     });
     expect(await client().count("Product")).toBe(5);
     expect(calls.map((call) => call.method)).toEqual(["login", "Product.Count", "login", "Product.Count"]);
+    // The new login goes where the first one went, never to the German site of the reads
+    expect(calls[2]?.address).toBe(AXPOL_BASE);
 
     calls = [];
     serve((method) => (method === "login" ? loginOk() : json({ success: 0, message: "Bad key axpol-api-key" })));
