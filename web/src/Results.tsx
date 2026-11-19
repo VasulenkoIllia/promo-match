@@ -11,12 +11,13 @@ import "./results.css";
 // Colours named in the card before the rest are counted
 const SHOWN_COLORS = 4;
 
-// Sizes and arrivals are often empty for a whole model (mugs, pens): their columns are left out then, so the table
-// fits the card
+// Sizes, arrivals and the supplier's offers are often empty for a whole model (mugs, pens): their columns are left out
+// then, so the table fits the card
 function VariantTable({ variants }: { variants: ResultVariant[] }) {
   const columns = text.results.table;
   const hasSize = variants.some((variant) => variant.size);
   const hasArrival = variants.some((variant) => variant.nextArrival);
+  const hasOffer = variants.some((variant) => variant.offer);
   return (
     <div className="table-scroll">
       <table>
@@ -28,6 +29,7 @@ function VariantTable({ variants }: { variants: ResultVariant[] }) {
             <th className="number">{columns.stock}</th>
             {hasArrival && <th>{columns.arrival}</th>}
             <th className="number">{columns.price}</th>
+            {hasOffer && <th>{columns.offer}</th>}
           </tr>
         </thead>
         <tbody>
@@ -41,6 +43,7 @@ function VariantTable({ variants }: { variants: ResultVariant[] }) {
                 <td>{variant.nextArrival ? text.results.arrival(variant.nextArrival.date, variant.nextArrival.quantity) : ""}</td>
               )}
               <td className="number">{variant.price ? priceText(variant.price) : ""}</td>
+              {hasOffer && <td>{variant.offer ? text.results.offerName(variant.offer) : ""}</td>}
             </tr>
           ))}
         </tbody>
@@ -133,6 +136,13 @@ function ResultCard({ result, own, grade, onGrade }: ResultCardProps) {
       <p className="card-price">
         {summary.prices.length ? summary.prices.map(priceSpanText).join("; ") : text.results.noPrice}
       </p>
+      {summary.offers.length > 0 && (
+        <ul className="card-offers" aria-label={text.results.offers}>
+          {summary.offers.map((offer) => (
+            <li key={offer.kind} className="card-offer">{text.results.offer(offer.kind, offer.isPartial)}</li>
+          ))}
+        </ul>
+      )}
       <p>{summary.stock === null ? text.results.noStock : text.results.stock(summary.stock, summary.hasUnknownStock)}</p>
       <details onToggle={(event) => setIsOpen(event.currentTarget.open)}>
         <summary>

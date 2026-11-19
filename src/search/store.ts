@@ -9,6 +9,7 @@ import { jsonParam } from "../import/write.js";
 import { isKindOf, isMaterialCode, MATERIAL_CODES, type MaterialCode } from "../suppliers/materials.js";
 import { isPrintFact, type PrintTechnique } from "../suppliers/printing.js";
 import { isRecord } from "../suppliers/normalize.js";
+import type { OfferKind } from "../suppliers/types.js";
 import { type CodeMatch, REF_CODE_SOURCES } from "./codes.js";
 import type { ModelFacts } from "./conditions.js";
 import { SearchTimedOut } from "./errors.js";
@@ -336,6 +337,7 @@ export interface VariantRow {
   // The primary price as text (numeric(12,4)), never a float
   price: string | null;
   currency: string | null;
+  offer: OfferKind | null;
 }
 
 export interface PhotoRow {
@@ -421,7 +423,7 @@ export async function readVariants(db: PrismaClient, modelIds: number[], freshRu
     SELECT v.model_id AS "modelId", v.sku, v.external_id AS "externalId", v.color->>'en' AS color, v.size,
       st.in_stock AS "inStock",
       st.next_arrival_date::text AS "nextArrivalDate", st.next_arrival_quantity AS "nextArrivalQuantity",
-      pr.amount::text AS price, pr.currency
+      pr.amount::text AS price, pr.currency, v.offer::text AS offer
     FROM variant v
     LEFT JOIN stock st ON st.variant_id = v.id AND ${freshStock(freshRuns)}
     LEFT JOIN price pr ON pr.variant_id = v.id AND pr.is_primary AND pr.is_active

@@ -3,7 +3,7 @@
 // and mark inactive. Pure: the dry run and the import count the same way.
 import { createHash } from "node:crypto";
 import { specsOf } from "../suppliers/specs.js";
-import type { CatalogSnapshot, ModelInput } from "../suppliers/types.js";
+import type { CatalogSnapshot, ModelInput, OfferKind } from "../suppliers/types.js";
 
 export interface ModelRow {
   code: string; external_id: string | null; name: unknown; description: unknown; category: unknown;
@@ -15,7 +15,7 @@ export interface ModelRow {
 export interface VariantRow {
   model_code: string; sku: string; external_id: string | null; ean: string | null; color: unknown;
   color_code: string | null; color_group: string | null; size: string | null; status: string | null;
-  printing: unknown; attributes: unknown; content_hash: string;
+  offer: OfferKind | null; printing: unknown; attributes: unknown; content_hash: string;
 }
 export interface PhotoRow {
   model_code: string; url: string; url_large: string | null; kind: string | null; position: number; content_hash: string;
@@ -117,11 +117,13 @@ export function rowsOf(snapshot: CatalogSnapshot): ImportRows {
     }
     addLinks(model, rows, linked);
     for (const variant of model.variants) {
+      // offer joined the hash 2026-11-19; left out while empty, so the other suppliers' variants keep their hashes.
+      // Axpol's all changed once anyway: its Promotion and Sale left the attributes for this column.
       rows.variants.push(withHash({
         model_code: model.code, sku: variant.sku, external_id: variant.externalId, ean: variant.ean, color: variant.color,
         color_code: variant.colorCode, color_group: variant.colorGroup, size: variant.size, status: variant.status,
-        printing: variant.printing, attributes: variant.attributes,
-      }));
+        offer: variant.offer, printing: variant.printing, attributes: variant.attributes,
+      }, variant.offer === null ? ["offer"] : []));
       for (const price of variant.prices) {
         rows.prices.push(withHash({
           sku: variant.sku, kind: price.kind, min_quantity: price.minQuantity, currency: price.currency,

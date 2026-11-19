@@ -2,6 +2,7 @@
 // matched (or its cover when only its text did) and its active variants with stock and the primary price. Prices are
 // purchase prices in the supplier's currency (confidential: never in logs, git or dumps).
 import { supplierPageUrl } from "../suppliers/page-url.js";
+import type { OfferKind } from "../suppliers/types.js";
 import type { ConditionMatch } from "./conditions.js";
 import { type Confidence, confidenceOf, type MeasuredQuery } from "./confidence.js";
 import type { FusedModel, ListName } from "./rank.js";
@@ -25,6 +26,8 @@ export interface ResultVariant {
   inStock: number | null;
   nextArrival: { date: string | null; quantity: number | null } | null;
   price: { amount: string; currency: string } | null;
+  // The supplier's promotion or sale mark; null: none or the supplier does not say
+  offer: OfferKind | null;
 }
 
 export interface SearchResult {
@@ -67,6 +70,7 @@ function variantOf(row: VariantRow): ResultVariant {
     inStock: row.inStock,
     nextArrival: hasArrival ? { date: row.nextArrivalDate, quantity: row.nextArrivalQuantity } : null,
     price: row.price !== null && row.currency !== null ? { amount: row.price, currency: row.currency } : null,
+    offer: row.offer,
   };
 }
 

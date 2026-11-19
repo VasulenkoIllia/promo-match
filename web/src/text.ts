@@ -1,7 +1,8 @@
 // Every word the UI shows, in one place: the interface is Ukrainian for the demo, while its language is still the
 // client's call (docs/requirements.md, open question 8)
 import {
-  ApiError, type ApiFailure, type ConfidenceLevel, type FactFilters, type LinkType, type Match, type OwnProduct, type PriceRange,
+  ApiError, type ApiFailure, type ConfidenceLevel, type FactFilters, type LinkType, type Match, type OfferKind, type OwnProduct,
+  type PriceRange,
 } from "./api";
 import { amountOf, formatDate, type MatchKey, MAX_MIN_STOCK, type PriceSpan } from "./format";
 
@@ -40,6 +41,7 @@ const CONDITION_NAMES: Record<MatchKey, string> = {
 };
 const CONFIDENCE_WORDS: Record<ConfidenceLevel, string> = { high: "висока", medium: "середня", low: "низька" };
 const MATCH_WORDS: Record<Match, string> = { fits: "підходить", unknown: "не перевірено", against: "не підходить" };
+const OFFER_WORDS: Record<OfferKind, string> = { promotion: "Акція", sale: "Розпродаж" };
 
 const SECONDS_IN_MS = 1000;
 // Below this a cost reads «менше»: amounts shows four places, and a short text's vector alone would round to zero
@@ -349,10 +351,15 @@ export const text = {
     variants: (count: number) => plural(count, { one: "варіант", few: "варіанти", many: "варіантів" }),
     moreColors: (count: number) => `ще ${formatNumber(count)}`,
     noPrice: "ціни немає",
+    offers: "Акції постачальника",
+    offer: (kind: OfferKind, isPartial: boolean) => `${OFFER_WORDS[kind]}${isPartial ? " (частина варіантів)" : ""}`,
+    offerName: (kind: OfferKind) => OFFER_WORDS[kind],
     stock: (count: number, isPartial: boolean) =>
       `Залишок: ${formatNumber(count)} шт.${isPartial ? ", не для всіх варіантів" : ""}`,
     noStock: "Залишок невідомий",
-    table: { sku: "SKU", color: "Колір", size: "Розмір", stock: "Залишок", arrival: "Поставка", price: "Ціна" },
+    table: {
+      sku: "SKU", color: "Колір", size: "Розмір", stock: "Залишок", arrival: "Поставка", price: "Ціна", offer: "Акція",
+    },
     arrival: (date: string | null, quantity: number | null) =>
       [date ? formatDate(date) : null, quantity === null ? null : `${formatNumber(quantity)} шт.`]
         .filter(Boolean).join(", "),

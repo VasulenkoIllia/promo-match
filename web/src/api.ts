@@ -125,7 +125,11 @@ export interface ResultVariant {
   nextArrival: { date: string | null; quantity: number | null } | null;
   // amount: numeric(12,4) as text, in the supplier's currency (a purchase price)
   price: { amount: string; currency: string } | null;
+  // The supplier's promotion or sale mark; null: none or the supplier does not say
+  offer: OfferKind | null;
 }
+
+export type OfferKind = "promotion" | "sale";
 
 export type Match = "fits" | "unknown" | "against";
 

@@ -5,7 +5,7 @@ import {
   cleanText, isBlank, localized, parseGrams, parseInteger, parseUrl, rawRecords, restOf,
 } from "../normalize.js";
 import type {
-  Localized, ModelInput, NormalizedCatalog, PhotoInput, PriceInput, StockInput, VariantInput,
+  Localized, ModelInput, NormalizedCatalog, OfferKind, PhotoInput, PriceInput, StockInput, VariantInput,
 } from "../types.js";
 import { axpolPrintTechniques } from "./print-codes.js";
 
@@ -15,10 +15,20 @@ const LOCALIZED_FIELDS = ["Title", "Description", "Material", "MainCategory", "S
 const CURRENCY = "EUR";
 // GBP prices of the German site: 0.00 in its answer, not a price we buy at, so left out
 const LEFT_OUT = ["NetPriceGBP", "CatalogPriceGBP"];
+// Axpol 2026-11-18: its API prices are the agencies' base prices, ours is the net price less this, but for the
+// promotion and sale prices it marks with 1 (owner's decision 2026-11-19, docs/decisions.md)
+export const AXPOL_DISCOUNT_PERCENT = 25;
+const FLAG_ON = 1;
+const FLAG_OFF = 0;
+const PERCENT = 100;
+// A percent of an amount has two decimal places more than the amount
+const PERCENT_PLACES = 2;
+const PLAIN_DECIMAL = /^\d+(?:\.\d+)?$/;
 // Fields that become columns or rows, or are left out; the rest of a record goes to the variant's attributes
 const MAPPED = new Set([
   "productId", "CodeERP", "EAN", "Brand", "Dimensions", "ItemWeightG", "CountryOfOrigin", "Foto",
-  "NetPriceEUR", "CatalogPriceEUR", "FinalNetPrice", "InStock", "reserved", "onOrder", "nextDelivery", "Days", ...LEFT_OUT,
+  "NetPriceEUR", "CatalogPriceEUR", "FinalNetPrice", "Promotion", "Sale",
+  "InStock", "reserved", "onOrder", "nextDelivery", "Days", ...LEFT_OUT,
   ...LOCALIZED_FIELDS.flatMap((field) => Object.values(LANGUAGES).map((suffix) => `${field}${suffix}`)),
 ]);
 
@@ -67,18 +77,59 @@ function categoryOf(record: Record<string, unknown>): Record<string, string[]> {
   return category;
 }
 
-// The net price is the primary one (owner's decision 2026-10-28, in EUR since 2026-11-19); the catalogue and the
-// final net price are kept beside it. A price of 0 means none.
+// amount × (100 - percent) / 100 on the digits, so no float rounding creeps in: "3.40" less 25% is "2.55"
+export function lessPercent(amount: string, percent: number): string {
+  const [whole = "", fraction = ""] = amount.split(".");
+  const places = fraction.length + PERCENT_PLACES;
+  const digits = (BigInt(`${whole}${fraction}`) * BigInt(PERCENT - percent)).toString().padStart(places + 1, "0");
+  const rest = digits.slice(-places).replace(/0+$/, "");
+  return rest ? `${digits.slice(0, -places)}.${rest}` : digits.slice(0, -places);
+}
+
+// FinalNetPrice is no price but Axpol's mark 1: the net price is final, already a promotion or sale price. Checked on
+// the live EUR data 2026-11-19: every 1 has a net price near 0.55 of the catalogue one, every 0 near 0.77, the 28 sale
+// records with 0 included. Only a 0 gets the discount: anything else is counted and keeps the higher price.
+function hasNoDiscount(record: Record<string, unknown>, checks: Checks, sku: string | undefined): boolean {
+  const flag = parseInteger(record.FinalNetPrice);
+  if (flag === FLAG_OFF) return false;
+  if (flag !== FLAG_ON) checks.add("FinalNetPrice values other than 0 or 1", sku);
+  return true;
+}
+
+// Our net price is primary (owner's decisions 2026-10-28 and 2026-11-19), the catalogue price goes beside it. A price
+// of 0 means none.
 export function axpolPrices(record: Record<string, unknown>, checks: Checks): PriceInput[] {
-  const kinds = [["net", "NetPriceEUR"], ["catalog", "CatalogPriceEUR"], ["final", "FinalNetPrice"]] as const;
   const sku = cleanText(record.CodeERP) ?? undefined;
+  const base = { currency: CURRENCY, minQuantity: 1, validUntil: null };
   const prices: PriceInput[] = [];
-  for (const [kind, field] of kinds) {
-    const amount = checks.amount(`${field} prices`, record[field], sku);
-    if (amount === null) continue;
-    prices.push({ kind, currency: CURRENCY, minQuantity: 1, amount, isPrimary: kind === "net", validUntil: null });
+  const net = checks.amount("NetPriceEUR prices", record.NetPriceEUR, sku);
+  // A JSON number may read as "1e-7", which lessPercent cannot take; the feed gives prices as strings (2026-11-19)
+  if (net !== null && !PLAIN_DECIMAL.test(net)) {
+    checks.add("NetPriceEUR prices not in plain digits", sku);
+  } else if (net !== null) {
+    const amount = hasNoDiscount(record, checks, sku) ? net : lessPercent(net, AXPOL_DISCOUNT_PERCENT);
+    prices.push({ ...base, kind: "net", amount, isPrimary: true });
   }
+  const catalog = checks.amount("CatalogPriceEUR prices", record.CatalogPriceEUR, sku);
+  if (catalog !== null) prices.push({ ...base, kind: "catalog", amount: catalog, isPrimary: false });
   return prices;
+}
+
+// A 0 or 1 mark; anything else is counted and read as no mark
+function flagOf(record: Record<string, unknown>, field: string, checks: Checks, sku: string | undefined): boolean {
+  const flag = parseInteger(record[field]);
+  if (flag !== FLAG_ON && flag !== FLAG_OFF) checks.add(`${field} values other than 0 or 1`, sku);
+  return flag === FLAG_ON;
+}
+
+// Axpol's promotion and sale marks; they never came together (2026-11-18), so both are counted and promotion wins
+export function axpolOffer(record: Record<string, unknown>, checks: Checks): OfferKind | null {
+  const sku = cleanText(record.CodeERP) ?? undefined;
+  const isPromotion = flagOf(record, "Promotion", checks, sku);
+  const isSale = flagOf(record, "Sale", checks, sku);
+  if (isPromotion && isSale) checks.add("variants marked both promotion and sale", sku);
+  if (isPromotion) return "promotion";
+  return isSale ? "sale" : null;
 }
 
 export function axpolStock(record: Record<string, unknown> | undefined, checks: Checks): StockInput | null {
@@ -164,6 +215,7 @@ function variantOf(sku: string, record: Record<string, unknown>, feeds: JoinedFe
     colorGroup: null,
     size,
     status: null,
+    offer: axpolOffer(record, checks),
     printing: printingOf(feeds.printing.get(sku), checks),
     attributes: restOf(record, MAPPED),
     prices,

@@ -233,7 +233,7 @@ function variantOf(row: Row, sku: string, model: { prices: PriceInput[]; photos:
   if (!stock) checks.add("variants without stock", sku);
   return {
     sku, externalId: null, ean: null, color: localized({ [LANGUAGE]: colour }), colorCode, colorGroup: null,
-    size: sizeOf(cleanText(row.variant_size), joined, checks), status: null, printing: null,
+    size: sizeOf(cleanText(row.variant_size), joined, checks), status: null, offer: null, printing: null,
     attributes: restOf(row, VARIANT_FIELDS), prices: model.prices, stock,
   };
 }

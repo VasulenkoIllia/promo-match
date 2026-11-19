@@ -11,7 +11,7 @@ const stock = {
 function variant(sku: string, inStock = 5): VariantInput {
   return {
     sku, externalId: null, ean: null, color: { en: "black" }, colorCode: null, colorGroup: null, size: null, status: null,
-    printing: null, attributes: {},
+    offer: null, printing: null, attributes: {},
     prices: [{ kind: "net", currency: "EUR", minQuantity: 1, amount: "1.23", isPrimary: true, validUntil: null }],
     stock: { ...stock, inStock },
   };
@@ -61,6 +61,16 @@ describe("rowsOf", () => {
     expect(later.stock[0]?.content_hash).toBe(rows.stock[0]?.content_hash);
     const sold = rowsOf(snapshot([model("M1", [variant("M1-01", 4)])]));
     expect(sold.stock[0]?.content_hash).not.toBe(rows.stock[0]?.content_hash);
+  });
+
+  it("hashes a variant without an offer as before the offer came, and one with an offer anew", () => {
+    const before: Partial<VariantInput> = variant("M1-01");
+    delete before.offer;
+    const old = rowsOf(snapshot([model("M1", [before as VariantInput])]));
+    expect(rows.variants[0]?.content_hash).toBe(old.variants[0]?.content_hash);
+    const onSale = rowsOf(snapshot([model("M1", [{ ...variant("M1-01"), offer: "sale" }])]));
+    expect(onSale.variants[0]).toMatchObject({ offer: "sale" });
+    expect(onSale.variants[0]?.content_hash).not.toBe(rows.variants[0]?.content_hash);
   });
 });
 

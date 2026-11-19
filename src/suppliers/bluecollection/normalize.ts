@@ -171,7 +171,7 @@ function variantOf(sku: string, row: Row, photos: Map<string, PhotoInput>, check
   else if (!prices.some((price) => price.isPrimary)) checks.add("variants without a net price", sku);
   return {
     sku, externalId: cleanText(row.id), ean: cleanText(additional.ean_code), color: colourOf(additional, checks),
-    colorCode: cleanText(additional.color_code), colorGroup: null, size: null, status: null, printing: null,
+    colorCode: cleanText(additional.color_code), colorGroup: null, size: null, status: null, offer: null, printing: null,
     attributes: { ...restOf(row, VARIANT_FIELDS), additional }, prices, stock: bluecollectionStock(row, checks),
   };
 }

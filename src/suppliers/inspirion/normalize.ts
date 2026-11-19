@@ -145,7 +145,8 @@ function variantOf(row: Row, sku: string, joined: Joined, photos: Map<string, Ph
   if (!stock) checks.add("variants without stock", sku);
   return {
     sku, externalId: null, ean: cleanText(row.ean), color: localized({ [LANGUAGE]: row.colour }), colorCode: null,
-    colorGroup: null, size: null, status: null, printing: null, attributes: restOf(row, VARIANT_FIELDS), prices, stock,
+    colorGroup: null, size: null, status: null, offer: null, printing: null, attributes: restOf(row, VARIANT_FIELDS),
+    prices, stock,
   };
 }
 

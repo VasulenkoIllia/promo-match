@@ -6,7 +6,7 @@ import {
 } from "./format";
 
 function variant(overrides: Partial<ResultVariant>): ResultVariant {
-  return { sku: "S1", color: null, size: null, inStock: null, nextArrival: null, price: null, ...overrides };
+  return { sku: "S1", color: null, size: null, inStock: null, nextArrival: null, price: null, offer: null, ...overrides };
 }
 
 describe("countChoices", () => {
@@ -35,7 +35,16 @@ describe("variantSummary", () => {
       stock: 15,
       hasUnknownStock: true,
       prices: [{ currency: "PLN", min: 0.95, max: 1.2 }, { currency: "EUR", min: 2, max: 2 }],
+      offers: [],
     });
+  });
+
+  it("gives each mark once, promotion first, and says when only some variants have it", () => {
+    expect(variantSummary([
+      variant({ sku: "A", offer: "sale" }), variant({ sku: "B", offer: "promotion" }), variant({ sku: "C", offer: "sale" }),
+    ]).offers).toEqual([{ kind: "promotion", isPartial: true }, { kind: "sale", isPartial: true }]);
+    expect(variantSummary([variant({ sku: "A", offer: "sale" }), variant({ sku: "B", offer: "sale" })]).offers)
+      .toEqual([{ kind: "sale", isPartial: false }]);
   });
 
   it("gives no stock rather than 0 when no variant has one, and skips a price that is not a number", () => {

@@ -100,17 +100,17 @@ function upsertVariants(db: PrismaClient, sourceId: number, runId: number, batch
   return db.$queryRaw<CountRow[]>`
     WITH upserted AS (
       INSERT INTO variant AS t (source_id, model_id, sku, external_id, ean, color, color_code, color_group, size, status,
-        printing, attributes, content_hash, last_seen_run_id)
+        offer, printing, attributes, content_hash, last_seen_run_id)
       SELECT ${sourceId}, m.id, x.sku, x.external_id, x.ean, x.color, x.color_code, x.color_group, x.size, x.status,
-        x.printing, x.attributes, x.content_hash, ${runId}
+        x.offer::offer_kind, x.printing, x.attributes, x.content_hash, ${runId}
       FROM jsonb_to_recordset(${jsonParam(batch)}::jsonb) AS x(model_code text, sku text, external_id text, ean text,
-        color jsonb, color_code text, color_group text, size text, status text, printing jsonb, attributes jsonb,
-        content_hash text)
+        color jsonb, color_code text, color_group text, size text, status text, offer text, printing jsonb,
+        attributes jsonb, content_hash text)
       JOIN product_model m ON m.source_id = ${sourceId} AND m.code = x.model_code
       ON CONFLICT (source_id, sku) DO UPDATE SET
         model_id = excluded.model_id, external_id = excluded.external_id, ean = excluded.ean, color = excluded.color,
         color_code = excluded.color_code, color_group = excluded.color_group, size = excluded.size,
-        status = excluded.status, printing = excluded.printing, attributes = excluded.attributes,
+        status = excluded.status, offer = excluded.offer, printing = excluded.printing, attributes = excluded.attributes,
         updated_at = CASE WHEN t.content_hash IS DISTINCT FROM excluded.content_hash
           OR t.model_id IS DISTINCT FROM excluded.model_id THEN now() ELSE t.updated_at END,
         content_hash = excluded.content_hash, is_active = true, deactivated_at = NULL,

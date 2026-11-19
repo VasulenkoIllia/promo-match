@@ -6,7 +6,10 @@ import type { PrintFact } from "./printing.js";
 export type Localized = Record<string, string>;
 
 export type SourceKind = "supplier" | "competitor";
-export type PriceKind = "net" | "catalog" | "final";
+// The database's price_kind also has final: Axpol's FinalNetPrice until 2026-11-19, which no adapter gives now
+export type PriceKind = "net" | "catalog";
+// A variant the supplier offers as a promotion or on sale (Axpol's Promotion and Sale)
+export type OfferKind = "promotion" | "sale";
 
 export interface SourceInfo {
   code: string;
@@ -65,6 +68,7 @@ export interface VariantInput {
   colorGroup: string | null;
   size: string | null;
   status: string | null;
+  offer: OfferKind | null;
   printing: unknown;
   attributes: Record<string, unknown>;
   prices: PriceInput[];

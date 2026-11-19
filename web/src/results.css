@@ -211,6 +211,25 @@
   font-weight: 600;
 }
 
+/* The supplier's promotion or sale: the word carries the meaning, the colour helps to scan a grid */
+.card-offers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card-offer {
+  padding: 0 8px;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
 .card details {
   margin-top: 4px;
   font-size: 0.875rem;

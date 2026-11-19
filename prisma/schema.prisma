@@ -37,13 +37,22 @@ enum PhotoStatus {
   @@map("photo_status")
 }
 
-// net: the price for our account (primary); catalog: the list price; final: Axpol's FinalNetPrice when above 0
+// net: the price for our account (primary); catalog: the list price; final: Axpol's FinalNetPrice until 2026-11-19,
+// which turned out a mark 0 or 1, not a price (docs/decisions.md), so no import writes it now
 enum PriceKind {
   net
   catalog
   final
 
   @@map("price_kind")
+}
+
+// A variant the supplier offers as a promotion or on sale (Axpol's Promotion and Sale)
+enum OfferKind {
+  promotion
+  sale
+
+  @@map("offer_kind")
 }
 
 // How a model of a source relates to our own product
@@ -194,6 +203,8 @@ model Variant {
   size          String?
   // The supplier's life-cycle status (Midocean's plc_status_description)
   status        String?
+  // Shown on the result card; null: none or the supplier does not say
+  offer         OfferKind?
   printing      Json?
   attributes    Json      @default("{}")
   contentHash   String    @map("content_hash")

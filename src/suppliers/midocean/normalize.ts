@@ -173,7 +173,7 @@ function variantOf(row: Record<string, unknown>, sku: string, joined: Joined, ph
     sku, externalId: cleanText(row.variant_id), ean: cleanText(row.gtin),
     color: localized({ [LANGUAGE]: row.color_description }), colorCode: cleanText(row.color_code),
     colorGroup: cleanText(row.color_group), size: cleanText(row.size_textile), status: cleanText(row.plc_status_description),
-    printing: null, attributes: restOf(row, VARIANT_FIELDS), prices, stock,
+    offer: null, printing: null, attributes: restOf(row, VARIANT_FIELDS), prices, stock,
   };
 }
 

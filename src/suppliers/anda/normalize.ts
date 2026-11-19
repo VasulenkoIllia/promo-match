@@ -141,6 +141,7 @@ function variantOf(product: ProductRecord, sku: string, code: string, joined: Jo
     sku, externalId: null, ean: cleanText(fields.eanCode), color: colorOf(fields), colorCode: tail?.colorCode ?? null,
     colorGroup: null, size: tail?.size ?? null,
     status: fields.temporarilyUnavailable === FLAG_ON ? "temporarily unavailable" : null,
+    offer: null,
     printing,
     attributes: {
       ...restOf(fields, MAPPED_FIELDS),

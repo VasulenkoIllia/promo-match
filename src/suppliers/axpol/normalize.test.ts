@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { Checks } from "../checks.js";
-import { axpolPrices, axpolStock, normalizeAxpol, splitCode } from "./normalize.js";
+import {
+  AXPOL_DISCOUNT_PERCENT, axpolOffer, axpolPrices, axpolStock, lessPercent, normalizeAxpol, splitCode,
+} from "./normalize.js";
 
 // Records shaped like Product.List, Stock.List and Printing.List of the smoke test; prices made up
 function product(productId: string, codeErp: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
@@ -10,6 +12,7 @@ function product(productId: string, codeErp: string, extra: Record<string, unkno
     MainCategoryPL: "BIURO", SubCategoryPL: "", ColorEN: "black", ColorPL: "czarny", Dimensions: "1,5 x 14,5 x 21,5 cm.",
     ItemWeightG: "19,5", CountryOfOrigin: "CN", Page: "424", Film: "",
     NetPriceEUR: "3,40", CatalogPriceEUR: "5.10", NetPriceGBP: "0.00", CatalogPriceGBP: "0.00", FinalNetPrice: 0,
+    Promotion: "0", Sale: "0",
     InStock: "56", reserved: "0", onOrder: "2", nextDelivery: "7 000", Days: "2-3",
     Foto: [`https://files.axpol.com/fotohr/${codeErp.toLowerCase()}__b_1.jpg`, "https://files.axpol.com/foto_add_view/shared.jpg"],
     ...extra,
@@ -19,7 +22,7 @@ function product(productId: string, codeErp: string, extra: Record<string, unkno
 const products = new Map([
   ["6052", product("6052", "P773.425")],
   ["6051", product("6051", "P773.421")],
-  ["11632", product("11632", "V6520-00", { TitleEN: "Bamboo pen", Foto: [] })],
+  ["11632", product("11632", "V6520-00", { TitleEN: "Bamboo pen", Foto: [], FinalNetPrice: 1, Sale: "1" })],
   ["9000", product("9000", "SOLO1", { NetPriceEUR: "0" })],
   ["9001", product("9001", "P773.425")],
 ]);
@@ -49,15 +52,51 @@ describe("splitCode", () => {
   });
 });
 
+describe("lessPercent", () => {
+  it("takes the percent off on the digits", () => {
+    expect(lessPercent("3.40", AXPOL_DISCOUNT_PERCENT)).toBe("2.55");
+    expect(lessPercent("0.03", AXPOL_DISCOUNT_PERCENT)).toBe("0.0225");
+    expect(lessPercent("162", AXPOL_DISCOUNT_PERCENT)).toBe("121.5");
+    expect(lessPercent("4", AXPOL_DISCOUNT_PERCENT)).toBe("3");
+    expect(lessPercent("0.1", 30)).toBe("0.07");
+  });
+});
+
 describe("axpolPrices", () => {
-  it("makes NetPriceEUR primary and keeps the others beside it, without zero prices", () => {
+  it("makes our net price primary: NetPriceEUR less 25% when FinalNetPrice is 0, the catalogue price beside it", () => {
     expect(axpolPrices({ NetPriceEUR: "3,40", CatalogPriceEUR: "5.10", FinalNetPrice: 0 }, new Checks())).toEqual([
-      { kind: "net", currency: "EUR", minQuantity: 1, amount: "3.40", isPrimary: true, validUntil: null },
+      { kind: "net", currency: "EUR", minQuantity: 1, amount: "2.55", isPrimary: true, validUntil: null },
       { kind: "catalog", currency: "EUR", minQuantity: 1, amount: "5.10", isPrimary: false, validUntil: null },
     ]);
-    expect(axpolPrices({ NetPriceEUR: "", FinalNetPrice: 9.5 }, new Checks())).toEqual([
-      { kind: "final", currency: "EUR", minQuantity: 1, amount: "9.5", isPrimary: false, validUntil: null },
+  });
+
+  it("keeps NetPriceEUR as it is when FinalNetPrice marks it final, and never makes FinalNetPrice a price", () => {
+    expect(axpolPrices({ NetPriceEUR: "1,87", CatalogPriceEUR: "3.40", FinalNetPrice: 1 }, new Checks())).toEqual([
+      { kind: "net", currency: "EUR", minQuantity: 1, amount: "1.87", isPrimary: true, validUntil: null },
+      { kind: "catalog", currency: "EUR", minQuantity: 1, amount: "3.40", isPrimary: false, validUntil: null },
     ]);
+    expect(axpolPrices({ NetPriceEUR: "", FinalNetPrice: 1 }, new Checks())).toEqual([]);
+  });
+
+  it("counts a FinalNetPrice other than 0 or 1 and gives no discount then", () => {
+    const checks = new Checks();
+    for (const flag of [undefined, "", "yes", 9.5]) {
+      expect(axpolPrices({ CodeERP: "V1-00", NetPriceEUR: "3.40", FinalNetPrice: flag }, checks)[0]?.amount).toBe("3.40");
+    }
+    expect(checks.counts).toEqual({ "FinalNetPrice values other than 0 or 1": 4 });
+    expect(checks.examples["FinalNetPrice values other than 0 or 1"]?.[0]).toBe("V1-00");
+  });
+
+  it("gives the discount to a sale variant with FinalNetPrice 0, as the live data show for 28 of them", () => {
+    const record = { NetPriceEUR: "3,40", FinalNetPrice: 0, Sale: "1", Promotion: "0" };
+    expect(axpolPrices(record, new Checks())[0]?.amount).toBe("2.55");
+    expect(axpolOffer(record, new Checks())).toBe("sale");
+  });
+
+  it("counts a price in exponent form instead of failing the import", () => {
+    const checks = new Checks();
+    expect(axpolPrices({ CodeERP: "V1-00", NetPriceEUR: 1e-7, FinalNetPrice: 0 }, checks)).toEqual([]);
+    expect(checks.counts).toEqual({ "NetPriceEUR prices not in plain digits": 1 });
   });
 
   it("takes no PLN price of the Polish site for a EUR one", () => {
@@ -69,6 +108,26 @@ describe("axpolPrices", () => {
     expect(axpolPrices({ CodeERP: "V1-00", NetPriceEUR: "n/a", CatalogPriceEUR: "-3", FinalNetPrice: "0,00" }, checks)).toEqual([]);
     expect(checks.counts).toEqual({ "unreadable NetPriceEUR prices": 1, "unreadable CatalogPriceEUR prices": 1 });
     expect(checks.examples["unreadable NetPriceEUR prices"]).toEqual(["V1-00"]);
+  });
+});
+
+describe("axpolOffer", () => {
+  it("reads Promotion and Sale marks", () => {
+    const checks = new Checks();
+    expect(axpolOffer({ Promotion: "1", Sale: "0" }, checks)).toBe("promotion");
+    expect(axpolOffer({ Promotion: 0, Sale: 1 }, checks)).toBe("sale");
+    expect(axpolOffer({ Promotion: "0", Sale: "0" }, checks)).toBeNull();
+    expect(checks.counts).toEqual({});
+  });
+
+  it("counts a mark other than 0 or 1 and both marks together", () => {
+    const checks = new Checks();
+    expect(axpolOffer({ CodeERP: "V1-00", Promotion: "Y", Sale: "0" }, checks)).toBeNull();
+    expect(axpolOffer({ CodeERP: "V1-01" }, checks)).toBeNull();
+    expect(axpolOffer({ CodeERP: "V1-02", Promotion: 1, Sale: 1 }, checks)).toBe("promotion");
+    expect(checks.counts).toEqual({
+      "Promotion values other than 0 or 1": 2, "Sale values other than 0 or 1": 1, "variants marked both promotion and sale": 1,
+    });
   });
 });
 
@@ -126,9 +185,16 @@ describe("normalizeAxpol", () => {
     ]);
   });
 
-  it("keeps the unmapped fields as attributes, never the prices, GBP ones included", () => {
+  it("keeps the unmapped fields as attributes, never the prices, GBP ones included, nor the marks", () => {
     const attributes = byCode.get("P773.42")?.variants[0]?.attributes ?? {};
     expect(attributes).toEqual({ Page: "424" });
+  });
+
+  it("gives a sale variant its mark and its net price without the discount", () => {
+    const variant = byCode.get("V6520")?.variants[0];
+    expect(variant?.offer).toBe("sale");
+    expect(variant?.prices.find((price) => price.isPrimary)?.amount).toBe("3.40");
+    expect(byCode.get("P773.42")?.variants[0]).toMatchObject({ offer: null, prices: [{ kind: "net", amount: "2.55" }, {}] });
   });
 
   it("counts what the report should show", () => {

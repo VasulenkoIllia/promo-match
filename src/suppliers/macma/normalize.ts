@@ -159,7 +159,8 @@ function variantOf(sku: string, code: string, row: Row, feed: MacmaFeed, photos:
     sku, externalId: null, ean: cleanText(row.GTIN),
     color: { ...(english ? { en: english } : {}), ...(german ? { de: german } : {}) },
     colorCode: sku.startsWith(code) && sku.length > code.length ? sku.slice(code.length) : null,
-    colorGroup: null, size: null, status: null, printing: null, attributes: attributesOf(row), prices, stock: null,
+    colorGroup: null, size: null, status: null, offer: null, printing: null, attributes: attributesOf(row), prices,
+    stock: null,
   };
 }
 

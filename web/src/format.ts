@@ -1,7 +1,7 @@
 // What a result card and the filters compute from the API's data, apart from the words they show (text.ts)
 import type {
-  CategoryFilter, ConditionMatch, Conditions, FactFilters, Grade, GradeBody, Match, ModelLink, ResultVariant, SearchFilters,
-  SearchResult, SharedGroupOption,
+  CategoryFilter, ConditionMatch, Conditions, FactFilters, Grade, GradeBody, Match, ModelLink, OfferKind, ResultVariant,
+  SearchFilters, SearchResult, SharedGroupOption,
 } from "./api";
 import { supplierCategoriesOf } from "./supplier-categories";
 
@@ -32,7 +32,16 @@ interface VariantSummary {
   hasUnknownStock: boolean;
   // One span per currency, in the order the variants give them
   prices: PriceSpan[];
+  // The supplier's marks, promotion first, each with whether only some variants have it
+  offers: OfferSpan[];
 }
+
+export interface OfferSpan {
+  kind: OfferKind;
+  isPartial: boolean;
+}
+
+const OFFER_ORDER: OfferKind[] = ["promotion", "sale"];
 
 // A price's amount as a number, or null for anything but a decimal (Number("") would be 0)
 export function amountOf(text: string): number | null {
@@ -60,6 +69,10 @@ export function variantSummary(variants: ResultVariant[]): VariantSummary {
     stock: stocks.length ? stocks.reduce((sum, stock) => sum + stock, 0) : null,
     hasUnknownStock: stocks.length > 0 && stocks.length < variants.length,
     prices: [...spans.values()],
+    offers: OFFER_ORDER.flatMap((kind) => {
+      const count = variants.filter((variant) => variant.offer === kind).length;
+      return count ? [{ kind, isPartial: count < variants.length }] : [];
+    }),
   };
 }
 

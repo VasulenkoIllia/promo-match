@@ -10,8 +10,9 @@ export const AXPOL_READ_BASE = "https://axpol.com/de/api/b2b-api/";
 export const AXPOL_READ_METHOD = /^(Product|Stock|Printing)\.(Count|List)$/;
 // "Changed after this date": an old date selects the whole catalogue
 export const AXPOL_SINCE = "2000-01-01 00:00:00";
-// The JWT lives 10 minutes: log in again a minute before it runs out
-export const JWT_TTL_FALLBACK_SECONDS = 600;
+// The JWT lives 5 minutes (Axpol, 2026-11-18): log in again a minute before it runs out. The live token has exp but
+// no iat, so readJwtTtlSeconds gives nothing and this lifetime is the one in use.
+export const JWT_TTL_FALLBACK_SECONDS = 300;
 export const JWT_MARGIN_MS = 60_000;
 const BYTES_PER_MB = 1_048_576;
 const TIMEOUT_MS = 60_000;
