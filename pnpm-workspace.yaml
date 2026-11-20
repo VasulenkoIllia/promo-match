@@ -8,7 +8,11 @@ allowBuilds:
   '@prisma/engines': false  # the migration engine is fetched explicitly: Dockerfile prisma version, locally the CLI
   esbuild: false  # its binary comes from its platform package; the script only checks it
   prisma: false  # the script only checks the environment
-# Fixed versions of vulnerable packages that Prisma 7.10.0 brings in; drop them with Prisma 7.10.1, which pins them itself
+# Fixed versions of vulnerable packages that Prisma 7.10.0 brings in; drop deepmerge-ts and mysql2 with Prisma 7.10.1,
+# which pins them itself
 overrides:
   deepmerge-ts: 8.0.2
+  # GHSA-7589-6fvf-x4pw (ReDoS, fixed in 3.22.1): @prisma/config pins 3.20.0 in 7.10.0 and 7.10.1 alike; drop it once
+  # @prisma/config brings effect 3.22.1 or later itself
+  effect: 3.22.4
   mysql2: 3.24.4
