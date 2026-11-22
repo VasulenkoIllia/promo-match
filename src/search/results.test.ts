@@ -13,7 +13,7 @@ const query = { model: "gemini-embedding-2/1536", isRead: true, isByText: true, 
 
 const variant: VariantRow = {
   modelId: 1, sku: "M1-05", externalId: null, color: "red", size: null, inStock: 120, nextArrivalDate: "2026-11-10",
-  nextArrivalQuantity: 500, price: "2.5000", currency: "PLN", offer: "promotion",
+  nextArrivalQuantity: 500, price: "2.5000", currency: "PLN", priceMinQuantity: 50, offer: "promotion",
 };
 
 describe("assembleResults", () => {
@@ -26,7 +26,7 @@ describe("assembleResults", () => {
       [model(1, "https://cdn.test/m1.jpg"), model(2, "https://cdn.test/m2.jpg")],
       [variant, {
         ...variant, sku: "M1-02", inStock: null, nextArrivalDate: null, nextArrivalQuantity: null, price: null, currency: null,
-        offer: null,
+        priceMinQuantity: null, offer: null,
       }],
       [{ id: 10, url: "https://cdn.test/p10.jpg", urlLarge: null, skus: ["M1-05"] }],
       new Map([[1, against]]),
@@ -41,7 +41,7 @@ describe("assembleResults", () => {
     expect(results[1]?.photos).toEqual([{ id: 10, url: "https://cdn.test/p10.jpg", urlLarge: null, similarity: 0.9, skus: ["M1-05"] }]);
     expect(results[1]?.variants).toEqual([
       { sku: "M1-05", color: "red", size: null, inStock: 120, nextArrival: { date: "2026-11-10", quantity: 500 },
-        price: { amount: "2.5000", currency: "PLN" }, offer: "promotion" },
+        price: { amount: "2.5000", currency: "PLN", minQuantity: 50 }, offer: "promotion" },
       { sku: "M1-02", color: "red", size: null, inStock: null, nextArrival: null, price: null, offer: null },
     ]);
     expect(results[1]?.category).toEqual(["DRINKWARE", "mugs"]);

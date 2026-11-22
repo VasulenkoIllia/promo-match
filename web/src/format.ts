@@ -21,6 +21,8 @@ export interface PriceSpan {
   currency: string;
   min: number;
   max: number;
+  // From how many pieces the prices hold, the fewest and the most among the variants
+  quantity: { min: number; max: number };
 }
 
 interface VariantSummary {
@@ -59,8 +61,11 @@ export function variantSummary(variants: ResultVariant[]): VariantSummary {
     if (span) {
       span.min = Math.min(span.min, amount);
       span.max = Math.max(span.max, amount);
+      span.quantity.min = Math.min(span.quantity.min, price.minQuantity);
+      span.quantity.max = Math.max(span.quantity.max, price.minQuantity);
     } else {
-      spans.set(price.currency, { currency: price.currency, min: amount, max: amount });
+      const quantity = { min: price.minQuantity, max: price.minQuantity };
+      spans.set(price.currency, { currency: price.currency, min: amount, max: amount, quantity });
     }
   }
   return {

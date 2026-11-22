@@ -76,14 +76,23 @@ function amount(value: number): string {
   return amounts.format(value);
 }
 
-// A variant's price as the API gives it: numeric(12,4) as text, shown as it is when it is not a number
-export function priceText(price: { amount: string; currency: string }): string {
-  const value = amountOf(price.amount);
-  return `${value === null ? price.amount : amount(value)} ${price.currency}`;
+// From how many pieces a price holds, said only above 1: most suppliers' prices hold from a piece, some (Macma, Easy
+// Gifts) from their first lot
+function fromPiecesText(min: number, max: number): string {
+  if (max <= 1) return "";
+  return `, від ${min === max ? formatNumber(min) : `${formatNumber(min)} до ${formatNumber(max)}`} шт.`;
 }
 
-export function priceSpanText({ min, max, currency }: PriceSpan): string {
-  return min === max ? `${amount(min)} ${currency}` : `від ${amount(min)} до ${amount(max)} ${currency}`;
+// A variant's price as the API gives it: numeric(12,4) as text, shown as it is when it is not a number
+export function priceText(price: { amount: string; currency: string; minQuantity: number }): string {
+  const value = amountOf(price.amount);
+  const pieces = fromPiecesText(price.minQuantity, price.minQuantity);
+  return `${value === null ? price.amount : amount(value)} ${price.currency}${pieces}`;
+}
+
+export function priceSpanText({ min, max, currency, quantity }: PriceSpan): string {
+  const span = min === max ? `${amount(min)} ${currency}` : `від ${amount(min)} до ${amount(max)} ${currency}`;
+  return `${span}${fromPiecesText(quantity.min, quantity.max)}`;
 }
 
 export function suggestedPriceText({ min, max, currency }: PriceRange): string {

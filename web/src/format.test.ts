@@ -25,18 +25,29 @@ describe("countChoices", () => {
 describe("variantSummary", () => {
   it("sums the known stock, keeps each colour once and spans the prices per currency", () => {
     const summary = variantSummary([
-      variant({ sku: "A", color: "red", inStock: 10, price: { amount: "1.2000", currency: "PLN" } }),
-      variant({ sku: "B", color: "blue", inStock: null, price: { amount: "0.9500", currency: "PLN" } }),
-      variant({ sku: "C", color: "red", inStock: 5, price: { amount: "2.0000", currency: "EUR" } }),
+      variant({ sku: "A", color: "red", inStock: 10, price: { amount: "1.2000", currency: "PLN", minQuantity: 1 } }),
+      variant({ sku: "B", color: "blue", inStock: null, price: { amount: "0.9500", currency: "PLN", minQuantity: 1 } }),
+      variant({ sku: "C", color: "red", inStock: 5, price: { amount: "2.0000", currency: "EUR", minQuantity: 1 } }),
     ]);
     expect(summary).toEqual({
       count: 3,
       colors: ["red", "blue"],
       stock: 15,
       hasUnknownStock: true,
-      prices: [{ currency: "PLN", min: 0.95, max: 1.2 }, { currency: "EUR", min: 2, max: 2 }],
+      prices: [
+        { currency: "PLN", min: 0.95, max: 1.2, quantity: { min: 1, max: 1 } },
+        { currency: "EUR", min: 2, max: 2, quantity: { min: 1, max: 1 } },
+      ],
       offers: [],
     });
+  });
+
+  it("spans the pieces the prices hold from", () => {
+    expect(variantSummary([
+      variant({ sku: "A", price: { amount: "1.2000", currency: "EUR", minQuantity: 50 } }),
+      variant({ sku: "B", price: { amount: "1.1000", currency: "EUR", minQuantity: 25 } }),
+      variant({ sku: "C", price: { amount: "1.3000", currency: "EUR", minQuantity: 50 } }),
+    ]).prices).toEqual([{ currency: "EUR", min: 1.1, max: 1.3, quantity: { min: 25, max: 50 } }]);
   });
 
   it("gives each mark once, promotion first, and says when only some variants have it", () => {
@@ -49,7 +60,8 @@ describe("variantSummary", () => {
 
   it("gives no stock rather than 0 when no variant has one, and skips a price that is not a number", () => {
     const summary = variantSummary([
-      variant({ price: { amount: "n/a", currency: "PLN" } }), variant({ sku: "S2", price: { amount: "", currency: "PLN" } }),
+      variant({ price: { amount: "n/a", currency: "PLN", minQuantity: 1 } }),
+      variant({ sku: "S2", price: { amount: "", currency: "PLN", minQuantity: 1 } }),
     ]);
     expect(summary.stock).toBeNull();
     expect(summary.hasUnknownStock).toBe(false);

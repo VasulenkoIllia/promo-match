@@ -123,8 +123,9 @@ export interface ResultVariant {
   inStock: number | null;
   // date: YYYY-MM-DD
   nextArrival: { date: string | null; quantity: number | null } | null;
-  // amount: numeric(12,4) as text, in the supplier's currency (a purchase price)
-  price: { amount: string; currency: string } | null;
+  // amount: numeric(12,4) as text, in the supplier's currency (a purchase price); minQuantity: from how many pieces it
+  // holds, over 1 where the supplier's price list starts at a larger lot (e.g. Macma)
+  price: { amount: string; currency: string; minQuantity: number } | null;
   // The supplier's promotion or sale mark; null: none or the supplier does not say
   offer: OfferKind | null;
 }

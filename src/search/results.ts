@@ -25,7 +25,8 @@ export interface ResultVariant {
   // null: the supplier gave no stock for it
   inStock: number | null;
   nextArrival: { date: string | null; quantity: number | null } | null;
-  price: { amount: string; currency: string } | null;
+  // minQuantity: from how many pieces the price holds, over 1 where the price list starts at a larger lot
+  price: { amount: string; currency: string; minQuantity: number } | null;
   // The supplier's promotion or sale mark; null: none or the supplier does not say
   offer: OfferKind | null;
 }
@@ -69,7 +70,9 @@ function variantOf(row: VariantRow): ResultVariant {
     size: row.size,
     inStock: row.inStock,
     nextArrival: hasArrival ? { date: row.nextArrivalDate, quantity: row.nextArrivalQuantity } : null,
-    price: row.price !== null && row.currency !== null ? { amount: row.price, currency: row.currency } : null,
+    price: row.price !== null && row.currency !== null && row.priceMinQuantity !== null
+      ? { amount: row.price, currency: row.currency, minQuantity: row.priceMinQuantity }
+      : null,
     offer: row.offer,
   };
 }

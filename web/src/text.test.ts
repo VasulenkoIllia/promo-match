@@ -47,10 +47,22 @@ describe("parse notes", () => {
 
 describe("prices", () => {
   it("shows a single price or a span in the supplier's currency", () => {
-    expect(plain(priceSpanText({ currency: "PLN", min: 1.5, max: 1.5 }))).toBe("1,50 PLN");
-    expect(plain(priceSpanText({ currency: "EUR", min: 0.125, max: 1234.5 }))).toBe("від 0,125 до 1 234,50 EUR");
-    expect(plain(priceText({ amount: "12.3400", currency: "PLN" }))).toBe("12,34 PLN");
-    expect(priceText({ amount: "n/a", currency: "PLN" })).toBe("n/a PLN");
+    const fromOne = { min: 1, max: 1 };
+    expect(plain(priceSpanText({ currency: "PLN", min: 1.5, max: 1.5, quantity: fromOne }))).toBe("1,50 PLN");
+    expect(plain(priceSpanText({ currency: "EUR", min: 0.125, max: 1234.5, quantity: fromOne })))
+      .toBe("від 0,125 до 1 234,50 EUR");
+    expect(plain(priceText({ amount: "12.3400", currency: "PLN", minQuantity: 1 }))).toBe("12,34 PLN");
+    expect(priceText({ amount: "n/a", currency: "PLN", minQuantity: 1 })).toBe("n/a PLN");
+  });
+
+  it("says from how many pieces a price holds when the price list starts above one", () => {
+    expect(plain(priceSpanText({ currency: "EUR", min: 1.5, max: 2, quantity: { min: 50, max: 50 } })))
+      .toBe("від 1,50 до 2,00 EUR, від 50 шт.");
+    expect(plain(priceSpanText({ currency: "EUR", min: 1.5, max: 1.5, quantity: { min: 25, max: 1000 } })))
+      .toBe("1,50 EUR, від 25 до 1 000 шт.");
+    expect(plain(priceSpanText({ currency: "EUR", min: 1.5, max: 1.5, quantity: { min: 1, max: 50 } })))
+      .toBe("1,50 EUR, від 1 до 50 шт.");
+    expect(plain(priceText({ amount: "1.5000", currency: "EUR", minQuantity: 250 }))).toBe("1,50 EUR, від 250 шт.");
   });
 
   it("reads the price the query names", () => {
