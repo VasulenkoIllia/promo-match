@@ -19,8 +19,9 @@ export const SUPPLIER_CODES = [
   "axpol", "midocean", "inspirion", "bluecollection", "makito", "macma", "easygifts", "anda",
 ] as const;
 export type SupplierCode = (typeof SUPPLIER_CODES)[number];
-// Read only with --only: the feeds of Macma and Easy Gifts are read once for the demo (owner's decision 2026-11-05)
-const ONE_OFF_CODES: ReadonlySet<SupplierCode> = new Set(["macma", "easygifts"]);
+// Read only with --only: the feeds of Macma and Easy Gifts are read once for the demo (owner's decision 2026-11-05);
+// Makito's nightly import is paused (owner's decision 2026-11-23), its catalogue stays as the last import left it
+const ONE_OFF_CODES: ReadonlySet<SupplierCode> = new Set(["macma", "easygifts", "makito"]);
 export const DEFAULT_IMPORT_CODES = SUPPLIER_CODES.filter((code) => !ONE_OFF_CODES.has(code));
 
 export function isSupplierCode(value: string): value is SupplierCode {

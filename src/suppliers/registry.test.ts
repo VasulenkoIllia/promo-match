@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { adapterFor, photoFetchFor } from "./registry.js";
+import { adapterFor, DEFAULT_IMPORT_CODES, photoFetchFor } from "./registry.js";
 
 // config.ts reads DATABASE_URL on import; the fetches need only required()
 vi.mock("../config.js", () => {
@@ -12,6 +12,13 @@ vi.mock("../config.js", () => {
       return value;
     },
   };
+});
+
+// What the nightly import reads (deploy/nightly.sh runs the import without --only)
+describe("DEFAULT_IMPORT_CODES", () => {
+  it("leaves out the suppliers read only by hand: Macma, Easy Gifts and the paused Makito", () => {
+    expect(DEFAULT_IMPORT_CODES).toEqual(["axpol", "midocean", "inspirion", "bluecollection", "anda"]);
+  });
 });
 
 describe("adapterFor", () => {

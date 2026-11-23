@@ -223,7 +223,7 @@ cd /var/www/projects/promo-match && tail -n 30 deploy.log && cat current_tag
 ## Розклад (крок 6)
 | Що | Коли (час сервера, Europe/Kyiv) | Що робить |
 |---|---|---|
-| `nightly.sh` | щодня 01:17 | імпорт постачальників, яких читаємо щодня (з 2026-11-09 разом з Anda Present; без Macma й Easy Gifts, ті лише руками з `--only`), тримаючи `.deploy.lock`; потім ембедінги нового без блокування |
+| `nightly.sh` | щодня 01:17 | імпорт постачальників, яких читаємо щодня (з 2026-11-09 разом з Anda Present; без Macma й Easy Gifts, ті лише руками з `--only`; з 2026-11-23 без Makito, пауза за рішенням власника, лише `--only makito`), тримаючи `.deploy.lock`; потім ембедінги нового без блокування |
 | `backup.sh dump` | щодня 05:23 | `pg_dump -Fc`, повне читання дампу (`pg_restore -f /dev/null`), ротація: 7 щоденних і 4 тижневі (жорсткі посилання, місце не подвоюють) |
 | `backup.sh check` | 15-го о 06:47 | найновіший щоденний дамп у тимчасову базу без мережі, порівняння таблиць і рядків з живою, контейнер видаляється разом з томом |
 
@@ -270,7 +270,7 @@ crontab -l | sed '/# promo-match: begin/,/# promo-match: end/d' | crontab - && c
 
 ## Ручні задачі
 Та сама функція `pm` (розділ «Теки на сервері»). Не запускати під час деплою: міграції чекали б транзакцій імпорту, а пошук тим часом стоїть.
-- План імпорту без запису: `pm run --rm --no-deps -e WORKER=import worker node dist/main.js --dry-run`. Імпорт: та сама команда без `--dry-run`; один постачальник `--only axpol` тощо. Macma й Easy Gifts лише так: `--only macma`, потім `--only easygifts` (адреси фідів у `.env`, docs/integrations.md, «Macma і Easy Gifts»).
+- План імпорту без запису: `pm run --rm --no-deps -e WORKER=import worker node dist/main.js --dry-run`. Імпорт: та сама команда без `--dry-run`; один постачальник `--only axpol` тощо. Makito з 2026-11-23 на паузі, лише так: `--only makito`. Macma й Easy Gifts лише так: `--only macma`, потім `--only easygifts` (адреси фідів у `.env`, docs/integrations.md, «Macma і Easy Gifts»).
 - Anda Present (docs/integrations.md, «Anda Present XML»): реліз з адаптером читає Anda щоночі разом з іншими, тож `ANDA_FEED_TOKEN` має бути в `.env` до цього релізу. Без нього worker імпорту зупиняється з `ConfigError` ще до читання, і нічний імпорт не проходить для жодного постачальника. `ANDA_FEED_DIR` на сервері не ставити: worker його відмовляє. Порядок після релізу, по кроку: доступ `--only anda --probe` (один GET `categories/en`, очікується `the feeds answer this IP`), план `--only anda --dry-run`, імпорт `--only anda`, спільні категорії (`WORKER=categories` з `--dry-run`, потім запис: деплой релізу ще не мав рядка Anda в базі й пропустив її шляхи з `WARNING anda: no such source in the database`), кошторис ембедінгів `--only anda --dry-run`. Нічний ліміт ембедінгів бере близько 5000 нових фото за ніч, тож 24 450 фото Anda (кошторис локально 2026-11-09: gemini близько $2,99) без окремого запуску доїдуть за 5-6 ночей; разовий запуск з `-e EMBED_BUDGET_USD=<сума>` лише з OK власника на суму.
 **Додати токен Anda в `.env` сервера (пише), якщо його ще немає.** Значення вставляється без показу. Очікується `added` чи `already set`.
 ```bash
