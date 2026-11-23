@@ -10,6 +10,8 @@ import { createGradesService } from "./grades/store.js";
 import { createOwnProductsService } from "./own-products/store.js";
 import { createArchivePhotos } from "./photos/archive.js";
 import { createMakitoPhotos, type SupplierPhotos } from "./photos/proxy.js";
+import { createSearchJournal } from "./search/journal.js";
+import { journalWriter, pruneSearchJournal, scheduleJournalPrune } from "./search/journal-store.js";
 import { type QueryParser, queryParserFromEnv } from "./search/query-parse.js";
 import { postgresReadings } from "./search/query-readings.js";
 import { createSearchService, dailyBudgetFromEnv, QueryEmbedder, type SearchService } from "./search/search.js";
@@ -43,6 +45,7 @@ export async function startServer(): Promise<void> {
   const prisma = createPrisma(config.databaseUrl, (error) => app.log.error({ err: error }, "database pool error"));
   const parser = queryParserFromEnv(dailyBudgetFromEnv("QUERY_PARSE_BUDGET_USD"), postgresReadings(prisma));
   const supplierPhotos = makitoPhotos();
+  const searchJournal = createSearchJournal(journalWriter(prisma));
   const app = buildApp({
     logLevel: config.logLevel,
     webRoot: hasWeb ? webRoot : undefined,
@@ -51,6 +54,7 @@ export async function startServer(): Promise<void> {
     users: createUsersService(prisma),
     search: searchService(prisma, parser),
     searchRatePerMinute: config.searchRatePerMinute,
+    searchJournal,
     ownProducts: createOwnProductsService(prisma),
     grades: createGradesService(prisma),
     suppliers: createSuppliersService(prisma),
@@ -61,7 +65,12 @@ export async function startServer(): Promise<void> {
   if (!parser.isConfigured) {
     app.log.warn("query parse off: ANTHROPIC_API_KEY is not set, the search embeds a text not read before as it is");
   }
-  app.addHook("onClose", () => prisma.$disconnect());
+  const journalPrune = scheduleJournalPrune((signal) => pruneSearchJournal(prisma, new Date(), signal), app.log);
+  // The journal's writes started by the last answers, and a pruning under way, finish before the database closes
+  app.addHook("onClose", async () => {
+    await Promise.all([journalPrune.stop(), searchJournal.settle()]);
+    await prisma.$disconnect();
+  });
 
   async function shutdown(signal: string): Promise<void> {
     app.log.info({ signal }, "shutting down");

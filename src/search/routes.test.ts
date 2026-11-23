@@ -4,6 +4,7 @@ import type { AuthOptions } from "../auth/routes.js";
 import { InputRejected, ProviderError } from "../embeddings/api.js";
 import { BudgetReached } from "../embeddings/batch.js";
 import { ModelNotConfigured, SearchTimedOut } from "./errors.js";
+import { createSearchJournal, type JournalEntry, type JournalWrite } from "./journal.js";
 import type { SearchInput } from "./request.js";
 import { loggedSearch, searchFailure } from "./routes.js";
 import type { SearchOptions, SearchResponse, SearchService } from "./search.js";
@@ -227,6 +228,55 @@ describe("the limit per minute", () => {
     expect((await searchAs("u1", { text: " " }))?.statusCode).toBe(400);
     expect((await searchAs("u1", { text: "mug", limit: 101 }))?.statusCode).toBe(400);
     expect((await searchAs("u1", { text: "mug" }))?.statusCode).toBe(200);
+  });
+});
+
+describe("the journal of searches", () => {
+  function journalOf(write: JournalWrite) {
+    const journal = createSearchJournal(write);
+    const searchAs = (service: SearchService, payload: Record<string, unknown>) => {
+      app = buildApp({ auth, search: service, searchJournal: journal });
+      return app.inject({ method: "POST", url: "/api/search", headers: { cookie: "session=u7" }, payload });
+    };
+    return { journal, searchAs };
+  }
+
+  it("keeps an answered search under the answer's searchId and the user, with the photo it embedded", async () => {
+    const written: JournalEntry[] = [];
+    const { journal, searchAs } = journalOf((entry) => {
+      written.push(entry);
+      return Promise.resolve();
+    });
+    const response = await searchAs(fakeSearch(() => Promise.resolve(empty)), { text: "red mug", image: png.toString("base64") });
+    await journal.settle();
+    expect(response.statusCode).toBe(200);
+    expect(written).toHaveLength(1);
+    expect(written[0]).toMatchObject({
+      searchId: response.json<{ searchId: string }>().searchId, userId: 7, queryText: "red mug", hasPhoto: true,
+      photo: png, photoSizeBytes: png.length,
+    });
+  });
+
+  it("answers the search when the journal fails", async () => {
+    const { journal, searchAs } = journalOf(() => Promise.reject(new Error("connection lost")));
+    const response = await searchAs(fakeSearch(() => Promise.resolve(empty)), { text: "mug" });
+    await journal.settle();
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ ...empty, searchId: expect.stringMatching(/^[0-9a-f-]{36}$/) as string });
+  });
+
+  it("keeps nothing of a refused or failed search, which has no searchId", async () => {
+    const written: JournalEntry[] = [];
+    const { journal, searchAs } = journalOf((entry) => {
+      written.push(entry);
+      return Promise.resolve();
+    });
+    expect((await searchAs(fakeSearch(() => Promise.resolve(empty)), { text: " " })).statusCode).toBe(400);
+    await app?.close();
+    expect((await searchAs(fakeSearch(() => Promise.reject(new ProviderError("api.test: HTTP 500"))), { text: "mug" })).statusCode)
+      .toBe(502);
+    await journal.settle();
+    expect(written).toEqual([]);
   });
 });
 

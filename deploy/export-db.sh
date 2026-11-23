@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # On the Mac, for the move of the database to the server (docs/deployment.md, «Перенос бази»): a copy of the local
-# database, promo_match_export, without the users, their sessions, invites and grades and without the vectors the
-# server does not search with; then VACUUM, the counts of both databases and a pg_dump -Fc of the copy. The vectors
-# move with the base, nothing is embedded again. The working database is only read.
+# database, promo_match_export, without the users, their sessions, invites, grades and journal of searches, and without
+# the vectors the server does not search with; then VACUUM, the counts of both databases and a pg_dump -Fc of the copy.
+# The vectors move with the base, nothing is embedded again. The working database is only read.
 #
 #   deploy/export-db.sh           plan: the counts and what the copy would leave out, nothing written
 #   deploy/export-db.sh --write   the copy, its counts and the dump in output/export/ (purchase prices: mode 600)
@@ -52,7 +52,7 @@ left_out_sql="select format(E'photo_vectors_left_out\t%s', count(*)) from photo_
 clean_sql="begin;
   delete from photo_embedding where embedding_model in ($DROPPED_MODELS);
   delete from text_embedding where embedding_model in ($DROPPED_MODELS);
-  truncate result_grade, user_session, user_invite, app_user;
+  truncate search_journal, result_grade, user_session, user_invite, app_user;
   delete from worker_lease;
   update source set sync_lease_run_id = null, sync_lease_until = null where sync_lease_until is not null;
 commit;"
@@ -65,7 +65,7 @@ say "Working database"
 sql_in "" <deploy/counts.sql | tee "$OUT_DIR/counts-working-$stamp.tsv"
 say "Left out of the copy"
 sql_in "" <<<"$left_out_sql"
-echo "users, sessions, invites, grades: all rows (see the rows lines above)"
+echo "users, sessions, invites, grades, journal of searches: all rows (see the rows lines above)"
 
 if [ "$mode" != --write ]; then
   [ -z "$(export_exists)" ] || echo "note: $EXPORT_DB exists already, --write will stop"

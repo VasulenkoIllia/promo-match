@@ -461,8 +461,9 @@ model AppUser {
 
   sessions       UserSession[]
   grades         ResultGrade[]
-  createdInvites UserInvite[]  @relation("InviteCreatedBy")
-  invites        UserInvite[]  @relation("InviteUser")
+  searches       SearchJournal[]
+  createdInvites UserInvite[]    @relation("InviteCreatedBy")
+  invites        UserInvite[]    @relation("InviteUser")
 
   @@map("app_user")
 }
@@ -493,11 +494,13 @@ model UserInvite {
 }
 
 // A manager's word on a model a search found, one row per search, model and user: the human grades the quality numbers
-// and the confidence percent are measured on (docs/integrations.md, «Оцінки»). The one table that keeps a query's text,
-// and only of a search someone graded (docs/decisions.md): the text goes with the search's last grade. The reference
-// photo is never kept, and there are no purchase prices here.
+// and the confidence percent are measured on (docs/integrations.md, «Оцінки»). A grade keeps its query's text for as
+// long as it lives (docs/decisions.md): the text goes with the search's last grade. The reference photo is not here, and
+// there are no purchase prices here.
 model ResultGrade {
-  // Handed out with the answer of a search and kept nowhere else: it groups the grades of that search
+  // Handed out with the answer of a search: it groups the grades of that search, and finds the search in search_journal
+  // while the journal keeps it (no foreign key: the grades of before the journal, and of a search older than its 90
+  // days, have no row there)
   searchId          String           @map("search_id") @db.Uuid
   modelId           Int              @map("model_id")
   userId            Int              @map("user_id")
@@ -522,6 +525,45 @@ model ResultGrade {
   @@index([modelId])
   @@index([userId])
   @@map("result_grade")
+}
+
+// The journal of searches (docs/integrations.md, «Журнал пошуків»; owner's decision of 2026-11-23, docs/decisions.md):
+// one row per search the API answered, written after the answer, so a complaint can be searched again as it was.
+// Personal data: the text may quote a client's letter. Rows older than 90 days are deleted (src/search/journal-store.ts).
+// No purchase prices: a result is its model, place and confidence only. CHECK constraints of migration search_journal,
+// which Prisma does not model: a text or a photo, a kept photo only with its size, positive counts.
+model SearchJournal {
+  // The searchId of the answer, the same as result_grade.search_id
+  searchId        String   @id @map("search_id") @db.Uuid
+  userId          Int      @map("user_id")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  // As the search read it (spaces collapsed); null: a search by photo alone
+  queryText       String?  @map("query_text")
+  // Claude's reading of the text as the answer gave it (src/search/query-parse.ts); null: no list used the text, or
+  // the reading was off
+  queryParse      Json?    @map("query_parse")
+  hasPhoto        Boolean  @map("has_photo")
+  // The reference photo, the bytes the search embedded (the screen sends a JPEG up to 1024 px, web/src/image.ts); null:
+  // no photo, or one over MAX_JOURNAL_PHOTO_BYTES, of which only the size is kept
+  photo           Bytes?
+  // The size of the photo the search got, kept or not; null: no photo
+  photoSizeBytes  Int?     @map("photo_size_bytes")
+  embeddingModel  String   @map("embedding_model")
+  filters         Json     @default("{}")
+  // The rest of the request, so the search can be run again as it was
+  resultLimit     Int      @map("result_limit")
+  isParseQuery    Boolean  @map("is_parse_query")
+  isConditionPass Boolean  @map("is_condition_pass")
+  // [{ modelId, rank, confidencePercent, photos }] as the answer gave them, best first (src/search/journal.ts)
+  results         Json     @default("[]")
+  tookMs          Int      @map("took_ms")
+
+  user AppUser @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  // The pruning's range
+  @@index([createdAt])
+  @@map("search_journal")
 }
 
 // A signed-in browser. Signing out deletes its row, a new password or a disabled user all of theirs.

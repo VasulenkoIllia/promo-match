@@ -1,6 +1,6 @@
 // The reference photo before the search: cropped to the frame drawn over it and shrunk to the size of the catalogue's
 // photos (Axpol 1000×1000, Midocean 700×700, src/embeddings/image.ts), then sent as a JPEG. The photo stays in the
-// browser's memory until then; the server keeps it in memory only.
+// browser's memory until then; the server keeps it in its journal of searches for 90 days (src/search/journal.ts).
 
 export interface Point {
   x: number;

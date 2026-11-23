@@ -4,7 +4,8 @@
 //   GET  /api/search/options  the models the screen offers (and which are configured), sources (and which have stock),
 //                             the suppliers' category paths and the shared categories with counts, the paths no shared
 //                             category covers
-// An answer carries a searchId of its own, kept nowhere: the grades of that search come back with it (src/grades).
+// An answer carries a searchId of its own: the grades of that search come back with it (src/grades), and the journal of
+// searches keeps the search under it (src/search/journal.ts), written after the answer is made, not waited for.
 // Behind the login, registered in the signed-in scope of src/app.ts. A user's paid searches are limited per minute on top
 // of the daily budgets. The body and the reference photo are never logged: Fastify's request line has no body
 // (src/app.ts, requestLine), and an error's message is logged without long base64.
@@ -15,6 +16,7 @@ import { signedInUser } from "../auth/routes.js";
 import { InputRejected, ProviderError } from "../embeddings/api.js";
 import { BudgetReached } from "../embeddings/batch.js";
 import { ModelNotConfigured, SearchInputError, SearchTimedOut } from "./errors.js";
+import { journalEntry, journalFailure, type SearchJournal } from "./journal.js";
 import type { QueryParse } from "./query-parse.js";
 import { parseSearchBody, SEARCH_BODY_LIMIT_BYTES, type SearchBody, searchBodySchema, type SearchInput } from "./request.js";
 import type { SearchResponse, SearchService } from "./search.js";
@@ -83,7 +85,9 @@ function loggedFailure(error: unknown, input: SearchInput | undefined, statusCod
   };
 }
 
-export function registerSearchRoutes(app: FastifyInstance, service: SearchService, ratePerMinute = DEFAULT_RATE_PER_MINUTE): void {
+// journal unset: the searches are kept nowhere
+export function registerSearchRoutes(app: FastifyInstance, service: SearchService, ratePerMinute = DEFAULT_RATE_PER_MINUTE,
+  journal?: SearchJournal): void {
   const limiter = new RateLimiter(ratePerMinute, MINUTE_MS);
 
   app.post<{ Body: SearchBody }>("/api/search", {
@@ -101,12 +105,18 @@ export function registerSearchRoutes(app: FastifyInstance, service: SearchServic
         request.log.warn({ userId, waitSeconds }, "search refused: too many in a minute");
         return await reply.code(429).header("retry-after", waitSeconds).send({ error: "too many searches in a minute" });
       }
-      const response = await service.search(input, signal);
+      const searched = input;
+      const response = await service.search(searched, signal);
+      const searchId = randomUUID();
       const { logged, warnings, isParseRejected } = loggedSearch(response);
-      if (isParseRejected) request.log.error(logged, `search: ${warnings.join("; ")}`);
-      else if (warnings.length) request.log.warn(logged, `search: ${warnings.join("; ")}`);
-      else request.log.info(logged, "search");
-      return { searchId: randomUUID(), ...response };
+      if (isParseRejected) request.log.error({ searchId, ...logged }, `search: ${warnings.join("; ")}`);
+      else if (warnings.length) request.log.warn({ searchId, ...logged }, `search: ${warnings.join("; ")}`);
+      else request.log.info({ searchId, ...logged }, "search");
+      // A failed write loses the row, not the answer, and says so in the log
+      void journal?.record(() => journalEntry(searchId, userId, searched, response)).catch((error: unknown) => {
+        request.log.error(journalFailure(searchId, error), "search journal: the search was not written");
+      });
+      return { searchId, ...response };
     } catch (error) {
       const failure = searchFailure(error, signal);
       if (!failure) throw error;

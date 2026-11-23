@@ -1,5 +1,5 @@
-// The grades of found models (docs/integrations.md, «Оцінки»). The text of a query is kept here and nowhere else, and it
-// goes with the last grade of its search.
+// The grades of found models (docs/integrations.md, «Оцінки»). The text of a query is kept here for as long as its grade
+// (the journal of searches, src/search/journal.ts, keeps it for 90 days), and it goes with the last grade of its search.
 import { Prisma, type PrismaClient } from "../generated/prisma/client.js";
 import { prismaCode } from "../own-products/store.js";
 import { GradedModelNotFound } from "./errors.js";

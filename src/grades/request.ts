@@ -1,5 +1,6 @@
 // The input of the grades API (docs/integrations.md, «Оцінки»): the JSON schemas of src/grades/routes.ts. What the search
-// said of the model comes back from the screen that showed it: the server keeps no searches.
+// said of the model comes back from the screen that showed it: the journal of searches (src/search/journal.ts) keeps a
+// search for 90 days only, and a grade lives longer.
 import { ResultGradeValue } from "../generated/prisma/enums.js";
 import { MAX_LIMIT, MAX_TEXT_CHARS, searchBodySchema, type SearchBody } from "../search/request.js";
 import { LIST_NAMES, type ListName } from "../search/rank.js";

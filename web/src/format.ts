@@ -191,7 +191,7 @@ export interface GradedSearch {
   filters: SearchFilters;
 }
 
-// A grade with what the search said of the model: the server keeps no searches
+// A grade with what the search said of the model: the server's journal of searches keeps a search for 90 days only
 export function gradeBody(grade: Grade, search: GradedSearch, result: SearchResult): GradeBody {
   return {
     grade,

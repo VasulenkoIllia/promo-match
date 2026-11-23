@@ -27,7 +27,8 @@ select line from (
     ('app_user', (select count(*) from app_user)),
     ('user_session', (select count(*) from user_session)),
     ('user_invite', (select count(*) from user_invite)),
-    ('result_grade', (select count(*) from result_grade))
+    ('result_grade', (select count(*) from result_grade)),
+    ('search_journal', (select count(*) from search_journal))
   ) as t (name, n)
   union all
   select format(E'migrations\t%s\t%s', count(*), max(migration_name)) from _prisma_migrations

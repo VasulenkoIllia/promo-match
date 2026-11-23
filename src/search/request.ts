@@ -37,7 +37,8 @@ const SIDES = {
   type: "array", minItems: 1, maxItems: MAX_SIDES, items: { type: "number", exclusiveMinimum: 0, maximum: MAX_SIDE_CM },
 } as const;
 
-// The reference photo, in memory only: never written to the database, a log or a file
+// The reference photo: the journal of searches keeps it in the database for 90 days (src/search/journal.ts); never
+// written to a log or a file
 export interface QueryImage {
   bytes: Buffer;
   info: ImageInfo;

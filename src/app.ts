@@ -13,6 +13,7 @@ import { registerOwnProductRoutes } from "./own-products/routes.js";
 import type { SupplierPhotos } from "./photos/proxy.js";
 import { ARCHIVE_PHOTO_PATH, registerPhotoRoutes } from "./photos/routes.js";
 import type { OwnProductsService } from "./own-products/store.js";
+import type { SearchJournal } from "./search/journal.js";
 import { registerSearchRoutes } from "./search/routes.js";
 import type { SearchService } from "./search/search.js";
 import type { SuppliersService } from "./suppliers/overview.js";
@@ -33,6 +34,8 @@ export interface AppOptions {
   search?: SearchService;
   // A user's searches per minute; unset, the search's own default
   searchRatePerMinute?: number;
+  // The journal of searches (src/search/journal.ts); unset, the searches are kept nowhere
+  searchJournal?: SearchJournal;
   // The own products API (/api/own-products); unset, the app has none
   ownProducts?: OwnProductsService;
   // The grades of found models (/api/search/grades); unset, the app has none
@@ -142,7 +145,7 @@ export function buildApp(options: AppOptions = {}): FastifyInstance {
         next();
       });
       registerSessionRoutes(signedIn, auth);
-      if (search) registerSearchRoutes(signedIn, search, options.searchRatePerMinute);
+      if (search) registerSearchRoutes(signedIn, search, options.searchRatePerMinute, options.searchJournal);
       if (ownProducts) registerOwnProductRoutes(signedIn, ownProducts);
       if (grades) registerGradeRoutes(signedIn, grades);
       if (suppliers) registerSupplierRoutes(signedIn, suppliers);
