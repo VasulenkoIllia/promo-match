@@ -17,7 +17,8 @@ export interface Confidence {
 
 export interface MeasuredQuery {
   model: SearchModelName;
-  // false: a text went without Claude's reading, and the texts compared were not the ones measured
+  // false: a text went without Claude's reading or without the text-to-text list, and the texts compared were not the
+  // ones measured
   isRead: boolean;
   // false: a photo alone found it, with no text to compare
   isByText: boolean;
@@ -65,12 +66,14 @@ function isLongQuery(text: string | undefined): boolean {
   return (text?.trim().split(/\s+/).length ?? 0) >= LONG_QUERY_WORDS;
 }
 
-// A text not read means no reading at all as much as a failed one: parseQuery false asks for none
+// A text not read means no reading at all as much as a failed one: parseQuery false asks for none. A text searched without
+// the text-to-text list (a search setting turned it off) was never measured either: neither formula holds for it.
 export function measuredQuery(model: SearchModelName, text: string | undefined, lists: ListName[], queryParse: QueryParse | null,
   hasCloseMatch: boolean | null): MeasuredQuery {
+  const isByText = lists.includes("text-text");
   return {
-    model, isRead: queryParse?.status === "ok" || !lists.some((name) => name.startsWith("text-")),
-    isByText: lists.includes("text-text"), isLong: isLongQuery(text), hasCloseMatch,
+    model, isRead: !lists.some((name) => name.startsWith("text-")) || (queryParse?.status === "ok" && isByText),
+    isByText, isLong: isLongQuery(text), hasCloseMatch,
   };
 }
 

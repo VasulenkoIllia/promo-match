@@ -4,6 +4,7 @@ import type { JournalEntry } from "./journal.js";
 import {
   JOURNAL_DAYS, journalCutoff, journalWriter, type PruneLog, pruneSearchJournal, scheduleJournalPrune,
 } from "./journal-store.js";
+import { CODE_DEFAULT_SETTINGS } from "./settings.js";
 
 const DAY_MS = 86_400_000;
 const NOW = new Date("2026-11-23T12:00:00Z");
@@ -86,6 +87,7 @@ describe("journalWriter", () => {
     searchId: "3f2b1c9e-7a46-4e0b-9d11-2c5a8f6e1b70", userId: 4, queryText: "mug", queryParse: null, hasPhoto: true,
     photo: Buffer.from([0xff, 0xd8, 0xff, 0xe0]), photoSizeBytes: 4, embeddingModel: "gemini-embedding-2/1536",
     filters: { minStock: 10 }, resultLimit: 100, isParseQuery: true, isConditionPass: false,
+    settings: { ...CODE_DEFAULT_SETTINGS, photoOrder: "photo-decides" },
     results: [{ modelId: 7, rank: 1, confidencePercent: 90, photos: 2 }], tookMs: 812,
   };
 
@@ -102,7 +104,7 @@ describe("journalWriter", () => {
     return journalWriter(db)(row).then(() => created);
   }
 
-  it("writes the row as the journal made it: the photo's bytes, SQL NULL for no reading, the results as a list", async () => {
+  it("writes the row as the journal made it: the photo's bytes, SQL NULL for no reading, the settings and the results", async () => {
     const [call] = await writeOf(entry);
     expect(call?.data).toEqual({
       ...entry, photo: new Uint8Array([0xff, 0xd8, 0xff, 0xe0]), queryParse: Prisma.DbNull,

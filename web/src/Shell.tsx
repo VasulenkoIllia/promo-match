@@ -2,15 +2,17 @@ import { useLayoutEffect, useRef, useState } from "react";
 import type { Role } from "./api";
 import { App } from "./App";
 import { OwnProductsView } from "./OwnProductsView";
+import { SearchSettingsView } from "./SearchSettingsView";
 import { SuppliersView } from "./SuppliersView";
 import { text } from "./text";
 import { UsersView } from "./UsersView";
 import { useOwnProducts } from "./useOwnProducts";
+import { useSettingsAnswer } from "./useSettingsAnswer";
 import "./own-products.css";
 
 // The views of the tabs. Search and own products stay mounted and hidden, since their forms and paid results must
 // outlive a switch; the suppliers' and the admin's views mount when they are opened and read their data fresh.
-type View = "search" | "own" | "suppliers" | "users";
+type View = "search" | "own" | "suppliers" | "users" | "searchSettings";
 
 interface Tab {
   view: View;
@@ -32,7 +34,9 @@ function tabsOf(role: Role, ownCount: number | null): Tab[] {
     { view: "search", label: text.tabs.search },
     { view: "own", label: text.tabs.own(ownCount) },
     { view: "suppliers", label: text.tabs.suppliers },
-    ...(role === "admin" ? [{ view: "users", label: text.tabs.users } satisfies Tab] : []),
+    ...(role === "admin" ? [
+      { view: "users", label: text.tabs.users } satisfies Tab, { view: "searchSettings", label: text.tabs.searchSettings } satisfies Tab,
+    ] : []),
   ];
 }
 
@@ -67,8 +71,10 @@ function Account({ login, onSignOut }: AccountProps) {
 export function Shell({ login, role, onSignOut }: ShellProps) {
   const [view, setView] = useState<View>("search");
   // The page's scroll is shared and a short tab cuts it, so coming back to the results would lose the place in them
-  const scrollOfView = useRef<Record<View, number>>({ search: 0, own: 0, suppliers: 0, users: 0 });
+  const scrollOfView = useRef<Record<View, number>>({ search: 0, own: 0, suppliers: 0, users: 0, searchSettings: 0 });
   const own = useOwnProducts();
+  // The search settings' defaults, one copy for the page: the admin's save shows at once on the search screen
+  const searchSettings = useSettingsAnswer();
 
   useLayoutEffect(() => {
     window.scrollTo(0, scrollOfView.current[view]);
@@ -97,13 +103,14 @@ export function Shell({ login, role, onSignOut }: ShellProps) {
       </nav>
       {/* Hidden, not unmounted: the search's form and its paid results stay as they are */}
       <div hidden={view !== "search"}>
-        <App own={own} />
+        <App own={own} settingsSource={searchSettings} />
       </div>
       <div hidden={view !== "own"}>
         <OwnProductsView own={own} />
       </div>
       {view === "suppliers" && <SuppliersView />}
       {view === "users" && <UsersView selfLogin={login} />}
+      {view === "searchSettings" && <SearchSettingsView onSaved={searchSettings.replace} />}
     </>
   );
 }

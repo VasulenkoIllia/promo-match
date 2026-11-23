@@ -16,6 +16,8 @@ import type { OwnProductsService } from "./own-products/store.js";
 import type { SearchJournal } from "./search/journal.js";
 import { registerSearchRoutes } from "./search/routes.js";
 import type { SearchService } from "./search/search.js";
+import { registerAdminSettingsRoutes, registerSettingsRoutes } from "./search/settings-routes.js";
+import type { SearchSettingsService } from "./search/settings-store.js";
 import type { SuppliersService } from "./suppliers/overview.js";
 import { registerSupplierRoutes } from "./suppliers/overview-routes.js";
 
@@ -36,6 +38,9 @@ export interface AppOptions {
   searchRatePerMinute?: number;
   // The journal of searches (src/search/journal.ts); unset, the searches are kept nowhere
   searchJournal?: SearchJournal;
+  // The search settings (/api/search/settings, the admin's /api/admin/search-settings); unset, the app has neither and a
+  // search runs with the code's defaults
+  searchSettings?: SearchSettingsService;
   // The own products API (/api/own-products); unset, the app has none
   ownProducts?: OwnProductsService;
   // The grades of found models (/api/search/grades); unset, the app has none
@@ -130,7 +135,7 @@ export function buildApp(options: AppOptions = {}): FastifyInstance {
     });
   }
 
-  const { auth, users, search, ownProducts, grades, suppliers, supplierPhotos, archivePhotos } = options;
+  const { auth, users, search, searchSettings, ownProducts, grades, suppliers, supplierPhotos, archivePhotos } = options;
   if (auth) {
     app.decorateRequest("user", null);
     registerSignInRoute(app, auth);
@@ -145,17 +150,19 @@ export function buildApp(options: AppOptions = {}): FastifyInstance {
         next();
       });
       registerSessionRoutes(signedIn, auth);
-      if (search) registerSearchRoutes(signedIn, search, options.searchRatePerMinute, options.searchJournal);
+      if (search) registerSearchRoutes(signedIn, search, options.searchRatePerMinute, options.searchJournal, searchSettings);
+      if (searchSettings) registerSettingsRoutes(signedIn, searchSettings);
       if (ownProducts) registerOwnProductRoutes(signedIn, ownProducts);
       if (grades) registerGradeRoutes(signedIn, grades);
       if (suppliers) registerSupplierRoutes(signedIn, suppliers);
       if (supplierPhotos) registerPhotoRoutes(signedIn, supplierPhotos);
       if (archivePhotos) registerPhotoRoutes(signedIn, archivePhotos, ARCHIVE_PHOTO_PATH, "macma");
       // A scope inside it: its hook runs after the session's, and every route there is the admin's alone
-      if (users) {
+      if (users || searchSettings) {
         void signedIn.register((admin, _adminOptions, adminDone) => {
           admin.addHook("onRequest", requireAdmin);
-          registerAdminRoutes(admin, users);
+          if (users) registerAdminRoutes(admin, users);
+          if (searchSettings) registerAdminSettingsRoutes(admin, searchSettings);
           adminDone();
         });
       }

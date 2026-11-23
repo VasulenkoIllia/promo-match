@@ -4,14 +4,19 @@ import { Filters } from "./Filters";
 import { apiFilters, type FilterState, MAX_RESULTS, parseMinStock, type SharedCategoryEntry, sharedCategoryIndex } from "./format";
 import { encodeJpeg, fullRect } from "./image";
 import { type Photo, PhotoInput } from "./PhotoInput";
+import { changedKeys, hasNoListFor } from "./search-settings";
+import { SearchSettingsBlock } from "./SearchSettingsBlock";
 import { ErrorNote, type SearchState, SearchView } from "./SearchView";
+import { settingsText } from "./settings-text";
 import { type ErrorText, searchErrorText, text } from "./text";
 import type { OwnProducts } from "./useOwnProducts";
+import { type SearchSettingsChoice, useSearchSettings } from "./useSearchSettings";
+import type { SettingsSource } from "./useSettingsAnswer";
 
 // The API's bound for the text (src/search/request.ts)
 const MAX_TEXT_CHARS = 1_000;
 const EMPTY_FILTERS: FilterState = {
-  sources: [], supplierCategories: [], sharedCategories: [], minStock: "", model: "", facts: {}, isConditionPass: false,
+  sources: [], supplierCategories: [], sharedCategories: [], minStock: "", model: "", facts: {},
 };
 
 type OptionsState = { kind: "loading" } | { kind: "ok"; options: SearchOptions } | { kind: "error"; error: ErrorText };
@@ -22,6 +27,15 @@ function errorTextOf(error: unknown): ErrorText {
   return { message: text.search.failed, detail: null };
 }
 
+// The server refuses a text alone with both text lists off (400) unless a code in it finds a model, so the screen sends
+// such a search and names the cause when it comes back refused
+function searchFailureOf(error: unknown, settings: SearchSettingsChoice, hasPhoto: boolean): ErrorText {
+  const isRefused = error instanceof ApiError && error.failure.kind === "status" && error.failure.status === 400;
+  return isRefused && settings.value && hasNoListFor(settings.value, hasPhoto)
+    ? { message: settingsText.noList, detail: null }
+    : errorTextOf(error);
+}
+
 // The default model when it has a key, or the first one with a key
 function initialModel(options: SearchOptions): string {
   const configured = options.models.filter((model) => model.isConfigured);
@@ -29,7 +43,7 @@ function initialModel(options: SearchOptions): string {
 }
 
 // The body of a search from the form, or what is missing from it
-function searchBody(query: string, photo: Photo | null, filters: FilterState): SearchBody | string {
+function searchBody(query: string, photo: Photo | null, filters: FilterState, settings: SearchSettingsChoice): SearchBody | string {
   const trimmed = query.trim();
   if (!trimmed && !photo) return text.search.needInput;
   if (!filters.model) return text.search.noModel;
@@ -46,13 +60,14 @@ function searchBody(query: string, photo: Photo | null, filters: FilterState): S
     ...(trimmed ? { text: trimmed } : {}),
     ...(image ? { image } : {}),
     model: filters.model,
-    conditionPass: filters.isConditionPass,
+    ...(Object.keys(settings.overrides).length ? { settings: settings.overrides } : {}),
     filters: apiFilters(filters, minStock),
     limit: MAX_RESULTS,
   };
 }
 
-export function App({ own }: { own: OwnProducts }) {
+// settingsSource: the search settings' defaults, which the admin's save on this page replaces
+export function App({ own, settingsSource }: { own: OwnProducts; settingsSource: SettingsSource }) {
   const [optionsState, setOptionsState] = useState<OptionsState>({ kind: "loading" });
   const [optionsLoad, setOptionsLoad] = useState(0);
   const [photo, setPhoto] = useState<Photo | null>(null);
@@ -60,6 +75,7 @@ export function App({ own }: { own: OwnProducts }) {
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
   const [searchState, setSearchState] = useState<SearchState>({ kind: "idle" });
   const [formError, setFormError] = useState<string | null>(null);
+  const settings = useSearchSettings(settingsSource);
   // Each search is paid: a second click before the answer sends nothing
   const isSearching = useRef(false);
   const searchCount = useRef(0);
@@ -85,7 +101,7 @@ export function App({ own }: { own: OwnProducts }) {
 
   const runSearch = async (searchFilters: FilterState) => {
     if (isSearching.current || optionsState.kind !== "ok") return;
-    const body = searchBody(query, photo, searchFilters);
+    const body = searchBody(query, photo, searchFilters, settings);
     if (typeof body === "string") {
       setFormError(body);
       return;
@@ -101,8 +117,10 @@ export function App({ own }: { own: OwnProducts }) {
         facts: searchFilters.facts, filters: body.filters,
       } });
       own.showModels(response.results.map((result) => result.modelId));
+      // Ran with other settings than the screen shows: the defaults changed on the server since they were read
+      if (response.settings && settings.value && changedKeys(response.settings, settings.value).length) settingsSource.refresh();
     } catch (error) {
-      setSearchState({ kind: "error", error: errorTextOf(error) });
+      setSearchState({ kind: "error", error: searchFailureOf(error, settings, photo !== null) });
     } finally {
       isSearching.current = false;
     }
@@ -179,6 +197,7 @@ export function App({ own }: { own: OwnProducts }) {
             isMinStockInvalid={parseMinStock(filters.minStock) === "invalid"}
           />
         )}
+        <SearchSettingsBlock choice={settings} />
         <div className="submit">
           <button type="submit" className="primary" disabled={isPending || optionsState.kind !== "ok"}>
             {isPending ? text.search.pending : text.search.button}

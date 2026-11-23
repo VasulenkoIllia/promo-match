@@ -5,20 +5,20 @@
 //   pnpm run search [--text "<text>"] [--image <file.jpg|png>] [--model <name>|all] [--source axpol|midocean]...
 //     [--category "<source>:<level 1>[ > <level 2>...]"]... [--shared-category <code>]... [--min-stock <n>]
 //     [--limit <n>] [--lists image-photo,image-text,text-photo,text-text] [--no-parse-query] [--parse-model <name>]
-//     [--condition-pass] [--json]
+//     [--condition-pass] [--settings '<json>'] [--json]
 // --shared-category takes a code of the shared list (pnpm run categories:sync, src/categories/taxonomy.json): a group
 // ("drinkware") or a category ("drinkware.mugs"). --model all runs the query through every model, one after the
 // other, with the text read once. --no-parse-query embeds the text as it is; --parse-model reads it with another
 // Claude model than QUERY_PARSE_MODEL. --condition-pass lifts the models whose catalogue confirms what the query asks, as
-// the screen's switch does (src/search/condition-pass.ts); off by default, as there. Prices are printed: keep the output
-// out of git.
+// the screen's switch does (src/search/condition-pass.ts); off by default, as there. --settings takes search settings
+// as JSON (src/search/settings.ts), some or all, over the code's defaults: the journal's column settings repeats a search
+// as it ran; --no-parse-query and --condition-pass go over it. Prices are printed: keep the output out of git.
 import { readFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
 import { config, ConfigError } from "../src/config.js";
 import { createPrisma, databasePassword } from "../src/db.js";
 import { InputRejected, ProviderError } from "../src/embeddings/api.js";
 import { BudgetReached } from "../src/embeddings/batch.js";
-import { CONDITION_PASS } from "../src/search/condition-pass.js";
 import {
   DEFAULT_SEARCH_MODEL, isSearchModelName, SEARCH_MODEL_NAMES, type SearchModelName,
 } from "../src/search/models.js";
@@ -30,6 +30,9 @@ import {
 } from "../src/search/query-parse.js";
 import { postgresReadings } from "../src/search/query-readings.js";
 import { queryImage, searchInput, type SearchInput } from "../src/search/request.js";
+import {
+  CODE_DEFAULT_SETTINGS, mergeSettings, type SearchSettings, settingsInput, storedSettings,
+} from "../src/search/settings.js";
 import type { SearchResult } from "../src/search/results.js";
 import { createSearchService, dailyBudgetFromEnv, QueryEmbedder, type SearchResponse } from "../src/search/search.js";
 import { isSupplierCode } from "../src/suppliers/registry.js";
@@ -58,6 +61,22 @@ function positiveInteger(name: string, text: string | undefined): number | undef
   return value;
 }
 
+// Some or all of the settings, over the code's defaults; a key or a value the search does not know stops the run
+function parseSettings(text: string | undefined): Partial<SearchSettings> {
+  if (text === undefined) return {};
+  let json: unknown;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new ConfigError("--settings must be JSON, as the journal's column settings");
+  }
+  const { settings, dropped } = storedSettings(json);
+  if (dropped.length || typeof json !== "object" || json === null || Array.isArray(json)) {
+    throw new ConfigError(`--settings: unknown keys or values: ${dropped.join(", ") || "not an object"}`);
+  }
+  return settings;
+}
+
 interface Options {
   inputs: SearchInput[];
   parseModel: QueryParseModel;
@@ -78,9 +97,10 @@ async function parseOptions(argv: string[]): Promise<Options> {
       "min-stock": { type: "string" },
       limit: { type: "string" },
       lists: { type: "string" },
-      "parse-query": { type: "boolean", default: true },
+      "parse-query": { type: "boolean" },
       "parse-model": { type: "string" },
-      "condition-pass": { type: "boolean", default: false },
+      "condition-pass": { type: "boolean" },
+      settings: { type: "string" },
       json: { type: "boolean", default: false },
     },
     strict: true,
@@ -104,10 +124,11 @@ async function parseOptions(argv: string[]): Promise<Options> {
     sources: values.source, categories: values.category?.map(parseCategory), sharedCategories: values["shared-category"],
     minStock: positiveInteger("min-stock", values["min-stock"]),
   };
+  const settings = mergeSettings(CODE_DEFAULT_SETTINGS, parseSettings(values.settings),
+    { isParseQuery: values["parse-query"], isConditionPass: values["condition-pass"] });
   const inputs = models.map((model) => searchInput({
     text: values.text, image, model, filters, limit: positiveInteger("limit", values.limit),
-    lists: lists as ListName[] | undefined, parseQuery: values["parse-query"],
-    conditionPass: values["condition-pass"] ? CONDITION_PASS : null,
+    lists: lists as ListName[] | undefined, ...settingsInput(settings),
   }));
   return { inputs, parseModel, isJson: values.json };
 }

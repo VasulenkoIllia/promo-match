@@ -102,26 +102,6 @@ function AppliedFacts({ value, onChange }: AppliedFactsProps) {
   );
 }
 
-// Off by default: the suppliers' catalogues state these facts unevenly, so the pass leans to the fuller ones
-// (src/search/condition-pass.ts)
-function ConditionPassSwitch({ value, onChange }: AppliedFactsProps) {
-  const hintId = useId();
-  return (
-    <div className="panel-block">
-      <label className="check">
-        <input
-          type="checkbox"
-          checked={value.isConditionPass}
-          aria-describedby={hintId}
-          onChange={(event) => onChange({ ...value, isConditionPass: event.target.checked })}
-        />
-        {text.filters.conditionPass}
-      </label>
-      <p id={hintId} className="hint">{text.filters.conditionPassHint}</p>
-    </div>
-  );
-}
-
 interface FiltersProps {
   options: SearchOptions;
   value: FilterState;
@@ -174,8 +154,6 @@ export function Filters({ options, value, onChange, categories, isMinStockInvali
       )}
 
       <AppliedFacts value={value} onChange={onChange} />
-
-      <ConditionPassSwitch value={value} onChange={onChange} />
 
       <div className="panel-block">
         <label htmlFor={ids.minStock} className="label">{text.filters.minStock}</label>

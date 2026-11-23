@@ -7,6 +7,7 @@ import { ModelNotConfigured, SearchTimedOut } from "./errors.js";
 import { createSearchJournal, type JournalEntry, type JournalWrite } from "./journal.js";
 import type { SearchInput } from "./request.js";
 import { loggedSearch, searchFailure } from "./routes.js";
+import { CODE_DEFAULT_SETTINGS } from "./settings.js";
 import type { SearchOptions, SearchResponse, SearchService } from "./search.js";
 
 const png = Buffer.alloc(24);
@@ -76,7 +77,10 @@ describe("POST /api/search", () => {
       },
     });
     expect(response.statusCode).toBe(200);
-    expect(response.json()).toEqual({ ...empty, searchId: expect.stringMatching(/^[0-9a-f-]{36}$/) as string });
+    expect(response.json()).toEqual({
+      ...empty, searchId: expect.stringMatching(/^[0-9a-f-]{36}$/) as string,
+      settings: { ...CODE_DEFAULT_SETTINGS, isParseQuery: false }, changedSettings: ["isParseQuery"],
+    });
     const [input] = service.inputs;
     expect(input?.model).toBe("voyage-multimodal-3.5/1024");
     expect(input?.parseQuery).toBe(false);
@@ -262,7 +266,9 @@ describe("the journal of searches", () => {
     const response = await searchAs(fakeSearch(() => Promise.resolve(empty)), { text: "mug" });
     await journal.settle();
     expect(response.statusCode).toBe(200);
-    expect(response.json()).toEqual({ ...empty, searchId: expect.stringMatching(/^[0-9a-f-]{36}$/) as string });
+    expect(response.json()).toEqual({
+      ...empty, searchId: expect.stringMatching(/^[0-9a-f-]{36}$/) as string, settings: CODE_DEFAULT_SETTINGS, changedSettings: [],
+    });
   });
 
   it("keeps nothing of a refused or failed search, which has no searchId", async () => {

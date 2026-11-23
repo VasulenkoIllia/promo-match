@@ -5,7 +5,7 @@ import {
 } from "./api";
 
 const OPTIONS = { models: [], sources: [], categories: [], sharedCategories: [] };
-const BODY = { model: "gemini-embedding-2/1536", conditionPass: false, filters: {}, limit: 100 };
+const BODY = { model: "gemini-embedding-2/1536", filters: {}, limit: 100 };
 
 function answer(body: BodyInit | null, status = 200, headers: Record<string, string> = {}): Response {
   return new Response(body, { status, headers: { "content-type": "application/json", ...headers } });

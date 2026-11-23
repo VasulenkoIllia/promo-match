@@ -1,6 +1,7 @@
 // The search API of stage 4 (docs/integrations.md, «Пошук»).
-//   POST /api/search          { text?, image?, model?, limit?, parseQuery?, conditionPass?, filters?: { sources?,
-//                               categories?, sharedCategories?, minStock? } }
+//   POST /api/search          { text?, image?, model?, limit?, parseQuery?, conditionPass?, settings?, filters?: {
+//                               sources?, categories?, sharedCategories?, minStock? } }; the answer carries the settings
+//                               it ran with and those that differ from the defaults (src/search/settings.ts)
 //   GET  /api/search/options  the models the screen offers (and which are configured), sources (and which have stock),
 //                             the suppliers' category paths and the shared categories with counts, the paths no shared
 //                             category covers
@@ -18,8 +19,12 @@ import { BudgetReached } from "../embeddings/batch.js";
 import { ModelNotConfigured, SearchInputError, SearchTimedOut } from "./errors.js";
 import { journalEntry, journalFailure, type SearchJournal } from "./journal.js";
 import type { QueryParse } from "./query-parse.js";
-import { parseSearchBody, SEARCH_BODY_LIMIT_BYTES, type SearchBody, searchBodySchema, type SearchInput } from "./request.js";
+import {
+  parseSearchBody, SEARCH_BODY_LIMIT_BYTES, type SearchBody, searchBodySchema, type SearchInput, searchSettingsOf,
+} from "./request.js";
 import type { SearchResponse, SearchService } from "./search.js";
+import { changedSettings, CODE_DEFAULT_SETTINGS } from "./settings.js";
+import type { SearchSettingsService } from "./settings-store.js";
 
 // Claude's reading of the text (up to 10 s, src/search/query-parse.ts), then the embedding provider's call with its
 // retries (30 s); past this the client gets 504 rather than a hanging request
@@ -85,9 +90,9 @@ function loggedFailure(error: unknown, input: SearchInput | undefined, statusCod
   };
 }
 
-// journal unset: the searches are kept nowhere
+// journal unset: the searches are kept nowhere; settings unset: the code's defaults hold
 export function registerSearchRoutes(app: FastifyInstance, service: SearchService, ratePerMinute = DEFAULT_RATE_PER_MINUTE,
-  journal?: SearchJournal): void {
+  journal?: SearchJournal, settings?: Pick<SearchSettingsService, "read">): void {
   const limiter = new RateLimiter(ratePerMinute, MINUTE_MS);
 
   app.post<{ Body: SearchBody }>("/api/search", {
@@ -97,7 +102,10 @@ export function registerSearchRoutes(app: FastifyInstance, service: SearchServic
     const signal = AbortSignal.timeout(SEARCH_TIMEOUT_MS);
     let input: SearchInput | undefined;
     try {
-      input = parseSearchBody(request.body);
+      const { defaults } = settings ? await settings.read() : { defaults: CODE_DEFAULT_SETTINGS };
+      const used = searchSettingsOf(request.body, defaults);
+      const changed = changedSettings(used, defaults);
+      input = parseSearchBody(request.body, used);
       // After the body's checks: only what would be paid for counts
       const userId = signedInUser(request).id;
       const waitSeconds = limiter.take(String(userId));
@@ -108,15 +116,17 @@ export function registerSearchRoutes(app: FastifyInstance, service: SearchServic
       const searched = input;
       const response = await service.search(searched, signal);
       const searchId = randomUUID();
-      const { logged, warnings, isParseRejected } = loggedSearch(response);
+      const { logged: loggedResponse, warnings, isParseRejected } = loggedSearch(response);
+      // The settings a user changed for this search, by name and value: nothing of the query
+      const logged = { ...loggedResponse, changedSettings: Object.fromEntries(changed.map((key) => [key, used[key]])) };
       if (isParseRejected) request.log.error({ searchId, ...logged }, `search: ${warnings.join("; ")}`);
       else if (warnings.length) request.log.warn({ searchId, ...logged }, `search: ${warnings.join("; ")}`);
       else request.log.info({ searchId, ...logged }, "search");
       // A failed write loses the row, not the answer, and says so in the log
-      void journal?.record(() => journalEntry(searchId, userId, searched, response)).catch((error: unknown) => {
+      void journal?.record(() => journalEntry(searchId, userId, searched, response, used)).catch((error: unknown) => {
         request.log.error(journalFailure(searchId, error), "search journal: the search was not written");
       });
-      return { searchId, ...response };
+      return { searchId, ...response, settings: used, changedSettings: changed };
     } catch (error) {
       const failure = searchFailure(error, signal);
       if (!failure) throw error;

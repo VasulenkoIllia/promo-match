@@ -26,6 +26,7 @@
     "search:quality": "node --env-file-if-exists=.env --import tsx scripts/quality-test.ts",
     "search:independent": "node --env-file-if-exists=.env --import tsx scripts/independent-test.ts",
     "search:independent:sample": "node --env-file-if-exists=.env --import tsx scripts/independent-sample.ts",
+    "search:settings-quality": "node --env-file-if-exists=.env --import tsx scripts/settings-quality.ts",
     "users": "WORKER=users node --env-file-if-exists=.env --import tsx src/main.ts",
     "db:generate": "prisma generate",
     "db:up": "docker compose -f docker-compose.dev.yml up -d --wait",

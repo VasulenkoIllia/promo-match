@@ -136,18 +136,18 @@ describe("fact filters on the form", () => {
   });
 
   it("sends them with the other filters", () => {
-    expect(apiFilters({ sources: [], supplierCategories: [], sharedCategories: [], minStock: "", model: "m", facts: { materials: ["glass"] }, isConditionPass: false }, undefined))
+    expect(apiFilters({ sources: [], supplierCategories: [], sharedCategories: [], minStock: "", model: "m", facts: { materials: ["glass"] } }, undefined))
       .toEqual({ materials: ["glass"] });
   });
 });
 
 describe("apiFilters", () => {
   it("leaves out the filters not set, since the API refuses an empty list", () => {
-    expect(apiFilters({ sources: [], supplierCategories: [], sharedCategories: [], minStock: "", model: "m", facts: {}, isConditionPass: false }, undefined)).toEqual({});
+    expect(apiFilters({ sources: [], supplierCategories: [], sharedCategories: [], minStock: "", model: "m", facts: {} }, undefined)).toEqual({});
   });
 
   it("passes the filters that are set", () => {
-    expect(apiFilters({ sources: ["axpol"], supplierCategories: [], sharedCategories: ["drinkware.mugs"], minStock: "5", model: "m", facts: {}, isConditionPass: false }, 5))
+    expect(apiFilters({ sources: ["axpol"], supplierCategories: [], sharedCategories: ["drinkware.mugs"], minStock: "5", model: "m", facts: {} }, 5))
       .toEqual({ sources: ["axpol"], sharedCategories: ["drinkware.mugs"], minStock: 5 });
   });
 });

@@ -4,11 +4,14 @@
 import { CATEGORY_CODE_PATTERN } from "../categories/codes.js";
 import { type ImageInfo, inspectImage } from "../embeddings/image.js";
 import { MATERIAL_CODES } from "../suppliers/materials.js";
-import { CONDITION_PASS, type ConditionPass } from "./condition-pass.js";
+import type { ConditionPass } from "./condition-pass.js";
 import type { Demotion } from "./conditions.js";
 import { SearchInputError } from "./errors.js";
 import { DEFAULT_SEARCH_MODEL, SEARCH_MODEL_NAMES, type SearchModelName } from "./models.js";
 import { LIST_NAMES, type ListName } from "./rank.js";
+import {
+  CODE_DEFAULT_SETTINGS, mergeSettings, type SearchSettings, settingsInput, settingsSchema,
+} from "./settings.js";
 import type { SearchFilters } from "./store.js";
 import type { SearchTuning } from "./tuning.js";
 
@@ -64,10 +67,14 @@ export interface SearchInput {
   // DEFAULT_CATEGORY_LIFT. For the independent test.
   categoryLift?: number | null;
   // The lists again over the models that fit what the query asks (src/search/condition-pass.ts): CONDITION_PASS from the
-  // screen's switch (conditionPass true in the body), the independent test's own settings, or off (undefined, null)
+  // setting isConditionPass, the independent test's own settings, or off (undefined, null)
   conditionPass?: ConditionPass | null;
   // What a run of the independent test tries on the ranking (src/search/tuning.ts); off by default
   tuning?: Partial<SearchTuning>;
+  // A list's weight in the fusion (src/search/rank.ts, fuseLists), 1 when left out; from the search settings
+  listWeights?: Partial<Record<ListName, number>>;
+  // The lists the search settings turn off: never read nor paid for, whatever the inputs allow
+  offLists?: ListName[];
 }
 
 export const searchBodySchema = {
@@ -80,8 +87,11 @@ export const searchBodySchema = {
     model: { type: "string", enum: SEARCH_MODEL_NAMES },
     limit: { type: "integer", minimum: 1, maximum: MAX_LIMIT },
     parseQuery: { type: "boolean" },
-    // The second pass over the models whose catalogue confirms what the query asks; off when left out
+    // The second pass over the models whose catalogue confirms what the query asks. Both flags are the settings
+    // isParseQuery and isConditionPass under their names of before the settings; left out, the defaults hold.
     conditionPass: { type: "boolean" },
+    // Some of the search settings for this search alone (src/search/settings.ts); the rest are the defaults
+    settings: settingsSchema,
     filters: {
       type: "object",
       additionalProperties: false,
@@ -137,6 +147,7 @@ export interface SearchBody {
   limit?: number;
   parseQuery?: boolean;
   conditionPass?: boolean;
+  settings?: Partial<SearchSettings>;
   filters?: SearchFilters;
 }
 
@@ -179,14 +190,37 @@ export function searchInput(input: Omit<SearchInput, "model" | "limit" | "parseQ
   return result;
 }
 
-export function parseSearchBody(body: SearchBody): SearchInput {
+// The lists the search reads: every list the inputs allow but those the settings turn off. A query whose every list is
+// off is refused before anything is paid for, unless a code in it found its model (codes, the lists' input without them).
+export function searchedLists(input: Pick<SearchInput, "text" | "image" | "lists" | "offLists">, hasCodeHits: boolean): ListName[] {
+  const allowed = listsFor(input);
+  const lists = allowed.filter((name) => !input.offLists?.includes(name));
+  if (allowed.length && !lists.length && !hasCodeHits) {
+    throw new SearchInputError(`the search settings turn off every list of this query: ${allowed.join(", ")}`);
+  }
+  return lists;
+}
+
+// The settings of one search: the defaults, then the two flags of before the settings, then the body's settings. A flag
+// and a setting of it that disagree are refused rather than one of them dropped.
+export function searchSettingsOf(body: Pick<SearchBody, "parseQuery" | "conditionPass" | "settings">,
+  defaults: SearchSettings): SearchSettings {
+  const flags: Partial<SearchSettings> = { isParseQuery: body.parseQuery, isConditionPass: body.conditionPass };
+  const asked = body.settings ?? {};
+  const twice = (["isParseQuery", "isConditionPass"] as const)
+    .filter((key) => flags[key] !== undefined && asked[key] !== undefined && flags[key] !== asked[key]);
+  if (twice.length) throw new SearchInputError(`given twice with two values: ${twice.join(", ")}`);
+  return mergeSettings(defaults, flags, asked);
+}
+
+// settings: the search's own, the route's searchSettingsOf over the admin's defaults; left out, the body's over the code's
+export function parseSearchBody(body: SearchBody, settings = searchSettingsOf(body, CODE_DEFAULT_SETTINGS)): SearchInput {
   return searchInput({
     text: body.text,
     image: body.image === undefined ? undefined : queryImage(decodeBase64(body.image)),
     model: body.model,
     limit: body.limit,
-    parseQuery: body.parseQuery,
-    conditionPass: body.conditionPass ? CONDITION_PASS : null,
+    ...settingsInput(settings),
     filters: body.filters ?? {},
   });
 }

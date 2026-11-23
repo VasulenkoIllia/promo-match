@@ -25,7 +25,7 @@ import { ModelNotConfigured, SearchInputError, SearchTimedOut } from "./errors.j
 import { correctHubs, type Hubness } from "./hubness.js";
 import { type QueryParse, type QueryParser, readingUsd } from "./query-parse.js";
 import type { ColorGroup, Conditions } from "./query-parse-contract.js";
-import { listsFor, type QueryImage, type SearchInput } from "./request.js";
+import { type QueryImage, type SearchInput, searchedLists } from "./request.js";
 import { assembleResults, type SearchResult } from "./results.js";
 import {
   type CandidateQuery, countCandidates, EXACT_MAX_ROWS, type FilterOptions, type FreshRuns, type ListKind, type ListScan,
@@ -348,13 +348,13 @@ interface ProductRanking {
 
 // The lists side by side, so the search waits for the slowest of them rather than for their sum. Deep: the ranking keeps
 // every model the lists found, so whatever falls for a condition leaves its place to one from below the limit.
-async function readRanking(db: PrismaClient, queries: ListQuery[], limit: number, isDeep: boolean,
-  hubness: Hubness | undefined): Promise<ProductRanking> {
+async function readRanking(db: PrismaClient, queries: ListQuery[], { limit, listWeights }: Pick<SearchInput, "limit" | "listWeights">,
+  isDeep: boolean, hubness: Hubness | undefined): Promise<ProductRanking> {
   const read = await Promise.all(queries.map(async (each) => ({ name: each.name, ...await readList(db, each) })));
   const ranked: Partial<Record<ListName, ListEntry[]>> = Object.fromEntries(read.map((list) =>
     [list.name, hubness ? correctHubs(list.name, list.entries, hubness) : list.entries]));
   const isComplete = read.every((list) => list.isComplete);
-  return { fused: fuseLists(ranked, isDeep ? Number.POSITIVE_INFINITY : limit), isComplete };
+  return { fused: fuseLists(ranked, isDeep ? Number.POSITIVE_INFINITY : limit, listWeights), isComplete };
 }
 
 // One read for the models of every product; each ranking ends cut to the limit
@@ -455,7 +455,7 @@ export function createSearchService(db: PrismaClient, embedder: QueryEmbedder, p
       const [freshRuns, filters] = await Promise.all([readFreshRuns(db), resolveFilters(db, input.filters)]);
       const { text, hits } = await readNamedCodes(db, input, filters, freshRuns);
       const searched: SearchInput = { ...input, text };
-      const inputLists = listsFor(searched);
+      const inputLists = searchedLists(searched, hits.length > 0);
       const isVariant = textVariant !== undefined && TEXT_VARIANTS[textVariant].model === input.model;
       const candidates: CandidateQuery = { model: input.model, ...(isVariant ? { textVariant } : {}), filters, freshRuns };
       // The candidates are counted while the query is read and embedded; codes alone leave nothing to read
@@ -477,7 +477,7 @@ export function createSearchService(db: PrismaClient, embedder: QueryEmbedder, p
         ? passConditions(conditions[index] ?? NO_CONDITIONS, pass, filters) : null));
       const rankings = await Promise.all(vectorSets.map((vectors, index) => readRanking(db,
         nearestQueries(index ? lists.filter((name) => name.startsWith("text-")) : lists, vectors, candidates, LIST_ROWS, scans),
-        input.limit, lift > 1 || isDemoting(conditions[index] ?? NO_CONDITIONS, demotion) || Boolean(passAsked[index]) || hasTraits,
+        input, lift > 1 || isDemoting(conditions[index] ?? NO_CONDITIONS, demotion) || Boolean(passAsked[index]) || hasTraits,
         hubness?.model === input.model ? hubness : undefined)));
       const lifted = lift > 1 ? await Promise.all(rankings.map((ranking) => liftNamedCategories(db, ranking, liftCodes, lift))) : rankings;
       const voted = await Promise.all(lifted.map(async (ranking, index) => {

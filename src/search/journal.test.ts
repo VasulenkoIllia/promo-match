@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createSearchJournal, journalEntry, type JournalEntry, journalFailure, MAX_JOURNAL_PHOTO_BYTES } from "./journal.js";
 import { searchInput } from "./request.js";
+import { CODE_DEFAULT_SETTINGS } from "./settings.js";
 import type { SearchResult } from "./results.js";
 import type { SearchResponse } from "./search.js";
 
@@ -30,6 +31,9 @@ const response: SearchResponse = {
   tookMs: 812, costUsd: 0.0004, results: [result(1, 7, 90, 2), result(2, 3, null, 0)],
 };
 
+// Not the defaults: the entry keeps what the search ran with
+const settings = { ...CODE_DEFAULT_SETTINGS, photoOrder: "photo-heavier", colorLift: "off" } as const;
+
 const jpeg = (bytes: number) => Buffer.alloc(bytes, 7);
 const image = (bytes: number) => ({ bytes: jpeg(bytes), info: { mimeType: "image/jpeg", width: 640, height: 480 } as const });
 
@@ -38,11 +42,11 @@ describe("journalEntry", () => {
     const input = searchInput({
       text: "  червона   чашка ", image: image(2_000), filters: { sources: ["axpol"], minStock: 10 }, limit: 100, conditionPass: null,
     });
-    const entry = journalEntry(SEARCH_ID, 4, input, response);
+    const entry = journalEntry(SEARCH_ID, 4, input, response, settings);
     expect(entry).toEqual({
       searchId: SEARCH_ID, userId: 4, queryText: "червона чашка", queryParse, hasPhoto: true, photo: jpeg(2_000),
       photoSizeBytes: 2_000, embeddingModel: "gemini-embedding-2/1536", filters: { sources: ["axpol"], minStock: 10 },
-      resultLimit: 100, isParseQuery: true, isConditionPass: false,
+      resultLimit: 100, isParseQuery: true, isConditionPass: false, settings,
       results: [{ modelId: 7, rank: 1, confidencePercent: 90, photos: 2 }, { modelId: 3, rank: 2, confidencePercent: null, photos: 0 }],
       tookMs: 812,
     } satisfies JournalEntry);
@@ -50,7 +54,7 @@ describe("journalEntry", () => {
 
   it("keeps no purchase price, variant or link of a result", () => {
     const input = searchInput({ text: "mug", filters: {} });
-    const kept = JSON.stringify(journalEntry(SEARCH_ID, 4, input, response));
+    const kept = JSON.stringify(journalEntry(SEARCH_ID, 4, input, response, settings));
     expect(kept).not.toContain(PRICE);
     expect(kept).not.toContain("variants");
     expect(kept).not.toContain("https://");
@@ -58,22 +62,22 @@ describe("journalEntry", () => {
 
   it("keeps a search by photo alone without a text, and of a photo over the bound only its size", () => {
     const input = searchInput({ image: image(MAX_JOURNAL_PHOTO_BYTES + 1), filters: {} });
-    const entry = journalEntry(SEARCH_ID, 4, input, { ...response, queryParse: null });
+    const entry = journalEntry(SEARCH_ID, 4, input, { ...response, queryParse: null }, settings);
     expect(entry).toMatchObject({
       queryText: null, queryParse: null, hasPhoto: true, photo: null, photoSizeBytes: MAX_JOURNAL_PHOTO_BYTES + 1,
     });
   });
 
   it("keeps a photo of exactly the bound, and says a text alone had none", () => {
-    const atBound = journalEntry(SEARCH_ID, 4, searchInput({ image: image(MAX_JOURNAL_PHOTO_BYTES), filters: {} }), response);
+    const atBound = journalEntry(SEARCH_ID, 4, searchInput({ image: image(MAX_JOURNAL_PHOTO_BYTES), filters: {} }), response, settings);
     expect(atBound.photo?.length).toBe(MAX_JOURNAL_PHOTO_BYTES);
-    const textAlone = journalEntry(SEARCH_ID, 4, searchInput({ text: "mug", filters: {} }), response);
+    const textAlone = journalEntry(SEARCH_ID, 4, searchInput({ text: "mug", filters: {} }), response, settings);
     expect(textAlone).toMatchObject({ hasPhoto: false, photo: null, photoSizeBytes: null });
   });
 });
 
 describe("createSearchJournal", () => {
-  const entry = journalEntry(SEARCH_ID, 4, searchInput({ text: "mug", filters: {} }), response);
+  const entry = journalEntry(SEARCH_ID, 4, searchInput({ text: "mug", filters: {} }), response, settings);
 
   it("writes the entry and waits for the writes still going before it settles", async () => {
     const written: JournalEntry[] = [];

@@ -4,6 +4,7 @@ import { countChoices, DEFAULT_RESULT_COUNT, type SharedCategoryEntry } from "./
 import type { Photo } from "./PhotoInput";
 import { QueryParseNote } from "./QueryParseNote";
 import { Results } from "./Results";
+import { settingsText } from "./settings-text";
 import { type ErrorText, text } from "./text";
 import type { OwnProducts } from "./useOwnProducts";
 
@@ -92,6 +93,9 @@ export function SearchView({ state, categories, query, photo, onApplyCategory, o
               onApplyFact={onApplyFact}
             />
           )}
+          {shown.response.settings && shown.response.changedSettings?.length ? (
+            <p className="note quiet">{settingsText.changedNote(shown.response.changedSettings, shown.response.settings)}</p>
+          ) : null}
           {!shown.response.isComplete && <p className="note warn">{text.results.incomplete}</p>}
           {shown.response.hasCloseMatch === false && <p className="note warn">{text.results.noCloseMatch}</p>}
           {own.hasMarksFailed && <p className="note warn">{text.own.marksFailed}</p>}

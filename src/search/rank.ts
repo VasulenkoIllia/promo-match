@@ -111,17 +111,20 @@ export function sortFused(models: FusedModel[]): FusedModel[] {
       || tieOrder(left.modelId) - tieOrder(right.modelId));
 }
 
-// The fused ranking. Matched photos: those of the reference photo first, then those of the text, each picture once.
-export function fuseLists(lists: Partial<Record<ListName, ListEntry[]>>, limit: number): FusedModel[] {
+// The fused ranking. Matched photos: those of the reference photo first, then those of the text, each picture once. A
+// list's rank counts its weight (src/search/settings.ts, «Порядок, коли є фото»), 1 when left out.
+export function fuseLists(lists: Partial<Record<ListName, ListEntry[]>>, limit: number,
+  weights: Partial<Record<ListName, number>> = {}): FusedModel[] {
   const fused = new Map<number, FusedModel>();
   for (const name of LIST_NAMES) {
+    const weight = weights[name] ?? 1;
     for (const entry of lists[name] ?? []) {
       let model = fused.get(entry.modelId);
       if (!model) {
         model = { modelId: entry.modelId, score: 0, lists: {}, photos: [] };
         fused.set(entry.modelId, model);
       }
-      model.score += 1 / (RRF_K + entry.rank);
+      model.score += weight / (RRF_K + entry.rank);
       model.lists[name] = { rank: entry.rank, similarity: entry.similarity };
       for (const photo of entry.photos) addPhoto(model.photos, photo);
     }

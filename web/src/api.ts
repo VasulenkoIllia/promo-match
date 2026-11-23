@@ -3,6 +3,7 @@
 // «Логін»; the users API is users-api.ts): the shapes the UI reads, copied from src/search/search.ts, results.ts, query-parse.ts, store.ts,
 // src/grades/request.ts and src/own-products/store.ts rather than imported, since those modules load Node's types.
 // Fields the UI does not show are left out.
+import type { SearchSettings, SettingKey } from "./search-settings";
 
 interface CategoryName {
   uk: string;
@@ -75,8 +76,8 @@ export interface SearchBody {
   // A data URL of a JPEG
   image?: string;
   model: string;
-  // The second pass over the models whose catalogue confirms what the query asks; false ranks by the vectors alone
-  conditionPass: boolean;
+  // The settings a user changed for this search (search-settings.ts); left out, the server's defaults hold
+  settings?: Partial<SearchSettings>;
   filters: SearchFilters;
   limit: number;
 }
@@ -186,6 +187,10 @@ export interface SearchResponse {
   // What this search paid at list prices, an estimate
   costUsd: number;
   results: SearchResult[];
+  // The settings it ran with, and those that differed from the defaults; absent from a server of before the settings,
+  // which may still answer while a deploy runs both copies
+  settings?: SearchSettings;
+  changedSettings?: SettingKey[];
 }
 
 export type Grade = "exact" | "suitable" | "wrong";

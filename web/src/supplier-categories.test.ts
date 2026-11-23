@@ -5,7 +5,7 @@ import { pathKey, supplierCategoriesOf, supplierCategoryTree, withSources } from
 
 function form(overrides: Partial<FilterState> = {}): FilterState {
   return {
-    sources: [], supplierCategories: [], sharedCategories: [], minStock: "", model: "m", facts: {}, isConditionPass: false,
+    sources: [], supplierCategories: [], sharedCategories: [], minStock: "", model: "m", facts: {},
     ...overrides,
   };
 }

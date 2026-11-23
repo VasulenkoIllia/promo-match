@@ -101,8 +101,6 @@ export interface FilterState {
   minStock: string;
   model: string;
   facts: FactFilters;
-  // The switch of the second pass over the catalogue's facts; off by default
-  isConditionPass: boolean;
 }
 
 // The minimum stock field: empty is no filter; anything but a whole number from 1 to the API's bound is invalid

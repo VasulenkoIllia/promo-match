@@ -110,6 +110,12 @@ describe("measuredQuery", () => {
     expect(measuredQuery(model, "mug", textLists, null, null).isRead).toBe(false);
   });
 
+  it("does not take a text searched without the text-to-text list, which a search setting turns off", () => {
+    expect(measuredQuery(model, "mug", ["text-photo"], read, true).isRead).toBe(false);
+    expect(measuredQuery(model, "mug", ["image-photo", "image-text", "text-photo"], read, true).isRead).toBe(false);
+    expect(confidenceOf(found(0.8), measuredQuery(model, "mug", ["text-photo"], read, true))).toBeNull();
+  });
+
   it("needs no reading for a photo alone, nor for a text that only named a category beside it", () => {
     const photoLists: ListName[] = ["image-photo", "image-text"];
     expect(measuredQuery(model, undefined, photoLists, null, null)).toEqual({ model, isRead: true, isByText: false, isLong: false, hasCloseMatch: null });

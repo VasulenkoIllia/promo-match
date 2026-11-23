@@ -226,6 +226,7 @@ export const text = {
     own: (count: number | null) => (count === null ? "Свої товари" : `Свої товари (${formatNumber(count)})`),
     suppliers: "Постачальники",
     users: "Користувачі",
+    searchSettings: "Налаштування пошуку",
   },
   own: {
     heading: "Свої товари",
@@ -297,8 +298,6 @@ export const text = {
     minStockHint: "Хоч один варіант має стільки на складі.",
     minStockInvalid: `Мінімальний залишок: ціле число від 1 до ${formatNumber(MAX_MIN_STOCK)}.`,
     minStockNoData: (names: string[]) => `Без даних про залишок: ${names.join(", ")}. З цим фільтром їхніх товарів не буде.`,
-    conditionPass: "Піднімати товари, де каталог підтверджує умови запиту",
-    conditionPassHint: "Об'єм, розмір, техніка друку й аркуші з опису. Каталоги постачальників кажуть про це неоднаково повно, тому без позначки порядок лише за схожістю, однаковий для всіх постачальників.",
     model: "Модель ембедінгів",
     modelDefault: "за замовчуванням",
     modelNoKey: "немає ключа",

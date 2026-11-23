@@ -7,6 +7,7 @@
 import type { QueryParse } from "./query-parse.js";
 import type { SearchInput } from "./request.js";
 import type { SearchResponse } from "./search.js";
+import type { SearchSettings } from "./settings.js";
 import type { SearchFilters } from "./store.js";
 
 // The screen's photo is a JPEG of up to 1024 px (web/src/image.ts), a few hundred kilobytes; of a larger one, which did
@@ -35,6 +36,8 @@ export interface JournalEntry {
   resultLimit: number;
   isParseQuery: boolean;
   isConditionPass: boolean;
+  // Every search setting it ran with (src/search/settings.ts): what the report of quality by variant groups by
+  settings: SearchSettings;
   results: JournalResult[];
   tookMs: number;
 }
@@ -49,7 +52,8 @@ export interface SearchJournal {
   settle(): Promise<void>;
 }
 
-export function journalEntry(searchId: string, userId: number, input: SearchInput, response: SearchResponse): JournalEntry {
+export function journalEntry(searchId: string, userId: number, input: SearchInput, response: SearchResponse,
+  settings: SearchSettings): JournalEntry {
   const photo = input.image?.bytes;
   return {
     searchId,
@@ -64,6 +68,7 @@ export function journalEntry(searchId: string, userId: number, input: SearchInpu
     resultLimit: input.limit,
     isParseQuery: input.parseQuery,
     isConditionPass: Boolean(input.conditionPass),
+    settings,
     results: response.results.map((result) => ({
       modelId: result.modelId, rank: result.rank, confidencePercent: result.confidence?.percent ?? null, photos: result.photos.length,
     })),

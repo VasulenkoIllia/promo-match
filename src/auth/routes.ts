@@ -3,8 +3,8 @@
 //   POST /api/auth/logout  ends the session, clears the cookie
 //   GET  /api/auth/me      { login, role } of this session, 401 without one
 // Every other API route lives in the signed-in scope of src/app.ts, whose hook is requireUser: a route added there is
-// closed by being there, not by a path check, which a URL spelt another way (/%61pi/search) would pass. The users API
-// lives in a scope inside it, whose hook is requireAdmin. The pages of the one-time links are src/auth/admin-routes.ts.
+// closed by being there, not by a path check, which a URL spelt another way (/%61pi/search) would pass. The users API and
+// the admin's search settings live in a scope inside it, whose hook is requireAdmin. The pages of the one-time links are src/auth/admin-routes.ts.
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { attemptAddress } from "./client-ip.js";
 import { canManageUsers } from "./invite.js";

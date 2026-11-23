@@ -1,0 +1,70 @@
+/* The search settings (SettingsFields.tsx): the admin's screen and the block of the search screen */
+
+.settings-fields {
+  display: grid;
+  gap: 12px;
+}
+
+.setting {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.setting legend {
+  margin-bottom: 4px;
+  padding: 0;
+  font-weight: 600;
+}
+
+.setting-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+.setting-mark {
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--border);
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.settings-block summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.settings-block[open] summary {
+  margin-bottom: 8px;
+}
+
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* As button:disabled (index.css): aria-disabled keeps the button in the focus order */
+.settings-actions button[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.settings-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px 24px;
+}
+
+.settings-page .settings-fields {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+}

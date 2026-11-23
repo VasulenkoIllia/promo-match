@@ -15,6 +15,7 @@ import { journalWriter, pruneSearchJournal, scheduleJournalPrune } from "./searc
 import { type QueryParser, queryParserFromEnv } from "./search/query-parse.js";
 import { postgresReadings } from "./search/query-readings.js";
 import { createSearchService, dailyBudgetFromEnv, QueryEmbedder, type SearchService } from "./search/search.js";
+import { createSearchSettingsService } from "./search/settings-store.js";
 import { ArchiveReader } from "./suppliers/macma/archive.js";
 import { createSuppliersService } from "./suppliers/overview.js";
 import { MakitoSession } from "./suppliers/makito/api.js";
@@ -55,6 +56,7 @@ export async function startServer(): Promise<void> {
     search: searchService(prisma, parser),
     searchRatePerMinute: config.searchRatePerMinute,
     searchJournal,
+    searchSettings: createSearchSettingsService(prisma),
     ownProducts: createOwnProductsService(prisma),
     grades: createGradesService(prisma),
     suppliers: createSuppliersService(prisma),

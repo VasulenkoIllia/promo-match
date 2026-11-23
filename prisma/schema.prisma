@@ -462,6 +462,7 @@ model AppUser {
   sessions       UserSession[]
   grades         ResultGrade[]
   searches       SearchJournal[]
+  searchSettings SearchSetting[]
   createdInvites UserInvite[]    @relation("InviteCreatedBy")
   invites        UserInvite[]    @relation("InviteUser")
 
@@ -554,6 +555,9 @@ model SearchJournal {
   resultLimit     Int      @map("result_limit")
   isParseQuery    Boolean  @map("is_parse_query")
   isConditionPass Boolean  @map("is_condition_pass")
+  // The search settings it ran with, every one of them (src/search/settings.ts); null: a search of before the settings.
+  // CHECK of migration search_settings: an object.
+  settings        Json?
   // [{ modelId, rank, confidencePercent, photos }] as the answer gave them, best first (src/search/journal.ts)
   results         Json     @default("[]")
   tookMs          Int      @map("took_ms")
@@ -564,6 +568,24 @@ model SearchJournal {
   // The pruning's range
   @@index([createdAt])
   @@map("search_journal")
+}
+
+// The search settings the admin saved for everyone (docs/integrations.md, «Налаштування пошуку»;
+// src/search/settings-store.ts): one row, id 1; without it the code's defaults hold. CHECK constraints of migration
+// search_settings, which Prisma does not model: the one row, the settings an object.
+model SearchSetting {
+  id          Int      @id @default(1) @db.SmallInt
+  // Every setting as the admin saved it (src/search/settings.ts); a key a later release does not know is skipped
+  settings    Json     @default("{}")
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz
+  // Who saved them. The first save creates the row with its author, so no row lacks one today; the column stays
+  // nullable as the migration made it
+  updatedById Int?     @map("updated_by_id")
+
+  updatedBy AppUser? @relation(fields: [updatedById], references: [id], onDelete: Restrict)
+
+  @@index([updatedById])
+  @@map("search_settings")
 }
 
 // A signed-in browser. Signing out deletes its row, a new password or a disabled user all of theirs.

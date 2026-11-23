@@ -27,7 +27,7 @@ export const PRUNE_FIRST_AFTER_MS = 60_000;
 export const PRUNE_EVERY_MS = 6 * 60 * 60 * 1000;
 
 export function journalWriter(db: PrismaClient): JournalWrite {
-  return async ({ photo, results, ...entry }) => {
+  return async ({ photo, results, settings, ...entry }) => {
     // Postgres text and jsonb refuse NUL and a lone surrogate, which no screen sends: they are cut from the strings
     // (src/import/write.ts, jsonParam) rather than the row lost
     const [queryText, queryParse, filters] = JSON.parse(jsonParam([entry.queryText, entry.queryParse, entry.filters])) as
@@ -40,6 +40,8 @@ export function journalWriter(db: PrismaClient): JournalWrite {
         photo: photo && new Uint8Array(photo),
         queryParse: queryParse === null ? Prisma.DbNull : queryParse as unknown as Prisma.InputJsonObject,
         filters: filters as Prisma.InputJsonObject,
+        // Names and levels of src/search/settings.ts only: no text, nothing to cut
+        settings: settings as unknown as Prisma.InputJsonObject,
         results: results as unknown as Prisma.InputJsonArray,
       },
       select: { searchId: true },
