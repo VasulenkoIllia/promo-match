@@ -18,6 +18,8 @@ const BLUECOLLECTION_FEEDS: Feed[] = [
   { name: "products-index", url: feedUrl(BLUECOLLECTION_BASE, "/api/products-index/"), isRequired: true },
   // The same products with the purchase price of the account
   { name: "client-products", url: feedUrl(BLUECOLLECTION_BASE, "/api/client-products/"), isRequired: false },
+  // The current promotions with their prices in EUR: the import stops without them (owner's decision 2026-11-23)
+  { name: "promo-prices", url: feedUrl(BLUECOLLECTION_BASE, "/api/promo-prices/"), isRequired: true },
   { name: "stock-info", url: feedUrl(BLUECOLLECTION_BASE, "/api/stock-info/"), isRequired: true },
   { name: "marking-data", url: feedUrl(BLUECOLLECTION_BASE, "/api/marking-data/"), isRequired: false },
   { name: "last-update", url: feedUrl(BLUECOLLECTION_BASE, "/api/last-update/"), isRequired: false },

@@ -5,7 +5,8 @@ import type { Photo } from "./PhotoInput";
 import { QueryParseNote } from "./QueryParseNote";
 import { Results } from "./Results";
 import { settingsText } from "./settings-text";
-import { type ErrorText, text } from "./text";
+import { colorOrder, DEFAULT_ORDER, isResultOrder, PLAIN_ORDERS, type ResultOrder } from "./sort";
+import { colorGroupNames, type ErrorText, text } from "./text";
 import type { OwnProducts } from "./useOwnProducts";
 
 const NO_RESULTS: SearchResult[] = [];
@@ -52,9 +53,27 @@ interface SearchViewProps {
   own: OwnProducts;
 }
 
+// The order of the models shown (sort.ts): it sorts what the count shows, not all a search found
+function OrderPicker({ value, onChange }: { value: ResultOrder; onChange: (order: ResultOrder) => void }) {
+  return (
+    <label className="result-count">
+      {text.results.order}
+      <select value={value} onChange={(event) => isResultOrder(event.target.value) && onChange(event.target.value)}>
+        {PLAIN_ORDERS.map((order) => <option key={order} value={order}>{text.results.orders[order]}</option>)}
+        <optgroup label={text.results.colorGroup}>
+          {colorGroupNames().map(([group, name]) => (
+            <option key={group} value={colorOrder(group)}>{text.results.colorFirst(name)}</option>
+          ))}
+        </optgroup>
+      </select>
+    </label>
+  );
+}
+
 export function SearchView({ state, categories, query, photo, onApplyCategory, onApplyFact, own }: SearchViewProps) {
-  // Stays from one search to the next: a manager picks it once
+  // Both stay from one search to the next: a manager picks them once
   const [count, setCount] = useState(DEFAULT_RESULT_COUNT);
+  const [order, setOrder] = useState<ResultOrder>(DEFAULT_ORDER);
   const shown = state.kind === "done" ? state.shown : state.kind === "pending" ? state.previous : null;
   const found = shown ? shown.response.results : NO_RESULTS;
   const choices = countChoices(found.length);
@@ -69,14 +88,17 @@ export function SearchView({ state, categories, query, photo, onApplyCategory, o
     <div className={isPending ? "is-pending" : undefined}>
       <div className="results-head">
         <p className="summary" role="status">{summary}</p>
-        {choices.length > 1 && (
-          <label className="result-count">
-            {text.results.count}
-            <select value={visibleCount} onChange={(event) => setCount(Number(event.target.value))}>
-              {choices.map((choice) => <option key={choice} value={choice}>{choice}</option>)}
-            </select>
-          </label>
-        )}
+        <div className="results-controls">
+          {found.length > 1 && <OrderPicker value={order} onChange={setOrder} />}
+          {choices.length > 1 && (
+            <label className="result-count">
+              {text.results.count}
+              <select value={visibleCount} onChange={(event) => setCount(Number(event.target.value))}>
+                {choices.map((choice) => <option key={choice} value={choice}>{choice}</option>)}
+              </select>
+            </label>
+          )}
+        </div>
       </div>
       {shown && (
         <>
@@ -105,7 +127,7 @@ export function SearchView({ state, categories, query, photo, onApplyCategory, o
               {shown.photo && ` ${text.results.confidenceNotePhoto}`}
             </p>
           )}
-          <Results key={shown.id} results={found} count={visibleCount} own={own} search={shown} />
+          <Results key={shown.id} results={found} count={visibleCount} order={order} own={own} search={shown} />
         </>
       )}
     </div>

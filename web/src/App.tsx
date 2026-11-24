@@ -15,6 +15,8 @@ import type { SettingsSource } from "./useSettingsAnswer";
 
 // The API's bound for the text (src/search/request.ts)
 const MAX_TEXT_CHARS = 1_000;
+// What a browser gives as the key code of a key an input method takes
+const IME_KEY_CODE = 229;
 const EMPTY_FILTERS: FilterState = {
   sources: [], supplierCategories: [], sharedCategories: [], minStock: "", model: "", facts: {},
 };
@@ -80,6 +82,7 @@ export function App({ own, settingsSource }: { own: OwnProducts; settingsSource:
   const isSearching = useRef(false);
   const searchCount = useRef(0);
   const queryId = useId();
+  const queryHintId = useId();
   const resultsHeadingId = useId();
 
   useEffect(() => {
@@ -131,10 +134,13 @@ export function App({ own, settingsSource }: { own: OwnProducts; settingsSource:
     void runSearch(filters);
   };
 
+  // Enter searches and Shift+Enter starts a new line (managers' test, 2026-11-23). A held Enter searches once. A key that
+  // ends an IME composition is no search: Safari ends it before that keydown, which then says only keyCode 229
   const onQueryKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+    const isComposing = event.nativeEvent.isComposing || event.keyCode === IME_KEY_CODE;
+    if (event.key === "Enter" && !event.shiftKey && !isComposing) {
       event.preventDefault();
-      event.currentTarget.form?.requestSubmit();
+      if (!event.repeat) event.currentTarget.form?.requestSubmit();
     }
   };
 
@@ -179,8 +185,9 @@ export function App({ own, settingsSource }: { own: OwnProducts; settingsSource:
               setFormError(null);
             }}
             onKeyDown={onQueryKeyDown}
+            aria-describedby={queryHintId}
           />
-          <p className="hint">{text.query.hint}</p>
+          <p id={queryHintId} className="hint">{text.query.hint}</p>
         </div>
         {optionsState.kind === "loading" && <p className="hint">{text.options.loading}</p>}
         {optionsState.kind === "error" && (

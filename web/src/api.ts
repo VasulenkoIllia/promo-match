@@ -119,6 +119,9 @@ interface ResultPhoto {
 export interface ResultVariant {
   sku: string;
   color: string | null;
+  // The colour's plain groups (black, blue...) by the search's own rule (src/search/colors.ts); empty for a name the
+  // rule does not know
+  colorGroups: string[];
   size: string | null;
   // null: the supplier gave no stock, or the last import did not see it
   inStock: number | null;

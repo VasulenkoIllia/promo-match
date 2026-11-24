@@ -213,11 +213,18 @@ fieldset.panel-block legend,
   margin: 0 0 12px;
 }
 
+.results-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
 .result-count {
   display: flex;
   align-items: baseline;
   gap: 8px;
   color: var(--muted);
+  white-space: nowrap;
 }
 
 .is-pending .grid,

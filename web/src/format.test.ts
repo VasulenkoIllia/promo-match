@@ -6,7 +6,7 @@ import {
 } from "./format";
 
 function variant(overrides: Partial<ResultVariant>): ResultVariant {
-  return { sku: "S1", color: null, size: null, inStock: null, nextArrival: null, price: null, offer: null, ...overrides };
+  return { sku: "S1", color: null, colorGroups: [], size: null, inStock: null, nextArrival: null, price: null, offer: null, ...overrides };
 }
 
 describe("countChoices", () => {

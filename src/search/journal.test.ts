@@ -17,7 +17,7 @@ const result = (rank: number, modelId: number, percent: number | null, photos: n
     id: index + 1, url: `https://cdn.test/${modelId}-${index}.jpg`, urlLarge: null, similarity: 0.9, skus: [`V${modelId}-05`],
   })),
   variants: [{
-    sku: `V${modelId}-05`, color: "red", size: null, inStock: 120, nextArrival: null,
+    sku: `V${modelId}-05`, color: "red", colorGroups: ["red"], size: null, inStock: 120, nextArrival: null,
     price: { amount: PRICE, currency: "EUR", minQuantity: 1 }, offer: null,
   }],
 });

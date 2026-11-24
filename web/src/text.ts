@@ -107,6 +107,11 @@ export function colorName(group: string): string {
   return COLOR_NAMES[group] ?? group;
 }
 
+// [group, name] of every colour group, in the parse's order
+export function colorGroupNames(): [string, string][] {
+  return Object.entries(COLOR_NAMES);
+}
+
 export function linkTypeName(type: LinkType): string {
   return LINK_TYPE_NAMES[type];
 }
@@ -277,7 +282,7 @@ export const text = {
   query: {
     heading: "Опис",
     placeholder: "Наприклад: червона керамічна чашка з логотипом",
-    hint: "Будь-якою мовою. Ctrl+Enter запускає пошук.",
+    hint: "Будь-якою мовою. Enter запускає пошук, Shift+Enter переносить рядок.",
   },
   filters: {
     sources: "Постачальники",
@@ -340,6 +345,15 @@ export const text = {
     summary: (count: number, tookMs: number, model: string, costUsd: number) =>
       `${plural(count, { one: "модель", few: "моделі", many: "моделей" })} за ${seconds.format(tookMs / SECONDS_IN_MS)} с, ${model}, ${costText(costUsd)}.`,
     count: "Показати",
+    order: "Порядок показаних",
+    orders: {
+      relevance: "за схожістю",
+      "price-asc": "ціна: від дешевших",
+      "price-desc": "ціна: від дорожчих",
+      "stock-desc": "залишок: від більшого",
+    },
+    colorGroup: "Колір",
+    colorFirst: (name: string) => `спершу ${name}`,
     empty: "Нічого не знайшов. Спробуйте прибрати частину фільтрів чи змінити запит.",
     confidence: (percent: number, level: ConfidenceLevel) => `Впевненість ${percent}%, ${CONFIDENCE_WORDS[level]}`,
     confidenceNote: "Впевненість це шанс, що товар саме те, що просили. Це оцінка, а не гарантія: вона спирається на автоматичні перевірки, люди її ще не підтвердили. На порядок видачі вона не впливає.",
@@ -356,6 +370,7 @@ export const text = {
     supplierPage: "На сайті постачальника",
     supplierPageOf: (name: string) => `Відкрити ${name} на сайті постачальника`,
     showPhoto: (index: number) => `Показати фото ${index}`,
+    rankHint: "Місце за схожістю",
     variants: (count: number) => plural(count, { one: "варіант", few: "варіанти", many: "варіантів" }),
     moreColors: (count: number) => `ще ${formatNumber(count)}`,
     noPrice: "ціни немає",

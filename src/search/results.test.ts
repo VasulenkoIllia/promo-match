@@ -40,9 +40,9 @@ describe("assembleResults", () => {
     expect(results[0]?.variants).toEqual([]);
     expect(results[1]?.photos).toEqual([{ id: 10, url: "https://cdn.test/p10.jpg", urlLarge: null, similarity: 0.9, skus: ["M1-05"] }]);
     expect(results[1]?.variants).toEqual([
-      { sku: "M1-05", color: "red", size: null, inStock: 120, nextArrival: { date: "2026-11-10", quantity: 500 },
+      { sku: "M1-05", color: "red", colorGroups: ["red"], size: null, inStock: 120, nextArrival: { date: "2026-11-10", quantity: 500 },
         price: { amount: "2.5000", currency: "PLN", minQuantity: 50 }, offer: "promotion" },
-      { sku: "M1-02", color: "red", size: null, inStock: null, nextArrival: null, price: null, offer: null },
+      { sku: "M1-02", color: "red", colorGroups: ["red"], size: null, inStock: null, nextArrival: null, price: null, offer: null },
     ]);
     expect(results[1]?.category).toEqual(["DRINKWARE", "mugs"]);
   });
@@ -63,15 +63,15 @@ describe("assembleResults", () => {
     )[0]?.pageUrl;
 
     it("is the page of a variant in stock, past one that ran out", () => {
-      expect(pageOf([runOut, variant])).toBe("https://axpol.com/pl/search/m1-05.html");
+      expect(pageOf([runOut, variant])).toBe("https://axpol.com/de/search/m1-05.html");
     });
 
     it("is the page of the variant a code named, in stock or not", () => {
-      expect(pageOf([runOut, variant], "m1-02")).toBe("https://axpol.com/pl/search/m1-02.html");
+      expect(pageOf([runOut, variant], "m1-02")).toBe("https://axpol.com/de/search/m1-02.html");
     });
 
     it("is the first variant's when none is in stock, and none without variants", () => {
-      expect(pageOf([runOut])).toBe("https://axpol.com/pl/search/m1-02.html");
+      expect(pageOf([runOut])).toBe("https://axpol.com/de/search/m1-02.html");
       expect(pageOf([])).toBeNull();
     });
   });

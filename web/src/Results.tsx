@@ -4,6 +4,7 @@ import { askedMatches, gradeBody, photoSrc, variantSummary, withGrade } from "./
 import { ModelLinks } from "./ModelLinks";
 import { ResultGrade } from "./ResultGrade";
 import type { ShownSearch } from "./SearchView";
+import { type ResultOrder, sortResults } from "./sort";
 import { formatNumber, priceSpanText, priceText, text } from "./text";
 import type { OwnProducts } from "./useOwnProducts";
 import "./results.css";
@@ -92,7 +93,9 @@ function ResultCard({ result, own, grade, onGrade }: ResultCardProps) {
         ) : (
           <span className="hint">{text.results.noPhoto}</span>
         )}
-        <span className="rank">{result.rank}</span>
+        <span className="rank" title={text.results.rankHint}>
+          <span className="visually-hidden">{text.results.rankHint}: </span>{result.rank}
+        </span>
       </div>
       {result.photos.length > 1 && (
         <div className="thumbs">
@@ -161,12 +164,14 @@ function ResultCard({ result, own, grade, onGrade }: ResultCardProps) {
 interface ResultsProps {
   results: SearchResult[];
   count: number;
+  // The order of the cards shown, the first count of the results (sort.ts)
+  order: ResultOrder;
   own: OwnProducts;
   search: ShownSearch;
 }
 
 // Memoized: typing in the query panel re-renders the page, not the cards (up to 100 of them)
-export const Results = memo(function Results({ results, count, own, search }: ResultsProps) {
+export const Results = memo(function Results({ results, count, order, own, search }: ResultsProps) {
   // Here rather than in a card: a card a smaller count hides comes back with its grade. A new search draws this anew.
   const [grades, setGrades] = useState<ReadonlyMap<number, Grade>>(new Map());
 
@@ -184,7 +189,7 @@ export const Results = memo(function Results({ results, count, own, search }: Re
   if (!results.length) return <p className="note">{text.results.empty}</p>;
   return (
     <div className="grid">
-      {results.slice(0, count).map((result) => (
+      {sortResults(results.slice(0, count), order).map((result) => (
         <ResultCard
           key={result.modelId}
           result={result}

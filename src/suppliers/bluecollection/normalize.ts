@@ -1,7 +1,10 @@
 // Blue Collection feeds in the shared model (docs/integrations.md, «Blue Collection API (Asgard)»): client-products is
 // one record per index (a model in one colour) with its prices, stock and marking; the model is the index without the
-// colour after its last "-" (02003-03 is 02003 in colour 03). Categories come by id from two lists of their own.
+// colour after its last "-" (02003-03 is 02003 in colour 03). Categories come by id from two lists of their own, the
+// current promotions with their EUR prices from promo-prices.
+import { lessPercent } from "../axpol/normalize.js";
 import { Checks, compareCodes, hasLeftoverEntity, recordsByKey, requiredRecords, weightInGrams } from "../checks.js";
+import { FeedError } from "../errors.js";
 import { cleanText, isRecord, parseDate, parseDecimal, parseInteger, parseUrl, rawRecords, restOf } from "../normalize.js";
 import type {
   ArrivalInput, Localized, ModelInput, NormalizedCatalog, PhotoInput, PriceInput, StockInput, VariantInput,
@@ -10,7 +13,13 @@ import { bluecollectionPrintTechniques, COLOURS_EN, COUNTRIES } from "./dictiona
 
 // The supplier's language codes as ISO 639-1: cz is Czech
 const LANGUAGES: Readonly<Record<string, string>> = { pl: "pl", en: "en", de: "de", fr: "fr", cz: "cs", it: "it", nl: "nl" };
-const CURRENCY_CODE = /^[A-Z]{3}$/;
+// Prices in EUR whatever the account's currency (owner's decision 2026-11-23): the catalogue price of each index comes in
+// four currencies, and a promotion's price too
+const CURRENCY = "EUR";
+// Our discount on the catalogue price of an index with discount_prices (owner's decision 2026-11-23); the account's
+// discount_percent (40 on 2026-11-23) is not read
+const BLUECOLLECTION_DISCOUNT_PERCENT = 45;
+const PLAIN_DECIMAL = /^\d+(?:\.\d+)?$/;
 // material_en, material_pl...: the additional values that give the material in one language
 const MATERIAL_ITEM = /^material_([a-z]{2})$/;
 const COLOUR_SUFFIX = /^(.+)-[^-]+$/;
@@ -29,6 +38,7 @@ export interface BluecollectionFeeds {
   products: unknown;
   categories: unknown;
   subcategories: unknown;
+  promotions: unknown;
 }
 
 type Row = Record<string, unknown>;
@@ -87,22 +97,61 @@ function volumeOf(additional: Record<string, unknown>): string | null {
   return litres !== null && Number(litres) > 0 ? `${Number(litres)} l` : null;
 }
 
-// The purchase price of the account is primary; the catalogue price of the same currency goes beside it and never
-// stands in for it: the grid would show a retail price beside the purchase prices of the other suppliers
-export function bluecollectionPrices(row: Row, checks: Checks): PriceInput[] {
-  const sku = cleanText(row.index) ?? undefined;
-  const currency = cleanText(row.currency);
-  if (!currency || !CURRENCY_CODE.test(currency)) {
-    checks.add("prices without an ISO currency", sku);
-    return [];
+// The catalogue price in EUR, from prices: [{ pln, eur, chf, czk }]
+function euroCatalogue(row: Row, checks: Checks, sku: string | undefined): string | null {
+  const lists = checks.records(row.prices, "catalogue price lists", sku);
+  if (lists.length > 1) checks.add("variants with more than one catalogue price list", sku);
+  return checks.amount("EUR catalogue prices", lists[0]?.eur, sku);
+}
+
+// The promotion's EUR price for one piece. A promotion that starts at a larger lot (35 of 415 on 2026-11-23, from 100,
+// 250 or 500) leaves the regular price for one piece, as the account's purchase_price does: it is counted, not taken.
+function promotionPrice(promotion: Row, checks: Checks, sku: string | undefined): string | null {
+  const tiers = checks.records(promotion.tiers, "promotion tiers", sku);
+  if (!tiers.length) {
+    checks.add("promotions without tiers", sku);
+    return null;
   }
-  const net = checks.amount("purchase prices", row.purchase_price, sku);
-  const catalog = checks.amount("catalogue prices", row.catalogue_price, sku);
-  const base = { currency, minQuantity: 1, validUntil: null };
-  return [
-    ...(net === null ? [] : [{ ...base, kind: "net" as const, amount: net, isPrimary: true }]),
-    ...(catalog === null ? [] : [{ ...base, kind: "catalog" as const, amount: catalog, isPrimary: false }]),
-  ];
+  const quantities = tiers.map((each) => checks.read("promotion tier quantities", each.from_qty, parseInteger, sku));
+  const tier = tiers[quantities.indexOf(1)];
+  if (!tier) {
+    checks.add("promotions only from more than one piece, the regular price taken", sku);
+    return null;
+  }
+  const amount = checks.amount("promotion EUR prices", tier.eur, sku);
+  if (amount === null) checks.add("promotions without an EUR price, the regular price taken", sku);
+  else if (!PLAIN_DECIMAL.test(amount)) checks.add("promotion EUR prices not in plain digits, the regular price taken", sku);
+  return amount !== null && PLAIN_DECIMAL.test(amount) ? amount : null;
+}
+
+// discount_prices: our discount applies; anything but true or false is counted and read as no discount, the higher price
+function hasDiscount(row: Row, checks: Checks, sku: string | undefined): boolean {
+  if (typeof row.discount_prices !== "boolean") checks.add("discount_prices values other than true or false", sku);
+  return row.discount_prices === true;
+}
+
+// Our net price in EUR is primary (owner's decision 2026-11-23): a current promotion's price for one piece, else the
+// EUR catalogue price less our discount where discount_prices says it applies, else the whole catalogue price (the
+// account's own purchase price of such an index is its catalogue price too). The catalogue price goes beside it. The
+// account's purchase_price and currency are left in the raw record.
+export function bluecollectionPrices(row: Row, promotion: Row | undefined, checks: Checks): PriceInput[] {
+  const sku = cleanText(row.index) ?? undefined;
+  const catalog = euroCatalogue(row, checks, sku);
+  const promo = promotion ? promotionPrice(promotion, checks, sku) : null;
+  if (cleanText(row.price_source) === "promo" && !promotion) checks.add("promo prices without a current promotion", sku);
+  const base = { currency: CURRENCY, minQuantity: 1, validUntil: null };
+  const catalogPrice = catalog === null ? [] : [{ ...base, kind: "catalog" as const, amount: catalog, isPrimary: false }];
+  // A JSON number may read as "1e-7", which lessPercent cannot take; the API gives prices as strings (2026-11-23)
+  if (catalog !== null && !PLAIN_DECIMAL.test(catalog)) checks.add("EUR catalogue prices not in plain digits", sku);
+  const regular = catalog !== null && PLAIN_DECIMAL.test(catalog)
+    ? (hasDiscount(row, checks, sku) ? lessPercent(catalog, BLUECOLLECTION_DISCOUNT_PERCENT) : catalog) : null;
+  if (promo !== null) {
+    // The supplier's own rule is the lowest of the two; ours takes the promotion (owner's decision 2026-11-23)
+    if (regular !== null && Number(promo) > Number(regular)) checks.add("promotions above the regular price, the promotion taken", sku);
+    return [{ ...base, kind: "net", amount: promo, isPrimary: true }, ...catalogPrice];
+  }
+  if (cleanText(row.price_source) === "individual") checks.add("individual prices not read, the rule taken", sku);
+  return regular === null ? catalogPrice : [{ ...base, kind: "net", amount: regular, isPrimary: true }, ...catalogPrice];
 }
 
 export function bluecollectionStock(row: Row, checks: Checks): StockInput | null {
@@ -150,7 +199,8 @@ function colourOf(additional: Record<string, unknown>, checks: Checks): Localize
   return english ? { en: english, pl: polish } : { pl: polish };
 }
 
-function variantOf(sku: string, row: Row, photos: Map<string, PhotoInput>, checks: Checks): VariantInput {
+function variantOf(sku: string, row: Row, photos: Map<string, PhotoInput>, promotions: Map<string, Row>,
+  checks: Checks): VariantInput {
   const urls = checks.records(row.image, "photos", sku).flatMap((image) => {
     const url = parseUrl(image.url);
     if (!url) checks.add("photo links that are not https URLs", sku);
@@ -166,7 +216,7 @@ function variantOf(sku: string, row: Row, photos: Map<string, PhotoInput>, check
   });
   if (!urls.length) checks.add("variants without photos", sku);
   const additional = additionalOf(row, checks, sku);
-  const prices = bluecollectionPrices(row, checks);
+  const prices = bluecollectionPrices(row, promotions.get(sku), checks);
   if (!prices.length) checks.add("variants without a price", sku);
   else if (!prices.some((price) => price.isPrimary)) checks.add("variants without a net price", sku);
   return {
@@ -176,14 +226,15 @@ function variantOf(sku: string, row: Row, photos: Map<string, PhotoInput>, check
   };
 }
 
-interface Names {
+interface Lists {
   categories: Map<string, Row>;
   subcategories: Map<string, Row>;
+  promotions: Map<string, Row>;
 }
 
 // [category, subcategory] in English, in Polish where the English name is missing
-function categoryPath(row: Row, names: Names, checks: Checks): string[] {
-  return [names.categories.get(cleanText(row.category) ?? ""), names.subcategories.get(cleanText(row.subcategory) ?? "")]
+function categoryPath(row: Row, lists: Lists, checks: Checks): string[] {
+  return [lists.categories.get(cleanText(row.category) ?? ""), lists.subcategories.get(cleanText(row.subcategory) ?? "")]
     .flatMap((entry) => {
       if (!entry) return [];
       const name = cleanText(entry.en) ?? cleanText(entry.pl);
@@ -199,13 +250,13 @@ function isPrintedCatalogue(group: [string, Row][]): boolean {
   return cleanText(group[0]?.[1].subcategory) === PRINTED_CATALOGUES_SUBCATEGORY;
 }
 
-function modelOf(code: string, group: [string, Row][], names: Names, checks: Checks): ModelInput {
+function modelOf(code: string, group: [string, Row][], lists: Lists, checks: Checks): ModelInput {
   const [, first] = group[0] ?? ["", {}];
   const photos = new Map<string, PhotoInput>();
-  const variants = group.map(([sku, row]) => variantOf(sku, row, photos, checks));
+  const variants = group.map(([sku, row]) => variantOf(sku, row, photos, lists.promotions, checks));
   const firstAdditional = variants[0]?.attributes.additional;
   const additional = isRecord(firstAdditional) ? firstAdditional : {};
-  const path = categoryPath(first, names, checks);
+  const path = categoryPath(first, lists, checks);
   const placesByVariant = group.map(([, row]) => markingPlaces(row, checks, code));
   const texts = group.map(([, row]) => markingTexts(row, checks, code));
   if (!path.length) checks.add("models without a category", code);
@@ -230,28 +281,50 @@ function modelOf(code: string, group: [string, Row][], names: Names, checks: Che
   return model;
 }
 
+// The promotions by index; a day without any is an empty list, not a broken feed. The list holds only the current ones
+// (the API's documentation): another is counted and left out, and one that does not say is counted apart, as the adapter
+// stops on it (src/suppliers/bluecollection/adapter.ts).
+function currentPromotions(value: unknown, checks: Checks): Map<string, Row> {
+  if (!Array.isArray(value)) throw new FeedError("promotions: no array of records");
+  // Left out before the repeats are counted: a past promotion of an index never hides its current one
+  const current = checks.records(value, "promotions records").filter((promotion) => {
+    if (promotion.is_current === true && promotion.active === true) return true;
+    const doesSay = typeof promotion.is_current === "boolean" && typeof promotion.active === "boolean";
+    checks.add(doesSay ? "promotions not current, left out" : "promotions without is_current or active", cleanText(promotion.index) ?? undefined);
+    return false;
+  });
+  return recordsByKey(current, "index", "promotions", checks);
+}
+
 export function normalizeBluecollection(feeds: BluecollectionFeeds): NormalizedCatalog {
   const checks = new Checks();
   const products = recordsByKey(requiredRecords(feeds.products, "products", checks), "index", "products", checks);
-  const names: Names = {
+  const lists: Lists = {
     categories: recordsByKey(requiredRecords(feeds.categories, "categories", checks), "id", "categories", checks),
     subcategories: recordsByKey(requiredRecords(feeds.subcategories, "subcategories", checks), "id", "subcategories", checks),
+    promotions: currentPromotions(feeds.promotions, checks),
   };
+  for (const index of lists.promotions.keys()) {
+    if (!products.has(index)) checks.add("promotions of an index not in the products", index);
+  }
   const groups = new Map<string, [string, Row][]>();
   for (const [index, row] of [...products].sort(([left], [right]) => compareCodes(left, right))) {
     const code = modelCodeOf(index);
     groups.set(code, [...(groups.get(code) ?? []), [index, row]]);
   }
   const models = [...groups].sort(([left], [right]) => compareCodes(left, right)).flatMap(([code, group]) => {
-    if (!isPrintedCatalogue(group)) return [modelOf(code, group, names, checks)];
+    if (!isPrintedCatalogue(group)) return [modelOf(code, group, lists, checks)];
     checks.add("printed catalogues left out", code);
     return [];
   });
   return {
     models,
     techniques: [],
-    raw: rawRecords("client-products", products),
-    fetched: { products: products.size, models: models.length, categories: names.categories.size, subcategories: names.subcategories.size },
+    raw: [...rawRecords("client-products", products), ...rawRecords("promo-prices", lists.promotions)],
+    fetched: {
+      products: products.size, models: models.length, categories: lists.categories.size, subcategories: lists.subcategories.size,
+      promotions: lists.promotions.size,
+    },
     checks: checks.counts,
     examples: checks.examples,
     warnings: [],

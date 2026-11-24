@@ -5,7 +5,7 @@ import { scrub } from "../secrets.js";
 // Blue Collection API of Asgard (docs/integrations.md): JWT pair from a login, lists in pages of 100. Read only.
 const BLUECOLLECTION_BASE = new URL("https://developers.bluecollection.eu/api/");
 // Only these lists can be read; orders are refused before a request is built
-const READ_PATH = /^\/api\/(client-products|categories|subcategories)\/$/;
+const READ_PATH = /^\/api\/(client-products|categories|subcategories|promo-prices)\/$/;
 const TOKEN_PATH = "token/";
 const REFRESH_PATH = "token/refresh/";
 // The access token lives 5 minutes (2026-11-04); a new one is taken a minute before

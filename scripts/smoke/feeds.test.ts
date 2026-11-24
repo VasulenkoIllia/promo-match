@@ -108,8 +108,8 @@ describe("runBluecollection", () => {
     const run = newRun();
     await runBluecollection(run);
     expect(outcome(run)).toEqual([
-      ["token", true], ["products-index", true], ["client-products", true], ["stock-info", true], ["marking-data", true],
-      ["last-update", true], ["photo", true],
+      ["token", true], ["products-index", true], ["client-products", true], ["promo-prices", true], ["stock-info", true],
+      ["marking-data", true], ["last-update", true], ["photo", true],
     ]);
     expect(run.results[1]?.note).toBe("first page only: 1 of 1911 records");
     const apiReads = calls.filter((call) => call.url.host === "developers.bluecollection.eu" && call.method === "GET");
@@ -137,7 +137,7 @@ describe("runBluecollection", () => {
     expect(renewal?.body).toBe(JSON.stringify({ refresh: REFRESH }));
     const reads = calls.filter((call) => call.method === "GET" && call.url.host === "developers.bluecollection.eu");
     expect(reads.map((call) => call.authorization)).toEqual([
-      `Bearer ${ACCESS}`, ...Array.from({ length: 4 }, () => `Bearer ${RENEWED_ACCESS}`),
+      `Bearer ${ACCESS}`, ...Array.from({ length: 5 }, () => `Bearer ${RENEWED_ACCESS}`),
     ]);
     const text = filesText(run.dir);
     for (const secret of [ACCESS, RENEWED_ACCESS, REFRESH]) expect(text).not.toContain(secret);

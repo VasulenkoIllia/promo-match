@@ -3,8 +3,10 @@
 // purchase prices in the supplier's currency (confidential: never in logs, git or dumps).
 import { supplierPageUrl } from "../suppliers/page-url.js";
 import type { OfferKind } from "../suppliers/types.js";
+import { colorGroupsOf } from "./colors.js";
 import type { ConditionMatch } from "./conditions.js";
 import { type Confidence, confidenceOf, type MeasuredQuery } from "./confidence.js";
+import type { ColorGroup } from "./query-parse-contract.js";
 import type { FusedModel, ListName } from "./rank.js";
 import type { ModelRow, PhotoRow, VariantRow } from "./store.js";
 
@@ -21,6 +23,9 @@ export interface ResultPhoto {
 export interface ResultVariant {
   sku: string;
   color: string | null;
+  // The colour's plain groups by the rule the search reads a query's colour with (src/search/colors.ts): the screen
+  // sorts by them
+  colorGroups: ColorGroup[];
   size: string | null;
   // null: the supplier gave no stock for it
   inStock: number | null;
@@ -67,6 +72,7 @@ function variantOf(row: VariantRow): ResultVariant {
   return {
     sku: row.sku,
     color: row.color,
+    colorGroups: row.color ? colorGroupsOf(row.color) : [],
     size: row.size,
     inStock: row.inStock,
     nextArrival: hasArrival ? { date: row.nextArrivalDate, quantity: row.nextArrivalQuantity } : null,
@@ -117,7 +123,7 @@ export function assembleResults(fused: FusedModel[], models: ModelRow[], variant
       code: model.code,
       name: model.name,
       category: categoryOf(model.category),
-      pageUrl: paged ? supplierPageUrl(model.sourceCode, paged) : null,
+      pageUrl: paged ? supplierPageUrl(model.sourceCode, model.code, paged) : null,
       photos: matched.length ? matched : cover,
       variants: rows.map(variantOf),
     });
