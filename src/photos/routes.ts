@@ -1,22 +1,30 @@
-// The photos of Makito's catalogue through the server (src/photos/proxy.ts), and those of Macma and Easy Gifts out of
-// their ZIP archives (src/photos/archive.ts).
+// The photos of Makito's catalogue through the server (src/photos/proxy.ts), those of Macma and Easy Gifts out of
+// their ZIP archives (src/photos/archive.ts), and the reduced copies of every source's photos (src/photos/thumbs.ts).
 //   GET /api/photos/makito/<path under /catalog/assets/>   the picture, typed by its bytes; 404, 503 with Retry-After, 502
 //   GET /api/photos/promotray/<archive path>/<entry>        the same, from data.promotray.de
+//   GET /api/photos/stored/<sha256>.webp                    the reduced copy; 404 when there is none
 // Behind the login, registered in the signed-in scope of src/app.ts. Only a path comes in: the host is fixed in Makito's
 // client, so the route cannot be pointed at another server, and the token never leaves it.
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { SupplierPhotos } from "./proxy.js";
+import { readThumb, shaOfName, STORED_PHOTO_PATH } from "./thumbs.js";
 
 export const MAKITO_PHOTO_PATH = "/api/photos/makito/";
 export const ARCHIVE_PHOTO_PATH = "/api/photos/promotray/";
 // A catalogue photo holds no price: the browser may keep it for a day, for this user only. Set after the scope's own
 // no-store, which the hook of the route follows.
 const PHOTO_CACHE = "private, max-age=86400";
+// A reduced copy is named by the sha256 of its picture: another picture gets another name, so the browser keeps it
+const STORED_PHOTO_CACHE = "private, max-age=31536000, immutable";
 
-function keepInBrowser(_request: FastifyRequest, reply: FastifyReply, payload: unknown, done: (error: null, value: unknown) => void): void {
-  if (reply.statusCode === 200) void reply.header("cache-control", PHOTO_CACHE);
-  done(null, payload);
+function cacheFor(value: string) {
+  return (_request: FastifyRequest, reply: FastifyReply, payload: unknown, done: (error: null, value: unknown) => void): void => {
+    if (reply.statusCode === 200) void reply.header("cache-control", value);
+    done(null, payload);
+  };
 }
+
+const keepInBrowser = cacheFor(PHOTO_CACHE);
 
 export function registerPhotoRoutes(app: FastifyInstance, photos: SupplierPhotos, prefix = MAKITO_PHOTO_PATH, supplier = "makito"): void {
   app.get<{ Params: { "*": string } }>(`${prefix}*`, { onSend: keepInBrowser }, async (request, reply) => {
@@ -34,4 +42,18 @@ export function registerPhotoRoutes(app: FastifyInstance, photos: SupplierPhotos
         return reply.code(502).send({ error: "the supplier did not give the photo" });
     }
   });
+}
+
+// storeDir is the app's PHOTO_STORE_DIR; a name other than <sha256>.webp never reaches the disk
+export function registerStoredPhotoRoute(app: FastifyInstance, storeDir: string): void {
+  app.get<{ Params: { name: string } }>(`${STORED_PHOTO_PATH}:name`, { onSend: cacheFor(STORED_PHOTO_CACHE) },
+    async (request, reply) => {
+      const sha256 = shaOfName(request.params.name);
+      const bytes = sha256 === null ? null : await readThumb(storeDir, sha256);
+      // A sha256 comes from the database, which marks only copies written: the file is gone, or the app does not see the
+      // volume. The screen falls back to the supplier's link, so the log is where it shows.
+      if (sha256 !== null && !bytes) request.log.warn({ sha256 }, "reduced photo copy missing");
+      if (!bytes) return reply.code(404).send({ error: "Not Found" });
+      return reply.header("content-type", "image/webp").header("x-content-type-options", "nosniff").send(bytes);
+    });
 }

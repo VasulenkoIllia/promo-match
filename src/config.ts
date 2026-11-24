@@ -1,5 +1,7 @@
 // Settings from the environment, read once at start: a missing or broken value stops the start with its name.
 // Empty values count as missing (`||`): a key left empty in .env falls back to its default, never to "".
+import { resolve } from "node:path";
+
 // A mistake in the environment or the command: its message is enough, a stack trace would only bury it
 export class ConfigError extends Error {}
 
@@ -40,4 +42,8 @@ export const config = {
   postgresDb: process.env.POSTGRES_DB || undefined,
   // A user's paid searches per minute (src/search/routes.ts)
   searchRatePerMinute: optionalPositiveInteger("SEARCH_RATE_PER_MINUTE"),
+  // The reduced copies of the catalogue photos (src/photos/thumbs.ts): the embeddings worker writes them, the app reads
+  // them. Relative to the working folder: data/photo-store of the project, /app/data/photo-store in the image, where
+  // docker-compose.yml mounts its volume.
+  photoStoreDir: resolve(process.env.PHOTO_STORE_DIR || "data/photo-store"),
 };

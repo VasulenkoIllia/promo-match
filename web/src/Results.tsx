@@ -1,5 +1,6 @@
 import { memo, useState } from "react";
 import { type ConditionMatch, type Grade, removeGrade, type ResultVariant, type SearchResult, setGrade } from "./api";
+import { CatalogPhoto } from "./CatalogPhoto";
 import { askedMatches, gradeBody, photoSrc, variantSummary, withGrade } from "./format";
 import { ModelLinks } from "./ModelLinks";
 import { ResultGrade } from "./ResultGrade";
@@ -88,7 +89,7 @@ function ResultCard({ result, own, grade, onGrade }: ResultCardProps) {
       <div className="card-photo">
         {photo ? (
           <a href={photoSrc(photo.urlLarge ?? photo.url)} target="_blank" rel="noreferrer" title={text.results.openPhoto}>
-            <img src={photoSrc(photo.url)} alt={result.name ?? result.code} loading="lazy" referrerPolicy="no-referrer" />
+            <CatalogPhoto url={photo.url} thumbUrl={photo.thumbUrl} alt={result.name ?? result.code} />
           </a>
         ) : (
           <span className="hint">{text.results.noPhoto}</span>
@@ -108,7 +109,7 @@ function ResultCard({ result, own, grade, onGrade }: ResultCardProps) {
               aria-pressed={index === photoIndex}
               onClick={() => setPhotoIndex(index)}
             >
-              <img src={photoSrc(each.url)} alt="" loading="lazy" referrerPolicy="no-referrer" />
+              <CatalogPhoto url={each.url} thumbUrl={each.thumbUrl} alt="" />
             </button>
           ))}
         </div>

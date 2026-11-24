@@ -1,3 +1,7 @@
+import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import sharp from "sharp";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PrismaClient } from "../generated/prisma/client.js";
 import type { HttpResult, UrlFetch } from "../suppliers/http.js";
@@ -10,9 +14,12 @@ import { VOYAGE_DEFAULT_URL, voyageProvider } from "./voyage.js";
 
 // The photos still without a vector, and what the run marked failed: the database of these tests
 const db = vi.hoisted(() => ({
-  photos: [] as { id: number; url: string }[],
+  photos: [] as PhotoToEmbed[],
   failed: [] as { photoId: number; error: string }[],
   written: [] as number[],
+  thumbs: [] as number[],
+  marked: [] as { photoId: number; sha256: string }[],
+  unmarked: [] as number[],
 }));
 
 vi.mock("./store.js", () => ({
@@ -26,6 +33,15 @@ vi.mock("./store.js", () => ({
   reuseVectors: () => Promise.resolve(new Set<number>()),
   writePhotoVectors: (_db: unknown, _model: string, rows: { photoId: number }[]) => {
     db.written.push(...rows.map((row) => row.photoId));
+    return Promise.resolve(rows.length);
+  },
+  writeThumbs: (_db: unknown, rows: { photoId: number }[]) => {
+    db.thumbs.push(...rows.map((row) => row.photoId));
+    return Promise.resolve(rows.length);
+  },
+  readMarkedThumbs: () => Promise.resolve(db.marked),
+  unmarkThumbs: (_db: unknown, rows: { photoId: number }[]) => {
+    db.unmarked.push(...rows.map((row) => row.photoId));
     return Promise.resolve(rows.length);
   },
 }));
@@ -45,7 +61,8 @@ function answer(status: number, body: Buffer = Buffer.alloc(0)): HttpResult {
 }
 
 function photos(count: number): PhotoToEmbed[] {
-  return Array.from({ length: count }, (_, index) => ({ id: index + 1, url: `https://cdn.example/${index + 1}.jpg` }));
+  return Array.from({ length: count }, (_, index) =>
+    ({ id: index + 1, url: `https://cdn.example/${index + 1}.jpg`, hasVector: false, hasThumb: false }));
 }
 
 // A provider with the real pixel bound of one of ours, a vector for every image
@@ -63,7 +80,7 @@ function job(fetchPhoto: UrlFetch, maxImagePixels = geminiProvider("").maxImageP
   return {
     db: {} as PrismaClient, provider: fakeProvider(maxImagePixels), budget: new Budget(1), sourceId: 1,
     limit: undefined, isRetryFailed: false, signal: new AbortController().signal, secrets: [],
-    beforeBatch: () => Promise.resolve(), fetchPhoto,
+    beforeBatch: () => Promise.resolve(), fetchPhoto, storeDir: undefined,
   };
 }
 
@@ -73,6 +90,9 @@ beforeEach(() => {
   db.photos = [];
   db.failed = [];
   db.written = [];
+  db.thumbs = [];
+  db.marked = [];
+  db.unmarked = [];
 });
 
 describe("embedPhotos", () => {
@@ -115,5 +135,53 @@ describe("embedPhotos", () => {
     await embedPhotos(job(large, voyageProvider("", VOYAGE_DEFAULT_URL).maxImagePixels), voyage);
     expect([voyage.embedded, voyage.failed]).toEqual([0, 1]);
     expect(db.failed).toEqual([{ photoId: 1, error: "image is 4500×4500, over 16000000 pixels" }]);
+  });
+
+  it("stores a reduced copy from the same bytes, sends only the photos with no vector, and fails a picture libvips cannot read", async () => {
+    const storeDir = await mkdtemp(join(tmpdir(), "photo-store-"));
+    try {
+      const picture = await sharp({ create: { width: 900, height: 600, channels: 3, background: "#c81e1e" } }).jpeg().toBuffer();
+      // 1 needs both, 2 has its vector, 3 has its copy, 4 passes the header check but is no picture
+      db.photos = photos(4).map((photo) => ({ ...photo, hasVector: photo.id === 2, hasThumb: photo.id === 3 }));
+      const fetchPhoto: UrlFetch = (url) => Promise.resolve(answer(200, url.pathname === "/4.jpg" ? png(900, 600) : picture));
+      const counts = emptyPhotoCounts();
+      await embedPhotos({ ...job(fetchPhoto), storeDir }, counts);
+      expect([counts.stored, counts.storeFailed, counts.embedded]).toEqual([2, 1, 2]);
+      expect(db.thumbs).toEqual([1, 2]);
+      expect(db.written).toEqual([1, 3]);
+      expect(db.failed).toEqual([{ photoId: 4, error: expect.stringMatching(/^reduced copy: /) as string }]);
+      // Photos 1 and 2 are the same picture: one file
+      expect((await readdir(storeDir, { recursive: true })).filter((name) => name.endsWith(".webp"))).toHaveLength(1);
+    } finally {
+      await rm(storeDir, { recursive: true, force: true });
+    }
+  });
+
+  it("stops on a page where libvips read none of 8 or more copies, marking nothing", async () => {
+    const storeDir = await mkdtemp(join(tmpdir(), "photo-store-"));
+    try {
+      db.photos = photos(8);
+      const notPictures: UrlFetch = () => Promise.resolve(answer(200, png(900, 600)));
+      await expect(embedPhotos({ ...job(notPictures), storeDir }, emptyPhotoCounts())).rejects.toThrow(/^every one of 8 reduced copies failed/);
+      expect([db.failed, db.thumbs, db.written]).toEqual([[], [], []]);
+    } finally {
+      await rm(storeDir, { recursive: true, force: true });
+    }
+  });
+
+  it("clears the marks of copies whose files are gone before the pages, so they are made again", async () => {
+    const storeDir = await mkdtemp(join(tmpdir(), "photo-store-"));
+    try {
+      const kept = "a1".repeat(32);
+      await mkdir(join(storeDir, "a1"));
+      await writeFile(join(storeDir, "a1", `${kept}.webp`), "webp");
+      db.marked = [{ photoId: 5, sha256: kept }, { photoId: 6, sha256: "b2".repeat(32) }, { photoId: 7, sha256: "b2".repeat(32) }];
+      const counts = emptyPhotoCounts();
+      await embedPhotos({ ...job(gone), storeDir }, counts);
+      expect(db.unmarked).toEqual([6, 7]);
+      expect(counts.lost).toBe(2);
+    } finally {
+      await rm(storeDir, { recursive: true, force: true });
+    }
   });
 });

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # On the Mac, for the move of the database to the server (docs/deployment.md, «Перенос бази»): a copy of the local
 # database, promo_match_export, without the users, their sessions, invites, grades, journal of searches and saved search
-# settings, and without the vectors the server does not search with; then VACUUM, the counts of both databases and a
+# settings, without the vectors the server does not search with and the marks of the reduced photo copies, whose files
+# stay on this Mac (the server's worker makes its own); then VACUUM, the counts of both databases and a
 # pg_dump -Fc of the copy. The vectors move with the base, nothing is embedded again. The working database is only read.
 #
 #   deploy/export-db.sh           plan: the counts and what the copy would leave out, nothing written
@@ -45,6 +46,7 @@ export_exists() {
 
 left_out_sql="select format(E'photo_vectors_left_out\t%s', count(*)) from photo_embedding where embedding_model in ($DROPPED_MODELS)
   union all select format(E'text_vectors_left_out\t%s', count(*)) from text_embedding where embedding_model in ($DROPPED_MODELS)
+  union all select format(E'photo_copy_marks_cleared\t%s', count(thumb_sha256)) from photo
   union all select format(E'leases_cleared\t%s', (select count(*) from worker_lease)
     + (select count(*) from source where sync_lease_until is not null));"
 
@@ -53,6 +55,7 @@ clean_sql="begin;
   delete from photo_embedding where embedding_model in ($DROPPED_MODELS);
   delete from text_embedding where embedding_model in ($DROPPED_MODELS);
   truncate search_journal, search_settings, result_grade, user_session, user_invite, app_user;
+  update photo set thumb_sha256 = null where thumb_sha256 is not null;
   delete from worker_lease;
   update source set sync_lease_run_id = null, sync_lease_until = null where sync_lease_until is not null;
 commit;"

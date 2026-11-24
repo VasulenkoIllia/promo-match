@@ -5,7 +5,7 @@ import { assembleOwnProducts, createOwnProductsService, type LinkedModelRow, typ
 
 const row = (ownProductId: number, modelId: number): LinkedModelRow => ({
   ownProductId, modelId, type: "same", sourceCode: "axpol", sourceName: "Axpol", code: `V${modelId}`, name: "Mug",
-  category: ["DRINKWARE", "mugs"], isActive: true, photoUrl: "https://files.axpol.com/a.jpg",
+  category: ["DRINKWARE", "mugs"], isActive: true, photoUrl: "https://files.axpol.com/a.jpg", photoThumbSha256: "cd".repeat(32),
 });
 const product = (id: number): OwnProduct => ({ id, name: `Товар ${id}`, code: null });
 
@@ -21,6 +21,7 @@ describe("assembleOwnProducts", () => {
     expect(list.products[1]?.links[0]).toEqual({
       modelId: 7, type: "same", source: { code: "axpol", name: "Axpol" }, code: "V7", name: "Mug",
       category: ["DRINKWARE", "mugs"], isActive: true, photoUrl: "https://files.axpol.com/a.jpg",
+      photoThumbUrl: `/api/photos/stored/${"cd".repeat(32)}.webp`,
     });
   });
 

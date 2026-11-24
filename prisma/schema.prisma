@@ -241,6 +241,9 @@ model Photo {
   statusChangedAt DateTime?   @map("status_changed_at") @db.Timestamptz
   error           String?
   contentHash     String      @map("content_hash")
+  // sha256 of the supplier's picture its reduced copy was made from, which names the copy's file in PHOTO_STORE_DIR
+  // (src/photos/thumbs.ts); null until an embeddings run makes it
+  thumbSha256     String?     @map("thumb_sha256")
   isActive        Boolean     @default(true) @map("is_active")
   lastSeenRunId   Int         @map("last_seen_run_id")
   firstSeenAt     DateTime    @default(now()) @map("first_seen_at") @db.Timestamptz

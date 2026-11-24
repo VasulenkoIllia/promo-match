@@ -40,11 +40,15 @@ import { type SearchTuning, tuningOf } from "./tuning.js";
 // ranked low in one list but high in another. The same for every limit: a limit only cuts the ranking, so 12 and 100
 // results keep one order, and what was measured at this depth (README «Незалежний тест») holds for both.
 const LIST_ROWS: Record<ListKind, number> = { photo: 288, text: 100 };
+// With every photo of a model (the setting «Усі фото товару»), about 11 photos a model against 3 (192 thousand photos
+// of 18 thousand models, 2026-11-23), so a photo list fetches as many as pgvector's ef_search reaches, for about as
+// many models as with 288
+const ALL_PHOTOS_LIST_ROWS: Record<ListKind, number> = { photo: 1_000, text: LIST_ROWS.text };
 // Without a category filter, a list is exact up to this many candidates per row it asks for: with more, the index
 // fills it from the nearest ones that pass, faster than checking the stock of them all (EXPLAIN 2026-10-30: Axpol with
 // minStock 500, 691 texts exact in 20-24 ms against 5-10 through the index; docs «Пошук»). That holds while a model
-// has up to about 100 thousand vectors (hnsw.max_scan_tuples × 5 of them): with more, such a list may stop short
-// (isComplete false), and this rule is to be weighed again.
+// has up to about 200 thousand vectors (hnsw.max_scan_tuples × 5 of them, src/search/store.ts): with more, such a list
+// may stop short (isComplete false), and this rule is to be weighed again.
 const EXACT_ROWS_PER_ROW_ASKED = 5;
 
 // The search's own spending limits, at list prices before each call, per calendar day of the process (TZ), $1 by
@@ -457,12 +461,15 @@ export function createSearchService(db: PrismaClient, embedder: QueryEmbedder, p
       const searched: SearchInput = { ...input, text };
       const inputLists = searchedLists(searched, hits.length > 0);
       const isVariant = textVariant !== undefined && TEXT_VARIANTS[textVariant].model === input.model;
-      const candidates: CandidateQuery = { model: input.model, ...(isVariant ? { textVariant } : {}), filters, freshRuns };
+      const candidates: CandidateQuery = {
+        model: input.model, ...(isVariant ? { textVariant } : {}), filters, freshRuns, ...(input.isAllPhotos ? { isAllPhotos: true } : {}),
+      };
+      const listRows = input.isAllPhotos ? ALL_PHOTOS_LIST_ROWS : LIST_ROWS;
       // The candidates are counted while the query is read and embedded; codes alone leave nothing to read
       const [{ vectorSets, embeddingUsd, conditions, queryParse, lists, namedCategories }, scans] = await Promise.all([
         inputLists.length ? readQuery(embedder, parser, searched, inputLists, hits.length > 0, categories, signal)
           : { vectorSets: [{}], embeddingUsd: 0, conditions: [NO_CONDITIONS], queryParse: null, lists: inputLists, namedCategories: [] },
-        listScans(db, candidates, LIST_ROWS, [...new Set(inputLists.map(kindOf))]),
+        listScans(db, candidates, listRows, [...new Set(inputLists.map(kindOf))]),
       ]);
       // The reference photo's lists go with the first product alone
       const demotion = input.demotion ?? DEFAULT_DEMOTION;
@@ -476,14 +483,14 @@ export function createSearchService(db: PrismaClient, embedder: QueryEmbedder, p
       const passAsked = vectorSets.map(({ text: vector }: QueryVectors, index) => (vector
         ? passConditions(conditions[index] ?? NO_CONDITIONS, pass, filters) : null));
       const rankings = await Promise.all(vectorSets.map((vectors, index) => readRanking(db,
-        nearestQueries(index ? lists.filter((name) => name.startsWith("text-")) : lists, vectors, candidates, LIST_ROWS, scans),
+        nearestQueries(index ? lists.filter((name) => name.startsWith("text-")) : lists, vectors, candidates, listRows, scans),
         input, lift > 1 || isDemoting(conditions[index] ?? NO_CONDITIONS, demotion) || Boolean(passAsked[index]) || hasTraits,
         hubness?.model === input.model ? hubness : undefined)));
       const lifted = lift > 1 ? await Promise.all(rankings.map((ranking) => liftNamedCategories(db, ranking, liftCodes, lift))) : rankings;
       const voted = await Promise.all(lifted.map(async (ranking, index) => {
         const held = passAsked[index];
         return held && pass ? voteByConditions(db, ranking, lists, vectorSets[index] ?? {},
-          { candidates, limits: LIST_ROWS, conditions: held, asked: conditions[index] ?? NO_CONDITIONS, weight: pass.weight }).catch(keepRankingOnTimeout(ranking)) : ranking;
+          { candidates, limits: listRows, conditions: held, asked: conditions[index] ?? NO_CONDITIONS, weight: pass.weight }).catch(keepRankingOnTimeout(ranking)) : ranking;
       }));
       const traited = hasTraits ? await Promise.all(voted.map((ranking, index) =>
         applyTraits(db, ranking, colors, conditions[index] ?? NO_CONDITIONS, tuning).catch(keepRankingOnTimeout(ranking)))) : voted;

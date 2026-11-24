@@ -3,7 +3,7 @@ import { changedKeys, hasNoListFor, overridesOf, type SearchSettings, SETTING_KE
 import { settingName, settingsText, valueName } from "./settings-text";
 
 const defaults: SearchSettings = {
-  photoOrder: "mixed", hasImageTextList: true, hasTextPhotoList: true, hasTextTextList: true, isParseQuery: true,
+  photoOrder: "mixed", isAllModelPhotos: false, hasImageTextList: true, hasTextPhotoList: true, hasTextTextList: true, isParseQuery: true,
   isConditionPass: false, colorLift: "weak", categoryLift: "weak", isExclusionSink: true,
 };
 

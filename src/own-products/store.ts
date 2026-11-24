@@ -2,6 +2,7 @@
 // purchase prices here: a linked model is shown by its name and photo.
 import { Prisma, type PrismaClient } from "../generated/prisma/client.js";
 import type { OwnProductLinkType } from "../generated/prisma/enums.js";
+import { thumbUrl } from "../photos/thumbs.js";
 import { categoryOf } from "../search/results.js";
 import { OwnProductExists, OwnProductNotFound } from "./errors.js";
 import type { NewOwnProduct } from "./request.js";
@@ -31,6 +32,8 @@ export interface LinkedModel {
   // false: the last import no longer found the model
   isActive: boolean;
   photoUrl: string | null;
+  // The photo's reduced copy on this server (src/photos/thumbs.ts); null: none made yet
+  photoThumbUrl: string | null;
 }
 
 export interface OwnProductEntry extends OwnProduct {
@@ -72,6 +75,7 @@ export interface LinkedModelRow {
   category: unknown;
   isActive: boolean;
   photoUrl: string | null;
+  photoThumbSha256: string | null;
 }
 
 export function prismaCode(error: unknown): string | undefined {
@@ -83,12 +87,13 @@ function readLinkedModels(db: PrismaClient, ownProductIds: number[]): Promise<Li
   return db.$queryRaw<LinkedModelRow[]>`
     SELECT l.own_product_id AS "ownProductId", l.model_id AS "modelId", l.type::text AS type,
       s.code AS "sourceCode", s.name AS "sourceName", m.code, m.name->>'en' AS name, m.category->'en' AS category,
-      m.is_active AS "isActive",
-      (SELECT p.url FROM photo p WHERE p.model_id = m.id ORDER BY p.is_active DESC, p.position, p.id LIMIT 1)
-        AS "photoUrl"
+      m.is_active AS "isActive", cover.url AS "photoUrl", cover.thumb_sha256 AS "photoThumbSha256"
     FROM own_product_link l
     JOIN product_model m ON m.id = l.model_id
     JOIN source s ON s.id = m.source_id
+    LEFT JOIN LATERAL (
+      SELECT p.url, p.thumb_sha256 FROM photo p WHERE p.model_id = m.id ORDER BY p.is_active DESC, p.position, p.id LIMIT 1
+    ) cover ON true
     WHERE l.own_product_id = ANY(${ownProductIds}::integer[])
     ORDER BY l.created_at DESC, l.model_id DESC
     LIMIT ${MAX_LISTED_LINKS + 1}`;
@@ -104,6 +109,7 @@ function linkedModelOf(row: LinkedModelRow): LinkedModel {
     category: categoryOf(row.category),
     isActive: row.isActive,
     photoUrl: row.photoUrl,
+    photoThumbUrl: thumbUrl(row.photoThumbSha256),
   };
 }
 

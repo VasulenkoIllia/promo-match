@@ -2,7 +2,8 @@
 //   pnpm run import:catalog [--dry-run] [--only axpol|midocean|inspirion|bluecollection|makito|macma|easygifts|anda] [--probe] [--allow-mass-deactivation]
 // --dry-run reads the suppliers and the database and writes nothing; --probe only sends the small reads that find
 // the APIs' limits. Supplier APIs are read only. Macma, Easy Gifts and the paused Makito are read with --only alone.
-// WORKER=embed makes the vectors of photos and texts (docs/integrations.md, «Ембедінги каталогу»):
+// WORKER=embed makes the vectors of photos and texts and the photos' reduced copies in PHOTO_STORE_DIR
+// (docs/integrations.md, «Ембедінги каталогу», «Сховище зменшених фото»):
 //   pnpm run embed:catalog [--dry-run] [--only axpol|midocean|inspirion|bluecollection|makito|macma|easygifts|anda] [--limit <n>] [--retry-failed]
 // --dry-run prints counts and the cost at list prices and calls no provider; --limit caps photos and texts per source.
 // WORKER=categories writes the shared category list and the sources' mappings from git to the database
@@ -110,7 +111,7 @@ async function runEmbedJob(argv: string[], context: FetchContext): Promise<numbe
   try {
     const isOk = await runEmbeddings(db, {
       codes: options.codes, isDryRun, limit: options.limit, isRetryFailed: options["retry-failed"], providers, budget,
-      context,
+      context, storeDir: config.photoStoreDir,
     });
     return isOk ? 0 : 1;
   } finally {

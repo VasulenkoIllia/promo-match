@@ -35,6 +35,9 @@ COPY --from=build /app/dist ./dist
 # Read out of the image by the deploy, which runs them only once the owner approved their hash (deploy/deploy-entry.sh)
 COPY docker-compose.yml ./
 COPY deploy ./deploy
+# The reduced photo copies (PHOTO_STORE_DIR, src/photos/thumbs.ts): docker-compose.yml mounts a volume here, and a new
+# volume takes this folder's owner, so the node user writes into it
+RUN mkdir -p data/photo-store && chown -R node:node data
 USER node
 # Migrations run before the app starts, so the app runs as one replica (docs/deployment.md)
 CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && exec node dist/main.js"]

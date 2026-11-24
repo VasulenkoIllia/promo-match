@@ -16,6 +16,8 @@ src/generated
 .claude
 CLAUDE.local.md
 docker-compose*.yml
+# Local data, the reduced photo copies among them (gigabytes): the image makes its own empty folder
+data
 # ...but the production one rides in the image: the deploy reads it out of there (deploy/deploy-entry.sh)
 !docker-compose.yml
 docs

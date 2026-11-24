@@ -142,7 +142,7 @@ export function textTotals(plan: TextPlan): TextTotals {
     withoutText: plan.withoutText.length };
 }
 
-const NO_PHOTOS: PhotoTotals = { inScope: 0, ready: 0, failed: 0, pending: 0 };
+const NO_PHOTOS: PhotoTotals = { inScope: 0, ready: 0, failed: 0, pending: 0, thumbs: 0, thumbsPending: 0, thumbsFailed: 0 };
 
 export function supplierOverview(rows: OverviewRows): SuppliersOverview {
   const sum = (sourceId: number, key: Exclude<keyof CountRow, "sourceId">) =>

@@ -114,6 +114,8 @@ interface ResultPhoto {
   id: number | null;
   url: string;
   urlLarge: string | null;
+  // The reduced copy on this server; null: none made yet, the screen shows url
+  thumbUrl: string | null;
 }
 
 export interface ResultVariant {
@@ -229,6 +231,7 @@ export interface LinkedModel {
   // false: the last import no longer found the model
   isActive: boolean;
   photoUrl: string | null;
+  photoThumbUrl: string | null;
 }
 
 export interface OwnProductEntry extends OwnProduct {

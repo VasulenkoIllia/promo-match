@@ -6,6 +6,7 @@ export type LiftLevel = "off" | "weak" | "strong";
 
 export interface SearchSettings {
   photoOrder: PhotoOrder;
+  isAllModelPhotos: boolean;
   hasImageTextList: boolean;
   hasTextPhotoList: boolean;
   hasTextTextList: boolean;
@@ -21,6 +22,7 @@ export type SettingKey = keyof SearchSettings;
 // The settings in the order of the screens, with the values a choice of more than two offers
 export const SETTING_CHOICES: { [Key in SettingKey]: SearchSettings[Key] extends boolean ? null : SearchSettings[Key][] } = {
   photoOrder: ["mixed", "photo-heavier", "photo-decides"],
+  isAllModelPhotos: null,
   hasImageTextList: null,
   hasTextPhotoList: null,
   hasTextTextList: null,

@@ -4,7 +4,7 @@
 // vector is a parameter.
 import type { CategoryName } from "../categories/codes.js";
 import { Prisma, type PrismaClient } from "../generated/prisma/client.js";
-import { IN_SCOPE, IN_SEARCH, vectorText } from "../embeddings/store.js";
+import { IN_CATALOGUE, IN_SCOPE, IN_SEARCH, vectorText } from "../embeddings/store.js";
 import { jsonParam } from "../import/write.js";
 import { isKindOf, isMaterialCode, MATERIAL_CODES, type MaterialCode } from "../suppliers/materials.js";
 import { isPrintFact, type PrintTechnique } from "../suppliers/printing.js";
@@ -70,6 +70,8 @@ export interface CandidateQuery {
   textVariant?: TextVariantName;
   filters: StoreFilters;
   freshRuns: FreshRuns;
+  // Every photo of a model with a vector (the setting «Усі фото товару»), not only its 3 in the search
+  isAllPhotos?: boolean;
 }
 
 // The name of the text vectors a list reads, a literal as indexSql's: a variant only beside the model that made it
@@ -93,10 +95,16 @@ export interface NearestQuery extends CandidateQuery {
 }
 
 // pgvector's iterative scan goes on through the index until the filters have let enough rows pass, at most this many
-// rows. Relaxed order comes back nearly sorted: the ranking sorts again (src/search/rank.ts).
-const MAX_SCAN_TUPLES = 20_000;
-// The most candidates an exact list ranks: as many as an index list may scan, about 100 ms locally (EXPLAIN 2026-10-30)
-export const EXACT_MAX_ROWS = MAX_SCAN_TUPLES;
+// rows. Relaxed order comes back nearly sorted: the ranking sorts again (src/search/rank.ts). An index list has more
+// than EXACT_ROWS_PER_ROW_ASKED (5) candidates per row (src/search/search.ts), so it fills while a model has up to 5
+// times this many vectors: 20 000 held for 116 thousand photo vectors, and every photo with a vector (stage 4, about 192
+// thousand) needs 40 000. On the copy of prod 2026-11-24, at the share of photos in the search a full pass leaves, one
+// small source's photo list came short (Blue Collection 65 of 288 rows, Easy Gifts 87) at 20 000; a scan of 40 000
+// took 130-250 ms there on a warm cache, as 20 000 did.
+const MAX_SCAN_TUPLES = 40_000;
+// The most candidates an exact list ranks, about 100 ms locally (EXPLAIN 2026-10-30): the bound of before stage 4, so an
+// exact list costs what it did
+export const EXACT_MAX_ROWS = 20_000;
 // Prisma gives up on a transaction after 5 s with an error of its own: a nearest query fails before that, as a timeout
 // (a narrow filter with no match scans up to MAX_SCAN_TUPLES in about 1 s locally, EXPLAIN 2026-10-29)
 const STATEMENT_TIMEOUT = "4s";
@@ -225,12 +233,13 @@ function timeoutSettings(timeout: string): Prisma.Sql {
   return Prisma.sql`SELECT set_config('statement_timeout', ${timeout}, true)`;
 }
 
-function photoRows({ model, filters, freshRuns }: CandidateQuery): Prisma.Sql {
+function photoRows({ model, filters, freshRuns, isAllPhotos }: CandidateQuery): Prisma.Sql {
+  const inSearch = isAllPhotos ? IN_CATALOGUE : Prisma.sql`${IN_SCOPE} AND ${IN_SEARCH}`;
   return Prisma.sql`FROM photo_embedding e
     JOIN photo p ON p.id = e.photo_id
     JOIN product_model m ON m.id = p.model_id
     JOIN source s ON s.id = m.source_id
-    WHERE e.embedding_model = ${indexSql(model).name} AND ${IN_SCOPE} AND ${IN_SEARCH}
+    WHERE e.embedding_model = ${indexSql(model).name} AND ${inSearch}
       AND ${modelFilter(filters, freshRuns)}`;
 }
 
@@ -323,6 +332,7 @@ export interface ModelRow {
   name: string | null;
   category: unknown;
   coverPhotoUrl: string | null;
+  coverThumbSha256: string | null;
 }
 
 export interface VariantRow {
@@ -346,6 +356,7 @@ export interface PhotoRow {
   id: number;
   url: string;
   urlLarge: string | null;
+  thumbSha256: string | null;
   skus: string[];
 }
 
@@ -355,11 +366,11 @@ export async function readModels(db: PrismaClient, modelIds: number[]): Promise<
   if (!modelIds.length) return [];
   return db.$queryRaw<ModelRow[]>`
     SELECT m.id, s.code AS "sourceCode", s.name AS "sourceName", m.code, m.name->>'en' AS name,
-      m.category->'en' AS category,
-      (SELECT p.url FROM photo p JOIN photo_variant pv ON pv.photo_id = p.id JOIN variant v ON v.id = pv.variant_id
-        WHERE p.model_id = m.id AND p.is_active AND v.is_active ORDER BY pv.position, p.position, p.id LIMIT 1)
-        AS "coverPhotoUrl"
+      m.category->'en' AS category, cover.url AS "coverPhotoUrl", cover.thumb_sha256 AS "coverThumbSha256"
     FROM product_model m JOIN source s ON s.id = m.source_id
+    LEFT JOIN LATERAL (
+      SELECT p.url, p.thumb_sha256 FROM photo p JOIN photo_variant pv ON pv.photo_id = p.id JOIN variant v ON v.id = pv.variant_id
+      WHERE p.model_id = m.id AND p.is_active AND v.is_active ORDER BY pv.position, p.position, p.id LIMIT 1) cover ON true
     WHERE m.id IN (SELECT jsonb_array_elements_text(${jsonParam(modelIds)}::jsonb)::integer) AND m.is_active`;
 }
 
@@ -437,7 +448,7 @@ export async function readVariants(db: PrismaClient, modelIds: number[], freshRu
 export async function readPhotos(db: PrismaClient, photoIds: number[]): Promise<PhotoRow[]> {
   if (!photoIds.length) return [];
   return db.$queryRaw<PhotoRow[]>`
-    SELECT p.id, p.url, p.url_large AS "urlLarge",
+    SELECT p.id, p.url, p.url_large AS "urlLarge", p.thumb_sha256 AS "thumbSha256",
       array(SELECT v.sku FROM photo_variant pv JOIN variant v ON v.id = pv.variant_id
         WHERE pv.photo_id = p.id AND v.is_active ORDER BY v.sku) AS skus
     FROM photo p WHERE p.id IN (SELECT jsonb_array_elements_text(${jsonParam(photoIds)}::jsonb)::integer)`;

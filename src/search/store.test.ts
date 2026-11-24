@@ -18,6 +18,18 @@ describe("nearest queries", () => {
     expect(sql.values).toEqual(["[0.25,-0.5]", 3, 3, '["axpol"]', '[{"source":"axpol","path":["DRINKWARE"]}]', '{"1":8,"2":11}', 500, 288]);
   });
 
+  it("read every active photo of a model with «Усі фото товару», and its 3 in the search otherwise", () => {
+    const query: NearestQuery = { model: "gemini-embedding-2/1536", vector: [1], limit: 1000, freshRuns: {}, filters: {}, scan: "index" };
+    const three = nearestPhotosSql(query);
+    expect(three.text).toContain("coalesce(p.search_rank, 0) <");
+    expect(three.text).toContain("pv.position <");
+    const all = nearestPhotosSql({ ...query, isAllPhotos: true });
+    expect(all.text).toContain("p.is_active AND m.is_active");
+    expect(all.text).not.toContain("search_rank");
+    expect(all.text).not.toContain("photo_variant");
+    expect(countCandidatesSql("photo", { ...query, isAllPhotos: true }, 5000).text).not.toContain("search_rank");
+  });
+
   it("take the shared categories as the ids of their categories, matched by the model's whole path", () => {
     const sql = nearestTextsSql({
       model: "gemini-embedding-2/1536", vector: [1], limit: 100, freshRuns: {}, filters: { sharedCategoryIds: [4, 7] },

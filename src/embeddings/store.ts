@@ -12,14 +12,23 @@ const MAX_ERROR_CHARS = 500;
 export interface PhotoToEmbed {
   id: number;
   url: string;
+  // It has a vector of the run's model already, and needs only its reduced copy
+  hasVector: boolean;
+  // It has its reduced copy already, and needs only a vector
+  hasThumb: boolean;
 }
 
-// In the search: an active photo p of an active model m, among the first photos of an active variant. Also used by the
-// sample comparison (scripts/compare-embeddings.ts).
+// The photos the search reads: an active photo p of an active model m, among the first photos of an active variant.
+// Also used by the sample comparison (scripts/compare-embeddings.ts).
 export const IN_SCOPE = Prisma.sql`
   p.is_active AND m.is_active AND EXISTS (
     SELECT 1 FROM photo_variant pv JOIN variant v ON v.id = pv.variant_id
     WHERE pv.photo_id = p.id AND pv.position < ${PHOTOS_PER_VARIANT} AND v.is_active)`;
+
+// The photos that get a vector and a reduced copy: every active photo of an active model (owner's decision 2026-11-24:
+// all photos of the catalogues, and of every source to come). The search reads those of IN_SCOPE and IN_SEARCH, or all
+// of these with its setting «Усі фото товару» (src/search/settings.ts).
+export const IN_CATALOGUE = Prisma.sql`p.is_active AND m.is_active`;
 
 // Pictures of one model the search compares a query with, the same number for every model and source (decision
 // 2026-10-30). A model ranks by its best photo, so every further picture is one more chance to rank high: a model with
@@ -31,14 +40,21 @@ export const PHOTOS_PER_MODEL = 3;
 // the next run
 export const IN_SEARCH = Prisma.sql`coalesce(p.search_rank, 0) < ${PHOTOS_PER_MODEL}`;
 
-// The next photos of a source with no vector of this model, in id order after afterId. Failed ones only on request.
+function hasVectorSql(embeddingModel: string): Prisma.Sql {
+  return Prisma.sql`EXISTS (SELECT 1 FROM photo_embedding e WHERE e.photo_id = p.id AND e.embedding_model = ${embeddingModel})`;
+}
+
+// The next photos of a source with no vector of this model, or with no reduced copy when isThumbs, in id order after
+// afterId. Failed ones only on request.
 export async function nextPhotos(db: PrismaClient, sourceId: number, embeddingModel: string, afterId: number,
-  limit: number, isRetryFailed: boolean): Promise<PhotoToEmbed[]> {
+  limit: number, { isRetryFailed, isThumbs }: { isRetryFailed: boolean; isThumbs: boolean }): Promise<PhotoToEmbed[]> {
+  const hasVector = hasVectorSql(embeddingModel);
   return db.$queryRaw<PhotoToEmbed[]>`
-    SELECT p.id, p.url FROM photo p JOIN product_model m ON m.id = p.model_id
-    WHERE m.source_id = ${sourceId} AND p.id > ${afterId} AND ${IN_SCOPE}
+    SELECT p.id, p.url, ${hasVector} AS "hasVector", p.thumb_sha256 IS NOT NULL AS "hasThumb"
+    FROM photo p JOIN product_model m ON m.id = p.model_id
+    WHERE m.source_id = ${sourceId} AND p.id > ${afterId} AND ${IN_CATALOGUE}
       AND (${isRetryFailed} OR p.status <> 'failed')
-      AND NOT EXISTS (SELECT 1 FROM photo_embedding e WHERE e.photo_id = p.id AND e.embedding_model = ${embeddingModel})
+      AND (NOT ${hasVector} OR (${isThumbs} AND p.thumb_sha256 IS NULL))
     ORDER BY p.id LIMIT ${limit}`;
 }
 
@@ -47,19 +63,31 @@ export interface PhotoTotals {
   ready: number;
   failed: number;
   pending: number;
+  // Reduced copies made, those still to make, and photos failed with none (not to be made until --retry-failed)
+  thumbs: number;
+  thumbsPending: number;
+  thumbsFailed: number;
 }
 
 export async function photoTotals(db: PrismaClient, sourceId: number, embeddingModel: string): Promise<PhotoTotals> {
-  const [row] = await db.$queryRaw<{ in_scope: bigint; ready: bigint; failed: bigint }[]>`
+  const [row] = await db.$queryRaw<{
+    in_scope: bigint; ready: bigint; failed: bigint; thumbs: bigint; thumbs_pending: bigint; thumbs_failed: bigint;
+  }[]>`
     SELECT count(*) AS in_scope, count(e.photo_id) AS ready,
-      count(*) FILTER (WHERE e.photo_id IS NULL AND p.status = 'failed') AS failed
+      count(*) FILTER (WHERE e.photo_id IS NULL AND p.status = 'failed') AS failed,
+      count(p.thumb_sha256) AS thumbs,
+      count(*) FILTER (WHERE p.thumb_sha256 IS NULL AND p.status <> 'failed') AS thumbs_pending,
+      count(*) FILTER (WHERE p.thumb_sha256 IS NULL AND p.status = 'failed') AS thumbs_failed
     FROM photo p JOIN product_model m ON m.id = p.model_id
     LEFT JOIN photo_embedding e ON e.photo_id = p.id AND e.embedding_model = ${embeddingModel}
-    WHERE m.source_id = ${sourceId} AND ${IN_SCOPE}`;
+    WHERE m.source_id = ${sourceId} AND ${IN_CATALOGUE}`;
   const inScope = Number(row?.in_scope ?? 0);
   const ready = Number(row?.ready ?? 0);
   const failed = Number(row?.failed ?? 0);
-  return { inScope, ready, failed, pending: inScope - ready - failed };
+  return {
+    inScope, ready, failed, pending: inScope - ready - failed,
+    thumbs: Number(row?.thumbs ?? 0), thumbsPending: Number(row?.thumbs_pending ?? 0), thumbsFailed: Number(row?.thumbs_failed ?? 0),
+  };
 }
 
 // Postgres' deadlock code. Photo rows are locked in id order before they are updated; the import's photo upsert locks
@@ -167,6 +195,35 @@ export async function markPhotosFailed(db: PrismaClient, rows: { photoId: number
     locked AS (SELECT p.id FROM photo p JOIN x ON x.photo_id = p.id ORDER BY p.id FOR UPDATE OF p)
     UPDATE photo p SET status = 'failed', error = x.error, status_changed_at = now()
     FROM x JOIN locked l ON l.id = x.photo_id WHERE p.id = x.photo_id`);
+}
+
+// The reduced copies written to the store (src/photos/thumbs.ts), each under the sha256 of its picture. NO KEY: the
+// column is no key, so the import's foreign key checks on photo_variant (KEY SHARE) do not wait for these locks
+export async function writeThumbs(db: PrismaClient, rows: { photoId: number; sha256: string }[]): Promise<number> {
+  if (!rows.length) return 0;
+  const batch = jsonParam(rows.map((row) => ({ photo_id: row.photoId, sha256: row.sha256 })));
+  return withDeadlockRetry(() => db.$executeRaw`
+    WITH x AS (SELECT * FROM jsonb_to_recordset(${batch}::jsonb) AS x(photo_id integer, sha256 text)),
+    locked AS (SELECT p.id FROM photo p JOIN x ON x.photo_id = p.id ORDER BY p.id FOR NO KEY UPDATE OF p)
+    UPDATE photo p SET thumb_sha256 = x.sha256 FROM x JOIN locked l ON l.id = x.photo_id WHERE p.id = x.photo_id`);
+}
+
+// The copies a source's photos are marked with, one row per photo: tens of thousands at most, a catalogue's photos
+export async function readMarkedThumbs(db: PrismaClient, sourceId: number): Promise<{ photoId: number; sha256: string }[]> {
+  return db.$queryRaw<{ photoId: number; sha256: string }[]>`
+    SELECT p.id AS "photoId", p.thumb_sha256 AS sha256 FROM photo p JOIN product_model m ON m.id = p.model_id
+    WHERE m.source_id = ${sourceId} AND ${IN_CATALOGUE} AND p.thumb_sha256 IS NOT NULL`;
+}
+
+// The marks of copies whose files are gone, so the run makes them again; a mark another run changed meanwhile stays
+export async function unmarkThumbs(db: PrismaClient, rows: { photoId: number; sha256: string }[]): Promise<number> {
+  if (!rows.length) return 0;
+  const batch = jsonParam(rows.map((row) => ({ photo_id: row.photoId, sha256: row.sha256 })));
+  return withDeadlockRetry(() => db.$executeRaw`
+    WITH x AS (SELECT * FROM jsonb_to_recordset(${batch}::jsonb) AS x(photo_id integer, sha256 text)),
+    locked AS (SELECT p.id FROM photo p JOIN x ON x.photo_id = p.id ORDER BY p.id FOR NO KEY UPDATE OF p)
+    UPDATE photo p SET thumb_sha256 = NULL FROM x JOIN locked l ON l.id = x.photo_id
+    WHERE p.id = x.photo_id AND p.thumb_sha256 = x.sha256`);
 }
 
 // A photo the CDN did not give this time stays pending; its error says why, for whoever looks at a photo still pending

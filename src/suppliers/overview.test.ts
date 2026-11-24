@@ -71,7 +71,7 @@ describe("supplierOverview", () => {
         { sourceId: 2, models: 1192 },
       ],
       vectors: new Map([[1, {
-        photos: { inScope: 27_448, ready: 27_445, failed: 3, pending: 0 },
+        photos: { inScope: 27_448, ready: 27_445, failed: 3, pending: 0, thumbs: 27_440, thumbsPending: 5, thumbsFailed: 3 },
         texts: textPlan({ total: 3774, unchanged: 3772, withoutText: ["A", "B"] }),
       }]]),
     }));
@@ -85,7 +85,7 @@ describe("supplierOverview", () => {
       lastSucceededAt: EARLIER.toISOString(),
       stock: { variants: 10_881 },
       vectors: {
-        photos: { inScope: 27_448, ready: 27_445, failed: 3, pending: 0 },
+        photos: { inScope: 27_448, ready: 27_445, failed: 3, pending: 0, thumbs: 27_440, thumbsPending: 5, thumbsFailed: 3 },
         texts: { models: 3774, ready: 3772, stale: 0, missing: 0, withoutText: 2 },
         lastRun: { status: "succeeded", startedAt: EARLIER.toISOString(), finishedAt: EARLIER.toISOString() },
       },

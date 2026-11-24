@@ -39,6 +39,10 @@ services:
       # Set here, so a stray HOST= in .env cannot make the app listen on loopback only
       HOST: 0.0.0.0
       DATABASE_URL: *database-url
+      PHOTO_STORE_DIR: &photo-store-dir /app/data/photo-store
+    # The reduced photo copies the worker makes: the app only reads them
+    volumes:
+      - photo-store:/app/data/photo-store:ro
     # No published port: Traefik reaches the app over its network
     networks: [app-net, proxy]
     labels:
@@ -90,6 +94,10 @@ services:
     command: ["node", "dist/main.js"]
     environment:
       DATABASE_URL: *database-url
+      PHOTO_STORE_DIR: *photo-store-dir
+    # WORKER=embed writes the reduced photo copies here (docs/integrations.md, «Сховище зменшених фото»)
+    volumes:
+      - photo-store:/app/data/photo-store
     networks: [app-net]
 
   db:
@@ -123,6 +131,8 @@ services:
 
 volumes:
   db-data:
+  # Derived data: an embeddings run makes every copy again, so no dump or backup holds it
+  photo-store:
 
 networks:
   app-net:

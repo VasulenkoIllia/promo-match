@@ -9,7 +9,7 @@ const LIST: OwnProductList = {
   products: [{
     id: 1, name: "Кружка", code: "K-1", links: [{
       modelId: 7, type: "same", source: { code: "axpol", name: "Axpol" }, code: "V1", name: "Mug", category: ["DRINKWARE"],
-      isActive: true, photoUrl: "https://files.axpol.com/a.jpg",
+      isActive: true, photoUrl: "https://files.axpol.com/a.jpg", photoThumbUrl: null,
     }],
   }],
   isComplete: true,

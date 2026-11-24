@@ -27,6 +27,11 @@ describe("settingsInput", () => {
     expect(changed({ hasImageTextList: false, hasTextTextList: false }).offLists).toEqual(["image-text", "text-text"]);
   });
 
+  it("lets the photo lists read every photo of a model only when asked", () => {
+    expect(changed({ isAllModelPhotos: true })).toEqual({ parseQuery: true, conditionPass: null, isAllPhotos: true });
+    expect(CODE_DEFAULT_SETTINGS.isAllModelPhotos).toBe(false);
+  });
+
   it("turns the reading off and the condition pass on", () => {
     expect(changed({ isParseQuery: false })).toEqual({ parseQuery: false, conditionPass: null });
     expect(changed({ isConditionPass: true })).toEqual({ parseQuery: true, conditionPass: CONDITION_PASS });
@@ -102,7 +107,7 @@ describe("storedSettings", () => {
 
   it("reads every setting of the code's defaults back as it is", () => {
     expect(storedSettings(JSON.parse(JSON.stringify(CODE_DEFAULT_SETTINGS)))).toEqual({ settings: CODE_DEFAULT_SETTINGS, dropped: [] });
-    expect(SETTING_KEYS).toHaveLength(9);
+    expect(SETTING_KEYS).toHaveLength(10);
   });
 });
 

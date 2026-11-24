@@ -2,10 +2,11 @@ import { describe, expect, it } from "vitest";
 import { assembleResults } from "./results.js";
 import type { ModelRow, VariantRow } from "./store.js";
 
-const model = (id: number, coverPhotoUrl: string | null = null): ModelRow => ({
+const model = (id: number, coverPhotoUrl: string | null = null, coverThumbSha256: string | null = null): ModelRow => ({
   id, sourceCode: "axpol", sourceName: "Axpol", code: `M${id}`, name: `Mug ${id}`, category: ["DRINKWARE", "mugs"],
-  coverPhotoUrl,
+  coverPhotoUrl, coverThumbSha256,
 });
+const SHA = "ab".repeat(32);
 
 const against = { volumeMl: "against", materials: null, sizeCm: null, printTechniques: null, sheets: null, gsm: null } as const;
 
@@ -23,12 +24,12 @@ describe("assembleResults", () => {
         { modelId: 2, score: 0.03, lists: { "text-text": { rank: 1, similarity: 0.8 } }, photos: [] },
         { modelId: 1, score: 0.02, lists: { "image-photo": { rank: 1, similarity: 0.9 } }, photos: [{ photoId: 10, imageSha256: "sha10", similarity: 0.9 }] },
       ],
-      [model(1, "https://cdn.test/m1.jpg"), model(2, "https://cdn.test/m2.jpg")],
+      [model(1, "https://cdn.test/m1.jpg"), model(2, "https://cdn.test/m2.jpg", SHA)],
       [variant, {
         ...variant, sku: "M1-02", inStock: null, nextArrivalDate: null, nextArrivalQuantity: null, price: null, currency: null,
         priceMinQuantity: null, offer: null,
       }],
-      [{ id: 10, url: "https://cdn.test/p10.jpg", urlLarge: null, skus: ["M1-05"] }],
+      [{ id: 10, url: "https://cdn.test/p10.jpg", urlLarge: null, thumbSha256: null, skus: ["M1-05"] }],
       new Map([[1, against]]),
       query,
     );
@@ -36,9 +37,14 @@ describe("assembleResults", () => {
     expect(results.map((result) => result.conditionMatch)).toEqual([null, against]);
     expect(results.map((result) => result.confidence)).toEqual([{ percent: 90, level: "high" }, { percent: 25, level: "low" }]);
     // Found by its text only: the cover stands in for a matched photo
-    expect(results[0]?.photos).toEqual([{ id: null, url: "https://cdn.test/m2.jpg", urlLarge: null, similarity: null, skus: [] }]);
+    expect(results[0]?.photos).toEqual([{
+      id: null, url: "https://cdn.test/m2.jpg", urlLarge: null, thumbUrl: `/api/photos/stored/${SHA}.webp`, similarity: null, skus: [],
+    }]);
     expect(results[0]?.variants).toEqual([]);
-    expect(results[1]?.photos).toEqual([{ id: 10, url: "https://cdn.test/p10.jpg", urlLarge: null, similarity: 0.9, skus: ["M1-05"] }]);
+    // No reduced copy yet: the screen shows the supplier's link
+    expect(results[1]?.photos).toEqual([{
+      id: 10, url: "https://cdn.test/p10.jpg", urlLarge: null, thumbUrl: null, similarity: 0.9, skus: ["M1-05"],
+    }]);
     expect(results[1]?.variants).toEqual([
       { sku: "M1-05", color: "red", colorGroups: ["red"], size: null, inStock: 120, nextArrival: { date: "2026-11-10", quantity: 500 },
         price: { amount: "2.5000", currency: "PLN", minQuantity: 50 }, offer: "promotion" },

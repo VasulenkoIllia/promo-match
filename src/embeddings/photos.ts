@@ -1,19 +1,29 @@
-// The photos of one source: pages of photos with no vector of the provider's model (keyset by id), downloaded a few at
-// a time, the same picture sent once, written page by page (docs/integrations.md, «Ембедінги каталогу»). A stop or a
-// failed call ends the run after the vectors already paid for are written; the rest stays pending.
+// The photos of one source: pages of photos with no vector of the provider's model or no reduced copy (keyset by id),
+// downloaded a few at a time, the copy made from the same bytes, the same picture sent once, written page by page
+// (docs/integrations.md, «Ембедінги каталогу», «Сховище зменшених фото»). A stop or a failed call ends the run after
+// the vectors already paid for are written; the rest stays pending.
 import type { PrismaClient } from "../generated/prisma/client.js";
+import { missingThumbs, PhotoStoreError, storeThumb } from "../photos/thumbs.js";
 import type { UrlFetch } from "../suppliers/http.js";
 import { scrub } from "../suppliers/secrets.js";
 import { addExample, addUsage, batchesOf, type Budget, embedSplitting, mapSettled, toError } from "./batch.js";
 import { type Download, downloadImage } from "./image.js";
 import type { EmbeddingProvider } from "./provider.js";
-import { markPhotosFailed, nextPhotos, notePhotosDeferred, type PhotoToEmbed, reuseVectors, writePhotoVectors } from "./store.js";
+import {
+  markPhotosFailed, nextPhotos, notePhotosDeferred, type PhotoToEmbed, readMarkedThumbs, reuseVectors, unmarkThumbs,
+  writePhotoVectors, writeThumbs,
+} from "./store.js";
 
 const PAGE_SIZE = 96;
 // The Axpol CDN answers each photo in 2-3 s whatever its size (2026-10-29), so downloads set the pace there; 24 at
 // once held. Requests stay at 4: a Voyage page is 3 batches, and its 2M tokens a minute fill before more would help
 const DOWNLOAD_CONCURRENCY = 24;
 const REQUEST_CONCURRENCY = 4;
+// libvips works on several threads of its own per picture, and a large PNG is decoded whole (src/photos/thumbs.ts,
+// MAX_COPY_PIXELS): two pictures at once keep the worker within its 2 GB
+const THUMB_CONCURRENCY = 2;
+// Marks of copies cleared per statement when their files are gone
+const UNMARK_BATCH = 2_000;
 // Pages in a row where the CDN gave no photo: it is down, and the run stops instead of walking the catalogue
 const MAX_DEFERRED_PAGES = 3;
 // A full page (more photos follow it) of at least this many where every photo failed and none came is a block or a
@@ -29,6 +39,11 @@ export interface PhotoCounts {
   failed: number;
   // Not downloaded now (network, 5xx, a block): pending for the next run
   deferred: number;
+  // Reduced copies stored, photos whose bytes libvips could not read (marked failed, sent nowhere), and marks of copies
+  // whose files were gone (cleared, so the run made them again)
+  stored: number;
+  storeFailed: number;
+  lost: number;
   // Calls made to the provider, refused ones included
   calls: number;
   usage: Record<string, number>;
@@ -36,7 +51,7 @@ export interface PhotoCounts {
 }
 
 export function emptyPhotoCounts(): PhotoCounts {
-  return { embedded: 0, reused: 0, failed: 0, deferred: 0, calls: 0, usage: {}, examples: [] };
+  return { embedded: 0, reused: 0, failed: 0, deferred: 0, stored: 0, storeFailed: 0, lost: 0, calls: 0, usage: {}, examples: [] };
 }
 
 export interface EmbedJob {
@@ -54,6 +69,8 @@ export interface EmbedJob {
   beforeBatch: () => Promise<void>;
   // The source's own fetch when its photos need a token (Makito); undefined for a public CDN
   fetchPhoto: UrlFetch | undefined;
+  // PHOTO_STORE_DIR, where the reduced copies go (src/photos/thumbs.ts); undefined: vectors only
+  storeDir: string | undefined;
 }
 
 // One picture to send: the photos that share its bytes get its vector
@@ -151,6 +168,39 @@ async function downloadPage(job: EmbedJob, page: PhotoToEmbed[]) {
   return { downloaded, failed, deferred };
 }
 
+// The reduced copies of the photos that have none, written before any paid call, so a page whose vectors fail keeps
+// them. Returns the photos whose bytes libvips could not read: those are marked failed and get no vector either.
+async function storeThumbs(job: EmbedJob, storeDir: string, downloaded: Downloaded[], counts: PhotoCounts): Promise<Set<number>> {
+  const wanted = downloaded.filter(({ photo }) => !photo.hasThumb);
+  const results = await mapSettled(wanted, THUMB_CONCURRENCY,
+    ({ download }) => storeThumb(storeDir, download.sha256, download.bytes));
+  const stored: { photoId: number; sha256: string }[] = [];
+  const broken: { photoId: number; error: string }[] = [];
+  wanted.forEach(({ photo, download }, index) => {
+    const result = results[index];
+    // A disk that refuses a write is the worker's failure, not the photo's: it stops the run, for every source
+    if (result?.status !== "fulfilled") {
+      const reason: unknown = result?.status === "rejected" ? result.reason : "not started";
+      throw reason instanceof PhotoStoreError ? reason : new PhotoStoreError(toError(reason).message, { cause: reason });
+    }
+    if (result.value === null) {
+      stored.push({ photoId: photo.id, sha256: download.sha256 });
+      return;
+    }
+    broken.push({ photoId: photo.id, error: scrub(`reduced copy: ${result.value}`, job.secrets) });
+  });
+  // Every copy of a page failing is libvips' trouble (memory, a broken build), not that many broken photos: the run
+  // stops before marking them, as for downloads
+  if (wanted.length >= MIN_PAGE_FOR_FAILED_GUARD && broken.length === wanted.length) {
+    throw new Error(`every one of ${wanted.length} reduced copies failed, nothing marked: `
+      + `${broken.slice(0, 3).map((item) => `photo ${item.photoId}: ${item.error}`).join("; ")}`);
+  }
+  for (const item of broken) addExample(counts.examples, `photo ${item.photoId}: ${item.error}`);
+  counts.stored += await writeThumbs(job.db, stored);
+  counts.storeFailed += await markPhotosFailed(job.db, broken);
+  return new Set(broken.map((row) => row.photoId));
+}
+
 // False when the CDN gave no photo of the page. isFullPage: the page is as long as asked, so more photos may follow
 async function embedPage(job: EmbedJob, page: PhotoToEmbed[], isFullPage: boolean, counts: PhotoCounts): Promise<boolean> {
   const { downloaded, failed, deferred } = await downloadPage(job, page);
@@ -164,21 +214,41 @@ async function embedPage(job: EmbedJob, page: PhotoToEmbed[], isFullPage: boolea
   counts.failed += await markPhotosFailed(job.db, failed);
   counts.deferred += deferred.length;
   await notePhotosDeferred(job.db, deferred);
+  const broken = job.storeDir ? await storeThumbs(job, job.storeDir, downloaded, counts) : new Set<number>();
+  const toEmbed = downloaded.filter(({ photo }) => !photo.hasVector && !broken.has(photo.id));
   const reused = await reuseVectors(job.db, job.provider.name,
-    downloaded.map(({ photo, download }) => ({ photoId: photo.id, sha256: download.sha256 })));
+    toEmbed.map(({ photo, download }) => ({ photoId: photo.id, sha256: download.sha256 })));
   counts.reused += reused.size;
-  await embedPictures(job, picturesOf(downloaded.filter(({ photo }) => !reused.has(photo.id))), counts);
+  await embedPictures(job, picturesOf(toEmbed.filter(({ photo }) => !reused.has(photo.id))), counts);
   return downloaded.length > 0;
 }
 
+// Copies the database marks while their files are gone (a volume lost, or not mounted when they were made) lose their
+// mark, so the pages below make them again
+async function unmarkLostThumbs(job: EmbedJob, storeDir: string, counts: PhotoCounts): Promise<void> {
+  const marked = await readMarkedThumbs(job.db, job.sourceId);
+  let missing;
+  try {
+    missing = await missingThumbs(storeDir, marked.map((row) => row.sha256));
+  } catch (error) {
+    throw new PhotoStoreError(`PHOTO_STORE_DIR ${storeDir} not readable: ${toError(error).message}`, { cause: error });
+  }
+  const lost = marked.filter((row) => missing.has(row.sha256));
+  for (let start = 0; start < lost.length; start += UNMARK_BATCH) {
+    counts.lost += await unmarkThumbs(job.db, lost.slice(start, start + UNMARK_BATCH));
+  }
+}
+
 export async function embedPhotos(job: EmbedJob, counts: PhotoCounts): Promise<void> {
+  if (job.storeDir) await unmarkLostThumbs(job, job.storeDir, counts);
   let afterId = 0;
   let left = job.limit ?? Number.POSITIVE_INFINITY;
   let deferredPages = 0;
   while (left > 0) {
     await job.beforeBatch();
     const size = Math.min(PAGE_SIZE, left);
-    const page = await nextPhotos(job.db, job.sourceId, job.provider.name, afterId, size, job.isRetryFailed);
+    const page = await nextPhotos(job.db, job.sourceId, job.provider.name, afterId, size,
+      { isRetryFailed: job.isRetryFailed, isThumbs: job.storeDir !== undefined });
     const last = page.at(-1);
     if (!last) return;
     afterId = last.id;

@@ -14,7 +14,8 @@ const result = (rank: number, modelId: number, percent: number | null, photos: n
   source: { code: "axpol", name: "Axpol" }, code: `V${modelId}`, name: `Mug ${modelId}`, category: ["DRINKWARE"],
   pageUrl: `https://supplier.test/${modelId}`,
   photos: Array.from({ length: photos }, (_, index) => ({
-    id: index + 1, url: `https://cdn.test/${modelId}-${index}.jpg`, urlLarge: null, similarity: 0.9, skus: [`V${modelId}-05`],
+    id: index + 1, url: `https://cdn.test/${modelId}-${index}.jpg`, urlLarge: null, thumbUrl: null, similarity: 0.9,
+    skus: [`V${modelId}-05`],
   })),
   variants: [{
     sku: `V${modelId}-05`, color: "red", colorGroups: ["red"], size: null, inStock: 120, nextArrival: null,

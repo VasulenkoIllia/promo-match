@@ -75,6 +75,8 @@ export interface SearchInput {
   listWeights?: Partial<Record<ListName, number>>;
   // The lists the search settings turn off: never read nor paid for, whatever the inputs allow
   offLists?: ListName[];
+  // The photo lists read every photo of a model (the setting isAllModelPhotos), not its 3 in the search
+  isAllPhotos?: boolean;
 }
 
 export const searchBodySchema = {

@@ -1,10 +1,11 @@
-// The embeddings run of each source in turn (docs/integrations.md, «Ембедінги каталогу»): texts, then photos, under a
-// lease and a spending limit, logged in sync_run (kind embed). A dry run reads the database and a few photos for their
-// size, prints what a run would send and what it would cost at list prices, and writes nothing.
+// The embeddings run of each source in turn (docs/integrations.md, «Ембедінги каталогу»): texts, then photos with their
+// reduced copies, under a lease and a spending limit, logged in sync_run (kind embed). A dry run reads the database and
+// a few photos for their size, prints what a run would send and what it would cost at list prices, and writes nothing.
 import type { PrismaClient } from "../generated/prisma/client.js";
 import { ImportStopped } from "../import/errors.js";
 import { findSource, finishRun, startRun } from "../import/lock.js";
 import { checkDatabase, describeError } from "../import/run.js";
+import { checkStore, missingThumbs, PhotoStoreError } from "../photos/thumbs.js";
 import type { UrlFetch } from "../suppliers/http.js";
 import { photoFetchFor } from "../suppliers/registry.js";
 import { scrub } from "../suppliers/secrets.js";
@@ -15,7 +16,7 @@ import { downloadImage } from "./image.js";
 import { leaseName, releaseWorkerLease, renewWorkerLease, takeWorkerLease } from "./lease.js";
 import { embedPhotos, type EmbedJob, emptyPhotoCounts, type PhotoCounts } from "./photos.js";
 import type { EmbeddingProvider } from "./provider.js";
-import { nextPhotos, photoTotals, refreshSearchRanks } from "./store.js";
+import { nextPhotos, photoTotals, type PhotoTotals, readMarkedThumbs, refreshSearchRanks } from "./store.js";
 import { textChars } from "./text.js";
 import { embedTexts, emptyTextCounts, readTextPlan, type TextCounts, type TextPlan } from "./texts.js";
 
@@ -29,6 +30,8 @@ export interface EmbedOptions {
   // Required for a run, unused by a dry run
   budget: Budget | undefined;
   context: FetchContext;
+  // PHOTO_STORE_DIR (src/photos/thumbs.ts); undefined: vectors only, no reduced copies
+  storeDir: string | undefined;
 }
 
 // Photos a dry run downloads per source to learn their size (Voyage prices by pixels)
@@ -50,14 +53,20 @@ function textLine(code: string, plan: TextPlan, counts?: TextCounts): string {
 
 function photoLine(code: string, counts: PhotoCounts): string {
   return `${code}: photos: embedded ${counts.embedded}, reused ${counts.reused}, failed ${counts.failed},`
-    + ` deferred ${counts.deferred}; calls ${counts.calls}`;
+    + ` deferred ${counts.deferred}; reduced copies stored ${counts.stored}, unreadable ${counts.storeFailed},`
+    + ` lost and made again ${counts.lost}; calls ${counts.calls}`;
+}
+
+function totalsLine(totals: PhotoTotals): string {
+  return `photos ${totals.inScope}: ready ${totals.ready}, failed ${totals.failed}, pending ${totals.pending};`
+    + ` reduced copies ${totals.thumbs}, to make ${totals.thumbsPending}, failed ${totals.thumbsFailed}`;
 }
 
 // The mean size of a few photos still to embed (the first ones by id, of any provider); undefined when none was read.
 // The sample only learns sizes, so no provider's pixel bound applies to it
 async function meanPixels(db: PrismaClient, sourceId: number, model: string, options: EmbedOptions,
   fetchPhoto: UrlFetch | undefined): Promise<number | undefined> {
-  const photos = await nextPhotos(db, sourceId, model, 0, SIZE_SAMPLE, options.isRetryFailed);
+  const photos = await nextPhotos(db, sourceId, model, 0, SIZE_SAMPLE, { isRetryFailed: options.isRetryFailed, isThumbs: false });
   const sizes: number[] = [];
   for (const photo of photos) {
     const download = await downloadImage(photo.url, options.context.signal, fetchPhoto, Number.POSITIVE_INFINITY);
@@ -67,8 +76,18 @@ async function meanPixels(db: PrismaClient, sourceId: number, model: string, opt
   return sizes.length ? sizes.reduce((sum, size) => sum + size, 0) / sizes.length : undefined;
 }
 
+// Copies the database marks while their files are gone: a run makes them again. On the server this says whether the
+// worker sees the volume the copies were made in.
+async function logLostThumbs(db: PrismaClient, code: string, sourceId: number, storeDir: string, log: (line: string) => void) {
+  const marked = await readMarkedThumbs(db, sourceId);
+  const missing = await missingThumbs(storeDir, marked.map((row) => row.sha256));
+  const lost = marked.filter((row) => missing.has(row.sha256)).length;
+  log(`${code}: reduced copies in ${storeDir}: ${marked.length - lost} of ${marked.length} marked are there, ${lost} lost`);
+}
+
 async function planSource(db: PrismaClient, code: string, sourceId: number, options: EmbedOptions): Promise<void> {
   const { log } = options.context;
+  if (options.storeDir) await logLostThumbs(db, code, sourceId, options.storeDir, log);
   const fetchPhoto = photoFetchFor(code, options.context.secrets);
   let pixels: number | undefined;
   for (const provider of options.providers) {
@@ -87,8 +106,7 @@ async function planSource(db: PrismaClient, code: string, sourceId: number, opti
       imagePixels: new Array<number>(photos).fill(pixels ?? 0),
       textChars: texts.reduce((sum, text) => sum + textChars(text.input), 0),
     });
-    log(`${code}: ${provider.name}: photos in scope ${totals.inScope}: ready ${totals.ready}, failed ${totals.failed},`
-      + ` pending ${totals.pending}; to send ${photos}`);
+    log(`${code}: ${provider.name}: ${totalsLine(totals)}; to send ${photos}`);
     log(textLine(code, plan));
     log(`${code}: ${provider.name}: estimate ${usd(price)} at list prices for ${photos} photos`
       + ` (about ${((pixels ?? 0) / MEGA).toFixed(2)} Mpx each) and ${texts.length} texts`);
@@ -111,7 +129,7 @@ async function runSource(db: PrismaClient, code: string, sourceId: number, optio
     if (holder) throw new ImportStopped(`${code}: ${holder}`);
     const job: EmbedJob = {
       db, provider, budget, sourceId, limit: options.limit, isRetryFailed: options.isRetryFailed, signal, secrets,
-      fetchPhoto: photoFetchFor(code, secrets),
+      fetchPhoto: photoFetchFor(code, secrets), storeDir: options.storeDir,
       beforeBatch: async () => {
         signal.throwIfAborted();
         await renewWorkerLease(db, name, runId);
@@ -131,13 +149,15 @@ async function runSource(db: PrismaClient, code: string, sourceId: number, optio
     const totals = await photoTotals(db, sourceId, provider.name);
     const plan = await readTextPlan(job, provider.name);
     counts.totals = { photos: totals, texts: { models: plan.total, ready: plan.unchanged } };
-    log(`${code}: in the database (${provider.name}): photos in scope ${totals.inScope}: ready ${totals.ready},`
-      + ` failed ${totals.failed}, pending ${totals.pending}; texts of ${plan.total} models: ready ${plan.unchanged}`);
-    // A full run that leaves photos pending (the CDN deferred them) or texts refused is not done: the exit code says so
+    log(`${code}: in the database (${provider.name}): ${totalsLine(totals)}; texts of ${plan.total} models:`
+      + ` ready ${plan.unchanged}`);
+    // A full run that leaves photos pending (the CDN deferred them), copies unmade or texts refused is not done: the
+    // exit code says so
     const textsLeft = plan.created.length + plan.changed.length;
-    if (options.limit === undefined && (totals.pending > 0 || textsLeft > 0)) {
-      throw new ImportStopped(`${code}: ${totals.pending} photos still pending and ${textsLeft} texts without a`
-        + ` vector; run again (photo.error says why a photo was deferred)`);
+    const thumbsLeft = options.storeDir ? totals.thumbsPending : 0;
+    if (options.limit === undefined && (totals.pending > 0 || thumbsLeft > 0 || textsLeft > 0)) {
+      throw new ImportStopped(`${code}: ${totals.pending} photos still pending, ${thumbsLeft} without a reduced copy`
+        + ` and ${textsLeft} texts without a vector; run again (photo.error says why a photo was deferred)`);
     }
     await finishRun(db, runId, counts);
     log(`${code}: done, sync_run ${runId}`);
@@ -152,9 +172,9 @@ async function runSource(db: PrismaClient, code: string, sourceId: number, optio
   }
 }
 
-// A failure of the provider or the budget would only repeat for the next source
+// A failure of the provider, the budget or the photo store would only repeat for the next source
 function isRunWide(error: unknown): boolean {
-  return error instanceof BudgetReached || error instanceof ProviderError;
+  return error instanceof BudgetReached || error instanceof ProviderError || error instanceof PhotoStoreError;
 }
 
 // Every source is tried even when one fails, except after a stop, a reached budget or a provider failure; false when
@@ -162,6 +182,7 @@ function isRunWide(error: unknown): boolean {
 export async function runEmbeddings(db: PrismaClient, options: EmbedOptions): Promise<boolean> {
   const { log, signal, secrets } = options.context;
   await checkDatabase(db, log);
+  if (!options.isDryRun && options.storeDir) await checkStore(options.storeDir);
   let isOk = true;
   let isStopped = false;
   for (const [index, code] of options.codes.entries()) {

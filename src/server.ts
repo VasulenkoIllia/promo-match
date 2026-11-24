@@ -62,6 +62,7 @@ export async function startServer(): Promise<void> {
     suppliers: createSuppliersService(prisma),
     supplierPhotos,
     archivePhotos: createArchivePhotos(new ArchiveReader()),
+    photoStoreDir: config.photoStoreDir,
   });
   if (!supplierPhotos) app.log.warn("Makito photos off: MAKITO_CLIENT_ID or MAKITO_CLIENT_SECRET is not set");
   if (!parser.isConfigured) {

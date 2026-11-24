@@ -279,11 +279,48 @@ cd /var/www/projects/promo-match && umask 077 && if grep -q '^ANDA_FEED_TOKEN=' 
 ```
 - Axpol з німецького сайту в EUR (docs/decisions.md, 2026-11-19): після деплою цього релізу нічний імпорт Axpol зупиняється на захисті від масової деактивації (асортимент менший), тож разово по кроку: `--dry-run --only axpol` (неактивними лише ціни випалих варіантів, дві на кожен), потім `--only axpol --allow-mass-deactivation`, далі спільні категорії й ембедінги з `--dry-run`. Не під час нічного запуску.
 - Ціна Axpol мінус 25% і позначки акцій (docs/decisions.md, 2026-11-19, міграція `variant_offer`): ручного кроку немає, перший нічний імпорт після деплою змінює ціни `net` без позначки `FinalNetPrice = 1` і позначає неактивними всі ціни `final` Axpol (локально 5497 і 564 з 12 686 цін, 4%, нижче межі захисту 20%). Перевірити заздалегідь можна `--dry-run --only axpol`: у рядку `prices` колонка `missing` дорівнює кількості цін `final` Axpol, `changed` числу варіантів з `FinalNetPrice = 0`.
-- Ембедінги: `pm run --rm --no-deps -e WORKER=embed worker node dist/main.js --dry-run` друкує кошторис без викликів; запуск без `--dry-run` лише з OK власника на суму. Один запуск на сервер: два разом на слабкому каналі ловлять таймаути.
+- Ембедінги: `pm run --rm --no-deps -e WORKER=embed worker node dist/main.js --dry-run` друкує кошторис без викликів; запуск без `--dry-run` лише з OK власника на суму. Один запуск на сервер: два разом на слабкому каналі ловлять таймаути. Той самий запуск робить зменшені копії фото в томі `photo-store` (docs/integrations.md, «Сховище зменшених фото»); у звіті `reduced copies stored …` і в підсумку `reduced copies …, to make …`.
 - Спільні категорії: `pm run --rm --no-deps -e WORKER=categories worker node dist/main.js --dry-run`, запис без `--dry-run`; план, що прибирає понад 20%, свідомо: `--allow-mass-removal`. Деплой робить це сам після міграцій.
 - Користувачі: `pm run --rm --no-deps -e WORKER=users worker node dist/main.js <add|password|disable|enable|list> ...` (docs/integrations.md, «Логін»). `password` і `disable` закривають усі сесії; `password <LOGIN>` вертає вхід, коли адмін один і забув пароль.
 - Стан і логи (лише читає): `pm ps`, `pm logs --tail 100 app`.
 - Журнал пошуків (лише читає): чистка й збої запису в лозі, `pm logs --since 7h app | grep 'search journal'` (через хвилину після старту й кожні 6 год рядок `searches past their days deleted`; `the search was not written` це втрачений рядок журналу, пошук при цьому відповів). Розмір: `pm exec db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT count(*), pg_size_pretty(pg_total_relation_size('"'"'search_journal'"'"')) FROM search_journal"'`.
+
+## Етап 4 «Фото» (разово після деплою)
+Реліз з томом `photo-store` (рішення власника 2026-11-24): вектор отримує кожне активне фото, а екран бере зменшені копії з нашого сервера. Кошторис на копії проду від 2026-11-23: 75 314 фото без вектора, $9,03 за прайсом; ліміт разового запуску $12 погодив власник. Кроки по одному, кожен після результату попереднього.
+
+**1. Деплой.** Реліз міняє `docker-compose.yml` (том `photo-store`: `app` лише читає, `worker` пише; `PHOTO_STORE_DIR`), тож деплой зупиниться з `... is not approved`: розділ «Зміна `docker-compose.yml` або `deploy.sh`». Міграція `photo_thumb` додає nullable-колонку без DEFAULT, `photo` блокується на мить.
+
+**2. На сервері після ssh: том є, застосунок його бачить (лише читає).** Спершу функція `pm` (розділ «Теки на сервері»). Очікується `promo-match_photo-store` і тека, власник `node`.
+```bash
+cd /var/www/projects/promo-match && docker volume ls --filter name=promo-match_photo-store --format '{{.Name}}' && pm exec -T app ls -ld /app/data/photo-store
+```
+
+**3. На сервері після ssh: кошторис (лише читає БД, том і по 8 фото постачальника, без платних викликів).** Очікується по кожному постачальнику `reduced copies in /app/data/photo-store: 0 of 0 marked are there, 0 lost`, `photos …: ready …, pending …; reduced copies 0, to make …` і `estimate $…`; разом близько $9. Сума понад $12: зупинитись і спитати власника.
+```bash
+cd /var/www/projects/promo-match && pm run --rm --no-deps -e WORKER=embed worker node dist/main.js --dry-run 2>&1 | grep -E 'reduced copies in|photos [0-9]+:|estimate|FAIL'
+```
+
+**4. На сервері після ssh: разовий запуск (пише, платний, ліміт $12).** Іде у фоні й не залежить від ssh; лог `embed-backfill.log`. Сотні тисяч завантажень займають години, тож краще почати зранку після нічного імпорту: нічний запуск ембедінгів того постачальника, якого тримає цей, пропуститься з помилкою оренди. Очікується номер фонової задачі, далі рядки в лозі (крок 5).
+```bash
+cd /var/www/projects/promo-match && umask 077 && IMAGE_TAG=$(cat current_tag) setsid nohup docker compose --project-name promo-match --env-file .env -f release/docker-compose.yml run --rm --no-deps -T --name promo-match-embed-backfill -e WORKER=embed -e EMBED_BUDGET_USD=12 worker node dist/main.js </dev/null >>embed-backfill.log 2>&1 &
+```
+
+**5. На сервері після ssh: хід запуску (лише читає).** По кожному постачальнику `photos: embedded …; reduced copies stored …`, `spent $…` і `done`; коли контейнера вже немає, запуск закінчився. `FAIL … pending` з підказкою запустити ще раз означає фото, які CDN відклав: повторити крок 4.
+```bash
+cd /var/www/projects/promo-match && tail -n 30 embed-backfill.log && docker ps --filter name=promo-match-embed-backfill --format '{{.Status}}' && pm exec -T app du -sh /app/data/photo-store
+```
+
+**Зупинити запуск (пише).** SIGTERM: запуск дописує вектори, за які вже заплачено, і виходить; решта доїде наступним запуском.
+```bash
+docker stop promo-match-embed-backfill
+```
+
+- Поки разового запуску не було, нічний із лімітом $0,50 вичерпує його на першому ж постачальнику (Axpol, близько 4000 нових фото), і `nightly.log` показує `embeddings failed`: ліміт зупиняє весь запуск, копії інших постачальників чекають.
+- Після нього нова модель каталогу отримує вектори всіх своїх фото (близько 11 на модель проти 3), тож звичайна ніч дорожча в кілька разів, але це центи: близько $0,12 на 1000 нових фото.
+- Відкат на реліз без тому: колонка й том лишаються, старий екран бере фото постачальників, як раніше.
+- Екран «Постачальники» з цього релізу рахує «Фото готові» від усіх фото каталогу, тож до кінця кроку 4 там видно близько 61% замість майже 100%.
+- `reduced photo copy missing` у лозі `app` (`pm logs --since 1h app | grep -c 'reduced photo copy missing'`) означає позначку без файлу: застосунок не бачить тому або файли втрачено. Наступний запуск ембедінгів знімає такі позначки й робить копії знову; сухий прогін кроку 3 показує їх як `lost`.
+- Після кроку 4 перевірити, що пошук з фільтром одного постачальника (Blue Collection, Easy Gifts) дає повні списки: межа скану індексу піднята до 40 000 (docs/integrations.md, «Пошук»).
 
 ## Відкат
 - Код: на Mac `ssh -F /dev/null -i ~/.ssh/promo_match_deploy -o IdentitiesOnly=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=6 -o UserKnownHostsFile=~/.ssh/promo_match_known_hosts '<SSH_USER>@<HOST>' '<PREVIOUS_TAG> --skip-migrate'`, `<PREVIOUS_TAG>` з `previous_tag` на сервері. `--skip-migrate` пропускає й міграції, і категорії. Міграції назад не відкочуються, тому вони лише additive: нові таблиці й колонки, без видалень у тому ж релізі.

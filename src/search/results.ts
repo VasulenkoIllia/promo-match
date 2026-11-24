@@ -1,6 +1,7 @@
 // The answer of a search (stage 4): the fused models, best first, each with its supplier, category, the photos that
 // matched (or its cover when only its text did) and its active variants with stock and the primary price. Prices are
 // purchase prices in the supplier's currency (confidential: never in logs, git or dumps).
+import { thumbUrl } from "../photos/thumbs.js";
 import { supplierPageUrl } from "../suppliers/page-url.js";
 import type { OfferKind } from "../suppliers/types.js";
 import { colorGroupsOf } from "./colors.js";
@@ -14,6 +15,8 @@ export interface ResultPhoto {
   id: number | null;
   url: string;
   urlLarge: string | null;
+  // The reduced copy on this server (src/photos/thumbs.ts), which the screen shows in place of url; null: none made yet
+  thumbUrl: string | null;
   // null for the cover of a model found by its text only
   similarity: number | null;
   // The variants the photo shows
@@ -104,10 +107,14 @@ export function assembleResults(fused: FusedModel[], models: ModelRow[], variant
     if (!model) continue;
     const matched = entry.photos.flatMap((match): ResultPhoto[] => {
       const photo = photoById.get(match.photoId);
-      return photo ? [{ id: photo.id, url: photo.url, urlLarge: photo.urlLarge, similarity: match.similarity, skus: photo.skus }] : [];
+      return photo ? [{
+        id: photo.id, url: photo.url, urlLarge: photo.urlLarge, thumbUrl: thumbUrl(photo.thumbSha256), similarity: match.similarity,
+        skus: photo.skus,
+      }] : [];
     });
-    const cover: ResultPhoto[] = model.coverPhotoUrl
-      ? [{ id: null, url: model.coverPhotoUrl, urlLarge: null, similarity: null, skus: [] }] : [];
+    const cover: ResultPhoto[] = model.coverPhotoUrl ? [{
+      id: null, url: model.coverPhotoUrl, urlLarge: null, thumbUrl: thumbUrl(model.coverThumbSha256), similarity: null, skus: [],
+    }] : [];
     const rows = variantsByModel.get(model.id) ?? [];
     const paged = pagedVariant(rows, entry.matchedCode);
     const found = {

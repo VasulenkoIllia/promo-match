@@ -17,6 +17,8 @@ const BOOLEANS = [false, true] as const;
 export interface SearchSettings {
   // «Порядок, коли є фото»: the weight of the photo-to-photo list in the fusion
   photoOrder: PhotoOrder;
+  // «Усі фото товару»: the photo lists read every photo of a model rather than its 3 (owner's decision 2026-11-24)
+  isAllModelPhotos: boolean;
   // The lists beside it: the reference photo against the model texts, the text against the photos and the texts
   hasImageTextList: boolean;
   hasTextPhotoList: boolean;
@@ -38,6 +40,7 @@ export type SettingKey = keyof SearchSettings;
 // Every value a setting takes, in the order of the screens; an unknown key or value is refused
 const SETTING_VALUES = {
   photoOrder: PHOTO_ORDERS,
+  isAllModelPhotos: BOOLEANS,
   hasImageTextList: BOOLEANS,
   hasTextPhotoList: BOOLEANS,
   hasTextTextList: BOOLEANS,
@@ -54,6 +57,7 @@ export const SETTING_KEYS = Object.keys(SETTING_VALUES) as SettingKey[];
 // hold falls back to it
 export const CODE_DEFAULT_SETTINGS: SearchSettings = {
   photoOrder: "mixed",
+  isAllModelPhotos: false,
   hasImageTextList: true,
   hasTextPhotoList: true,
   hasTextTextList: true,
@@ -140,6 +144,7 @@ export interface SettingsInput {
   tuning?: SearchTuning;
   listWeights?: Partial<Record<ListName, number>>;
   offLists?: ListName[];
+  isAllPhotos?: boolean;
 }
 
 function isDefaultTuning(tuning: SearchTuning): boolean {
@@ -163,5 +168,6 @@ export function settingsInput(settings: SearchSettings): SettingsInput {
     ...(isDefaultTuning(tuning) ? {} : { tuning }),
     ...(photoWeight === 1 ? {} : { listWeights: { "image-photo": photoWeight } }),
     ...(offLists.length ? { offLists } : {}),
+    ...(settings.isAllModelPhotos ? { isAllPhotos: true } : {}),
   };
 }

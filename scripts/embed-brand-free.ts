@@ -79,7 +79,7 @@ async function main(): Promise<number> {
       if (!budget) continue;
       const job: EmbedJob = {
         db, provider, budget, sourceId: id, limit: undefined, isRetryFailed: false, signal: controller.signal, secrets,
-        fetchPhoto: undefined,
+        fetchPhoto: undefined, storeDir: undefined,
         beforeBatch: () => {
           controller.signal.throwIfAborted();
           return Promise.resolve();

@@ -11,7 +11,7 @@ import { registerGradeRoutes } from "./grades/routes.js";
 import type { GradesService } from "./grades/store.js";
 import { registerOwnProductRoutes } from "./own-products/routes.js";
 import type { SupplierPhotos } from "./photos/proxy.js";
-import { ARCHIVE_PHOTO_PATH, registerPhotoRoutes } from "./photos/routes.js";
+import { ARCHIVE_PHOTO_PATH, registerPhotoRoutes, registerStoredPhotoRoute } from "./photos/routes.js";
 import type { OwnProductsService } from "./own-products/store.js";
 import type { SearchJournal } from "./search/journal.js";
 import { registerSearchRoutes } from "./search/routes.js";
@@ -51,6 +51,8 @@ export interface AppOptions {
   supplierPhotos?: SupplierPhotos;
   // Macma and Easy Gifts photos out of their ZIP archives (/api/photos/promotray); unset, the app has none
   archivePhotos?: SupplierPhotos;
+  // The folder of the reduced photo copies (/api/photos/stored, src/photos/thumbs.ts); unset, the app has none
+  photoStoreDir?: string;
 }
 
 const CLIENT_ERROR = 400;
@@ -135,7 +137,7 @@ export function buildApp(options: AppOptions = {}): FastifyInstance {
     });
   }
 
-  const { auth, users, search, searchSettings, ownProducts, grades, suppliers, supplierPhotos, archivePhotos } = options;
+  const { auth, users, search, searchSettings, ownProducts, grades, suppliers, supplierPhotos, archivePhotos, photoStoreDir } = options;
   if (auth) {
     app.decorateRequest("user", null);
     registerSignInRoute(app, auth);
@@ -157,6 +159,7 @@ export function buildApp(options: AppOptions = {}): FastifyInstance {
       if (suppliers) registerSupplierRoutes(signedIn, suppliers);
       if (supplierPhotos) registerPhotoRoutes(signedIn, supplierPhotos);
       if (archivePhotos) registerPhotoRoutes(signedIn, archivePhotos, ARCHIVE_PHOTO_PATH, "macma");
+      if (photoStoreDir) registerStoredPhotoRoute(signedIn, photoStoreDir);
       // A scope inside it: its hook runs after the session's, and every route there is the admin's alone
       if (users || searchSettings) {
         void signedIn.register((admin, _adminOptions, adminDone) => {
